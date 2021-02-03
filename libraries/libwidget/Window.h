@@ -14,8 +14,9 @@
 #define WINDOW_RESIZE_AREA 16
 #define WINDOW_CONTENT_PADDING 1
 
-struct Window
+class Window
 {
+private:
     int _handle;
 
     String _title = "Window";
@@ -47,9 +48,9 @@ struct Window
     OwnPtr<Painter> backbuffer_painter;
 
     Vector<Recti> _dirty_rects{};
-    bool dirty_layout;
+    bool _dirty_layout;
 
-    EventHandler handlers[EventType::__COUNT];
+    EventHandler _handlers[EventType::__COUNT];
 
     Widget *_root;
 
@@ -57,15 +58,21 @@ struct Window
     Widget *_mouse_focus = nullptr;
     Widget *_mouse_over = nullptr;
 
-    HashMap<String, Widget *> widget_by_id{};
+    HashMap<String, Widget *> _widget_by_id{};
 
     OwnPtr<Invoker> _repaint_invoker;
     OwnPtr<Invoker> _relayout_invoker;
 
 public:
     int handle() { return this->_handle; }
-    int frontbuffer_handle() { return frontbuffer->handle(); }
-    int backbuffer_handle() { return backbuffer->handle(); }
+
+    int frontbuffer_handle() const { return frontbuffer->handle(); }
+
+    Vec2i frontbuffer_size() const { return frontbuffer->size(); }
+
+    int backbuffer_handle() const { return backbuffer->handle(); }
+
+    Vec2i backbuffer_size() const { return backbuffer->size(); }
 
     void title(String title);
     String title() { return _title; }
@@ -140,9 +147,9 @@ public:
     template <typename WidgetType, typename CallbackType>
     void with_widget(String name, CallbackType callback)
     {
-        if (widget_by_id.has_key(name))
+        if (_widget_by_id.has_key(name))
         {
-            auto widget = dynamic_cast<WidgetType *>(widget_by_id[name]);
+            auto widget = dynamic_cast<WidgetType *>(_widget_by_id[name]);
 
             if (widget)
             {
@@ -158,6 +165,22 @@ public:
     void widget_removed(Widget *widget);
 
     void register_widget_by_id(String id, Widget *widget);
+
+    void change_framebuffer_if_needed();
+
+    Border resize_bound_containe(Vec2i position);
+
+    void begin_resize(Vec2i mouse_position);
+
+    void do_resize(Vec2i mouse_position);
+
+    void end_resize();
+
+    Widget *child_at(Vec2i position);
+
+    /* --- Focus ------------------------------------------------------------ */
+
+    bool has_keyboard_focus(Widget *widget);
 
     /* --- Layout ----------------------------------------------------------- */
 

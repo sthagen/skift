@@ -57,7 +57,8 @@ public:
 
     bool any() const { return !empty(); }
 
-    T *raw_storage() { return _storage; }
+    constexpr T *raw_storage() { return _storage; }
+    constexpr const T* raw_storage() const { return _storage; }
 
     T &at(size_t index)
     {
@@ -82,9 +83,9 @@ public:
     {
         ensure_capacity(data.size());
 
-        for (size_t i = 0; i < data.size(); i++)
+        for (const auto &el : data)
         {
-            push_back(data[i]);
+            push_back(el);
         }
     }
 
@@ -218,6 +219,20 @@ public:
         return Iteration::CONTINUE;
     }
 
+    template <typename Callback>
+    Iteration foreach_reversed(Callback callback) const
+    {
+        for (size_t i = _count; i > 0; i--)
+        {
+            if (callback(_storage[i - 1]) == Iteration::STOP)
+            {
+                return Iteration::STOP;
+            }
+        }
+
+        return Iteration::CONTINUE;
+    }
+
     template <typename Comparator>
     void sort(Comparator comparator)
     {
@@ -231,6 +246,12 @@ public:
                 }
             }
         }
+    }
+
+    void resize(size_t newCount)
+    {
+        ensure_capacity(newCount);
+        _count = newCount;
     }
 
     void ensure_capacity(size_t capacity)
@@ -493,6 +514,14 @@ public:
         }
     }
 
+    void push_back_data(const T *data, size_t size)
+    {
+        for (size_t i = 0; i < size; i++)
+        {
+            push_back(data[i]);
+        }
+    }
+
     T pop()
     {
         assert(_count > 0);
@@ -537,4 +566,24 @@ public:
 
         return false;
     }
+
+    // Vector iteration
+    class iterator
+    {
+    public:
+        iterator(T *ptr) : _ptr(ptr) {}
+        iterator operator++()
+        {
+            ++_ptr;
+            return *this;
+        }
+        bool operator!=(const iterator &other) const { return _ptr != other._ptr; }
+        const T &operator*() const { return *_ptr; }
+
+    private:
+        T *_ptr;
+    };
+
+    iterator begin() const { return iterator(_storage); }
+    iterator end() const { return iterator(_storage + _count); }
 };

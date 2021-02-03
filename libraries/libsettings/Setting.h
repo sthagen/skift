@@ -9,6 +9,7 @@ class Setting
 {
 private:
     __noncopyable(Setting);
+    __nonmovable(Setting);
 
     OwnPtr<Watcher> _watcher;
     settings::Path _path;
@@ -35,8 +36,6 @@ public:
 
     void write(const json::Value &value)
     {
-        _value = value;
-        _callback(value);
         settings::write(_path, value);
     }
 

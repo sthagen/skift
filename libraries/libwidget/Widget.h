@@ -8,23 +8,22 @@
 #include <libwidget/Event.h>
 #include <libwidget/Theme.h>
 
-struct Widget;
-struct Painter;
+class Painter;
 struct Window;
-
-enum LayoutType
-{
-    LAYOUT_STACK,
-    LAYOUT_GRID,
-    LAYOUT_VGRID,
-    LAYOUT_HGRID,
-    LAYOUT_VFLOW,
-    LAYOUT_HFLOW,
-};
 
 struct Layout
 {
-    LayoutType type;
+    enum Type
+    {
+        STACK,
+        GRID,
+        VGRID,
+        HGRID,
+        VFLOW,
+        HFLOW,
+    };
+
+    Type type;
 
     int hcell;
     int vcell;
@@ -32,37 +31,22 @@ struct Layout
 };
 
 #define STACK() \
-    ((Layout){LAYOUT_STACK, 0, 0, Vec2i::zero()})
+    (Layout{Layout::STACK, 0, 0, Vec2i::zero()})
 
 #define GRID(_hcell, _vcell, _hspacing, _vspacing) \
-    ((Layout){LAYOUT_GRID, (_hcell), (_vcell), Vec2i((_hspacing), (_vspacing))})
+    (Layout{Layout::GRID, (_hcell), (_vcell), Vec2i((_hspacing), (_vspacing))})
 
 #define VGRID(_vspacing) \
-    ((Layout){LAYOUT_VGRID, 0, 0, Vec2i(0, (_vspacing))})
+    (Layout{Layout::VGRID, 0, 0, Vec2i(0, (_vspacing))})
 
 #define HGRID(_hspacing) \
-    ((Layout){LAYOUT_HGRID, 0, 0, Vec2i((_hspacing), 0)})
+    (Layout{Layout::HGRID, 0, 0, Vec2i((_hspacing), 0)})
 
 #define VFLOW(_vspacing) \
-    ((Layout){LAYOUT_VFLOW, 0, 0, Vec2i(0, (_vspacing))})
+    (Layout{Layout::VFLOW, 0, 0, Vec2i(0, (_vspacing))})
 
 #define HFLOW(_hspacing) \
-    ((Layout){LAYOUT_HFLOW, 0, 0, Vec2i((_hspacing), 0)})
-
-struct WidgetColor
-{
-    bool overwritten;
-    Color color;
-};
-
-struct WidgetMetrics
-{
-    Vec2i origin;
-
-    Recti overflow;
-    Recti bound;
-    Recti content;
-};
+    (Layout{Layout::HFLOW, 0, 0, Vec2i((_hspacing), 0)})
 
 class Widget
 {
@@ -79,8 +63,9 @@ private:
 
     Insetsi _outsets{};
     Insetsi _insets{};
+    Vec2i _content_scroll{};
 
-    WidgetColor _colors[__THEME_COLOR_COUNT] = {};
+    Optional<Color> _colors[__THEME_COLOR_COUNT] = {};
     Layout _layout = {};
     RefPtr<Font> _font;
 
@@ -88,8 +73,8 @@ private:
 
     EventHandler _handlers[EventType::__COUNT] = {};
 
-    struct Widget *_parent = {};
-    struct Window *_window = {};
+    Widget *_parent = {};
+    Window *_window = {};
 
     Vector<Widget *> _childs = {};
 
@@ -98,6 +83,7 @@ public:
     static constexpr auto GREEDY = (1 << 1);
     static constexpr auto SQUARE = (1 << 2);
     static constexpr auto NO_MOUSE_HIT = (1 << 3);
+    static constexpr auto NOT_AFFECTED_BY_SCROLL = (1 << 4);
 
     void id(String id);
 
@@ -199,14 +185,25 @@ public:
     }
 
     Recti container() const { return _container; }
+
     void container(Recti container) { _container = container; }
 
     Vec2i origin() const
     {
-        return {
-            _outsets.left() + container().x(),
-            _outsets.top() + container().y(),
-        };
+        if (_parent && !(_flags & NOT_AFFECTED_BY_SCROLL))
+        {
+            return {
+                _outsets.left() + container().x() - _parent->scroll().x(),
+                _outsets.top() + container().y() - _parent->scroll().y(),
+            };
+        }
+        else
+        {
+            return {
+                _outsets.left() + container().x(),
+                _outsets.top() + container().y(),
+            };
+        }
     }
 
     Recti bound() const { return container().shrinked(_outsets).size(); }
@@ -214,6 +211,14 @@ public:
     Recti content() const { return bound().shrinked(_insets); }
 
     Recti overflow() const { return bound().expended(_outsets); }
+
+    Vec2i scroll() { return _content_scroll; }
+
+    void scroll(Vec2i content_scroll)
+    {
+        _content_scroll = content_scroll;
+        should_repaint();
+    }
 
     /* --- Enable/Disable state --------------------------------------------- */
 

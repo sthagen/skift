@@ -107,7 +107,7 @@ void Window::repaint_dirty()
 {
     // FIXME: find a better way to schedule update after layout.
 
-    if (dirty_layout)
+    if (_dirty_layout)
     {
         relayout();
     }
@@ -145,7 +145,7 @@ void Window::relayout()
     root()->container(content_bound());
     root()->relayout();
 
-    dirty_layout = false;
+    _dirty_layout = false;
 }
 
 void Window::should_repaint(Recti rectangle)
@@ -172,27 +172,27 @@ void Window::should_repaint(Recti rectangle)
 
 void Window::should_relayout()
 {
-    if (dirty_layout || !_visible)
+    if (_dirty_layout || !_visible)
     {
         return;
     }
 
-    dirty_layout = true;
+    _dirty_layout = true;
 
     _relayout_invoker->invoke_later();
 }
 
-static void window_change_framebuffer_if_needed(Window *window)
+void Window::change_framebuffer_if_needed()
 {
-    if (window->bound().width() > window->frontbuffer->width() ||
-        window->bound().height() > window->frontbuffer->height() ||
-        window->bound().area() < window->frontbuffer->bound().area() * 0.75)
+    if (bound().width() > frontbuffer->width() ||
+        bound().height() > frontbuffer->height() ||
+        bound().area() < frontbuffer->bound().area() * 0.75)
     {
-        window->frontbuffer = Bitmap::create_shared(window->width(), window->height()).take_value();
-        window->frontbuffer_painter = own<Painter>(window->frontbuffer);
+        frontbuffer = Bitmap::create_shared(width(), height()).take_value();
+        frontbuffer_painter = own<Painter>(frontbuffer);
 
-        window->backbuffer = Bitmap::create_shared(window->width(), window->height()).take_value();
-        window->backbuffer_painter = own<Painter>(window->backbuffer);
+        backbuffer = Bitmap::create_shared(width(), height()).take_value();
+        backbuffer_painter = own<Painter>(backbuffer);
     }
 }
 
@@ -214,7 +214,7 @@ void Window::show()
 
     _visible = true;
 
-    window_change_framebuffer_if_needed(this);
+    change_framebuffer_if_needed();
 
     relayout();
     repaint(*backbuffer_painter, bound());
@@ -241,76 +241,76 @@ void Window::hide()
     Application::hide_window(this);
 }
 
-Border window_resize_bound_containe(Window *window, Vec2i position)
+Border Window::resize_bound_containe(Vec2i position)
 {
-    Recti resize_bound = window->bound().expended(Insets(WINDOW_RESIZE_AREA));
+    Recti resize_bound = bound().expended(Insets(WINDOW_RESIZE_AREA));
     return resize_bound.contains(Insets(WINDOW_RESIZE_AREA), position);
 }
 
-void window_begin_resize(Window *window, Vec2i mouse_position)
+void Window::begin_resize(Vec2i mouse_position)
 {
-    window->_is_resizing = true;
+    _is_resizing = true;
 
-    Border borders = window_resize_bound_containe(window, mouse_position);
+    Border borders = resize_bound_containe(mouse_position);
 
-    window->_resize_horizontal = borders & (Border::LEFT | Border::RIGHT);
-    window->_resize_vertical = borders & (Border::TOP | Border::BOTTOM);
+    _resize_horizontal = borders & (Border::LEFT | Border::RIGHT);
+    _resize_vertical = borders & (Border::TOP | Border::BOTTOM);
 
-    Vec2i resize_region_begin = window->position();
+    Vec2i resize_region_begin = position();
 
     if (borders & Border::TOP)
     {
-        resize_region_begin += Vec2i(0, window->height());
+        resize_region_begin += Vec2i(0, height());
     }
 
     if (borders & Border::LEFT)
     {
-        resize_region_begin += Vec2i(window->width(), 0);
+        resize_region_begin += Vec2i(width(), 0);
     }
 
-    window->_resize_begin = resize_region_begin;
+    _resize_begin = resize_region_begin;
 }
 
-void window_do_resize(Window *window, Vec2i mouse_position)
+void Window::do_resize(Vec2i mouse_position)
 {
     Recti new_bound = Recti::from_two_point(
-        window->_resize_begin,
-        window->position() + mouse_position);
+        _resize_begin,
+        position() + mouse_position);
 
-    if (!window->_resize_horizontal)
+    if (!_resize_horizontal)
     {
         new_bound = new_bound
-                        .moved({window->x(), new_bound.y()})
-                        .with_width(window->width());
+                        .moved({x(), new_bound.y()})
+                        .with_width(width());
     }
 
-    if (!window->_resize_vertical)
+    if (!_resize_vertical)
     {
         new_bound = new_bound
-                        .moved({new_bound.x(), window->y()})
-                        .with_height(window->height());
+                        .moved({new_bound.x(), y()})
+                        .with_height(height());
     }
 
-    Vec2i content_size = window->root()->compute_size();
+    Vec2i content_size = root()->compute_size();
 
     new_bound = new_bound.with_width(MAX(new_bound.width(), content_size.x() + WINDOW_CONTENT_PADDING * 2));
     new_bound = new_bound.with_height(MAX(new_bound.height(), content_size.y() + WINDOW_CONTENT_PADDING));
 
-    window->bound(new_bound);
+    bound(new_bound);
 
     Event resize_event = {};
     resize_event.type = Event::WINDOW_RESIZED;
-    window->dispatch_event(&resize_event);
+    dispatch_event(&resize_event);
 }
 
-void window_end_resize(Window *window)
+void Window::end_resize()
 {
-    window->_is_resizing = false;
+    _is_resizing = false;
 }
 
-Widget *window_child_at(Window *window, Vec2i position)
+Widget *Window::child_at(Vec2i position)
 {
-    return window->root()->child_at(position);
+    return root()->child_at(position);
 }
 
 void Window::dispatch_event(Event *event)
@@ -323,10 +323,10 @@ void Window::dispatch_event(Event *event)
         event->mouse.old_position = event->mouse.old_position - _bound.position();
     }
 
-    if (handlers[event->type])
+    if (_handlers[event->type])
     {
         event->accepted = true;
-        handlers[event->type](event);
+        _handlers[event->type](event);
     }
 
     if (event->accepted)
@@ -385,11 +385,11 @@ void Window::dispatch_event(Event *event)
 
     case Event::MOUSE_MOVE:
     {
-        Border borders = window_resize_bound_containe(this, event->mouse.position);
+        Border borders = resize_bound_containe(event->mouse.position);
 
         if (_is_resizing && !_is_maximised)
         {
-            window_do_resize(this, event->mouse.position);
+            do_resize(event->mouse.position);
         }
         else if (!_mouse_focus && borders && (_flags & WINDOW_RESIZABLE) && !_is_maximised)
         {
@@ -420,7 +420,7 @@ void Window::dispatch_event(Event *event)
         }
         else
         {
-            auto result = window_child_at(this, event->mouse.position);
+            auto result = child_at(event->mouse.position);
 
             if (_mouse_focus)
             {
@@ -459,12 +459,12 @@ void Window::dispatch_event(Event *event)
 
             if (_mouse_focus)
             {
-                auto window_position = result->position_in_window();
+                auto position_in_window = _mouse_focus->position_in_window();
 
                 Event event_copy = *event;
 
-                event_copy.mouse.position -= window_position;
-                event_copy.mouse.old_position -= window_position;
+                event_copy.mouse.position -= position_in_window;
+                event_copy.mouse.old_position -= position_in_window;
 
                 _mouse_focus->dispatch_event(&event_copy);
 
@@ -475,12 +475,32 @@ void Window::dispatch_event(Event *event)
         break;
     }
 
+    case Event::MOUSE_SCROLL:
+    {
+        auto result = child_at(event->mouse.position);
+
+        if (result)
+        {
+            auto window_position = result->position_in_window();
+
+            Event event_copy = *event;
+
+            event_copy.mouse.position -= window_position;
+            event_copy.mouse.old_position -= window_position;
+
+            result->dispatch_event(&event_copy);
+
+            event->accepted = event_copy.accepted;
+        }
+
+        break;
+    }
+
     case Event::MOUSE_BUTTON_PRESS:
     {
         if (root()->bound().contains(event->mouse.position))
         {
-
-            auto result = window_child_at(this, event->mouse.position);
+            auto result = child_at(event->mouse.position);
 
             if (result)
             {
@@ -504,9 +524,9 @@ void Window::dispatch_event(Event *event)
                 !event->accepted &&
                 !_is_resizing &&
                 !_is_maximised &&
-                window_resize_bound_containe(this, event->mouse.position))
+                resize_bound_containe(event->mouse.position))
             {
-                window_begin_resize(this, event->mouse.position);
+                begin_resize(event->mouse.position);
             }
         }
 
@@ -525,7 +545,7 @@ void Window::dispatch_event(Event *event)
 
         if (_is_resizing)
         {
-            window_end_resize(this);
+            end_resize();
         }
 
         break;
@@ -535,7 +555,7 @@ void Window::dispatch_event(Event *event)
     {
         if (root()->bound().contains(event->mouse.position))
         {
-            auto result = window_child_at(this, event->mouse.position);
+            auto result = child_at(event->mouse.position);
 
             if (result)
             {
@@ -569,7 +589,7 @@ void Window::dispatch_event(Event *event)
 void Window::on(EventType event, EventHandler handler)
 {
     assert(event < EventType::__COUNT);
-    handlers[event] = move(handler);
+    _handlers[event] = move(handler);
 }
 
 void Window::cursor(CursorState state)
@@ -591,6 +611,11 @@ void Window::focus_widget(Widget *widget)
     _keyboard_focus = widget;
 }
 
+bool Window::has_keyboard_focus(Widget *widget)
+{
+    return _keyboard_focus == widget;
+}
+
 void Window::widget_removed(Widget *widget)
 {
     if (_keyboard_focus == widget)
@@ -608,12 +633,12 @@ void Window::widget_removed(Widget *widget)
         _mouse_focus = nullptr;
     }
 
-    widget_by_id.remove_value(widget);
+    _widget_by_id.remove_value(widget);
 }
 
 void Window::register_widget_by_id(String id, Widget *widget)
 {
-    widget_by_id[id] = widget;
+    _widget_by_id[id] = widget;
 }
 
 Color Window::color(ThemeColorRole role)
@@ -666,7 +691,7 @@ void Window::bound(Recti new_bound)
 
     if (!have_same_size)
     {
-        window_change_framebuffer_if_needed(this);
+        change_framebuffer_if_needed();
 
         should_relayout();
         should_repaint(bound());

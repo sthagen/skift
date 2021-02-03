@@ -10,11 +10,10 @@
 namespace panel
 {
 
-ApplicationListing::ApplicationListing(Widget *parent) : Container(parent)
+ApplicationListing::ApplicationListing(Widget *parent) : VScroll(parent)
 {
     layout(VFLOW(4));
     flags(Widget::FILL);
-    insets(Insetsi(4));
 
     render();
 }
@@ -35,7 +34,8 @@ void ApplicationListing::render()
 {
     FuzzyMatcher matcher;
 
-    clear_children();
+    host()->clear_children();
+    host()->layout(VFLOW(4));
 
     bool find_any = false;
 
@@ -47,7 +47,7 @@ void ApplicationListing::render()
 
         find_any = true;
 
-        auto item = new Button(this, Button::TEXT, entry.icon, entry.name);
+        auto item = new Button(host(), Button::TEXT, entry.icon, entry.name);
 
         item->insets(Insetsi(8));
 
@@ -61,7 +61,7 @@ void ApplicationListing::render()
 
     if (!find_any)
     {
-        new Label(this, "No application found!", Anchor::CENTER);
+        new Label(host(), "No application found!", Anchor::CENTER);
     }
 }
 

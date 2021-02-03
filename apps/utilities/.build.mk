@@ -39,8 +39,10 @@ UTILITIES = \
 	TRUE \
 	UNAME \
 	UNLINK \
+	UNZIP \
 	UPTIME \
-	YES
+	YES \
+	ZIP
 
 __TESTEXEC_LIBS =
 __TESTEXEC_NAME = __testexec
@@ -171,6 +173,12 @@ SETTINGSCTL_NAME = settingsctl
 WALLPAPERCTL_LIBS = graphic
 WALLPAPERCTL_NAME = wallpaperctl
 
+ZIP_LIBS = file
+ZIP_NAME = zip
+
+UNZIP_LIBS = file
+UNZIP_NAME = unzip
+
 define UTIL_TEMPLATE =
 
 $(1)_BINARY  = $(BUILD_DIRECTORY_UTILITIES)/$($(1)_NAME)
@@ -184,6 +192,10 @@ $$($(1)_BINARY): $$($(1)_OBJECT) $$(patsubst %, $$(BUILD_DIRECTORY_LIBS)/lib%.a,
 	$$(DIRECTORY_GUARD)
 	@echo [$(1)] [LD] $($(1)_NAME)
 	@$(CXX) $(LDFLAGS) -o $$@ $$($(1)_OBJECT) $$(patsubst %, -l%, $$($(1)_LIBS))
+	@if $(CONFIG_STRIP); then \
+		echo [$(1)] [STRIP] $($(1)_NAME); \
+		$(STRIP) $$@; \
+	fi
 
 $$($(1)_OBJECT): $$($(1)_SOURCE)
 	$$(DIRECTORY_GUARD)

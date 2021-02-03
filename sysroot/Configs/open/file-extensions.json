@@ -12,4 +12,6 @@
     ".css": "text",
     ".js": "text",
     ".md": "text",
+    ".zip": "archive",
+    ".tar": "archive"
 }
