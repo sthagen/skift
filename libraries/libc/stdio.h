@@ -7,7 +7,12 @@
 
 __BEGIN_HEADER
 
-typedef void FILE;
+typedef struct
+{
+    int handle;
+    int is_eof;
+    int error;
+} FILE;
 #define __DEFINED_FILE
 
 #define BUFSIZ 8192
@@ -15,10 +20,12 @@ typedef void FILE;
 FILE *__stdio_get_stdin(void);
 FILE *__stdio_get_stdout(void);
 FILE *__stdio_get_stderr(void);
+FILE *__stdio_get_stdlog(void);
 
 #define stdin (__stdio_get_stdin())
 #define stdout (__stdio_get_stdout())
 #define stderr (__stdio_get_stderr())
+#define stdlog (__stdio_get_stdlog())
 
 #define EOF (-1)
 
@@ -86,6 +93,7 @@ int rename(const char *oldpath, const char *newpath);
 #define _IOFBF 2
 
 char *tmpnam(char *s);
+char *tempnam(const char *dir, const char *s);
 #define L_tmpnam 256
 
 int vsscanf(const char *str, const char *format, va_list ap);

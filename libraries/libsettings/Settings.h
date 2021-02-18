@@ -1,10 +1,10 @@
 #pragma once
 
 #include <libsettings/Path.h>
-#include <libsystem/json/Json.h>
+#include <libutils/json/Json.h>
 #include <libutils/Optional.h>
 
-namespace settings
+namespace Settings
 {
 
 /* --- Private Functions ---------------------------------------------------- */
@@ -21,4 +21,4 @@ Optional<json::Value> read(const Path path);
 
 bool write(const Path path, json::Value value);
 
-} // namespace settings
+} // namespace Settings

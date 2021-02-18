@@ -6,7 +6,7 @@
 #undef LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
 #undef LODEPNG_NO_COMPILE_DISK
 
-#include <libsystem/Assert.h>
+#include <assert.h>
 #include <libsystem/Logger.h>
 #include <libsystem/Result.h>
 #include <libsystem/io/File.h>
@@ -72,7 +72,7 @@ RefPtr<Bitmap> Bitmap::placeholder()
     return create_static(2, 2, _placeholder_buffer);
 }
 
-ResultOr<RefPtr<Bitmap>> Bitmap::load_from(const char *path)
+ResultOr<RefPtr<Bitmap>> Bitmap::load_from(String path)
 {
     File file{path};
     auto result_or_read = file.read_all();
@@ -116,7 +116,7 @@ ResultOr<RefPtr<Bitmap>> Bitmap::load_from(const char *path)
     }
 }
 
-RefPtr<Bitmap> Bitmap::load_from_or_placeholder(const char *path)
+RefPtr<Bitmap> Bitmap::load_from_or_placeholder(String path)
 {
     auto result = load_from(path);
 
@@ -128,7 +128,7 @@ RefPtr<Bitmap> Bitmap::load_from_or_placeholder(const char *path)
     return result.take_value();
 }
 
-Result Bitmap::save_to(const char *path)
+Result Bitmap::save_to(String path)
 {
     void *outbuffer __cleanup_malloc = nullptr;
 

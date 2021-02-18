@@ -3,9 +3,11 @@
 #include <libsystem/Logger.h>
 #include <libsystem/io/Filesystem.h>
 #include <libsystem/io/Stream.h>
-#include <libsystem/process/Environment.h>
 #include <libsystem/process/Launchpad.h>
 #include <libsystem/process/Process.h>
+#include <skift/Environment.h>
+
+#include <stdio.h>
 
 int main(int argc, char **argv)
 {

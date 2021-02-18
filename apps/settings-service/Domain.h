@@ -2,12 +2,39 @@
 
 #include "settings-service/Bundle.h"
 
-namespace settings
+namespace Settings
 {
 
 struct Domain
 {
     HashMap<String, Bundle> bundles;
+
+    static Domain load(const String &path)
+    {
+        Domain domain;
+        System::Directory directory{path};
+
+        for (auto entry : directory.entries())
+        {
+            if (entry.stat.type != FILE_TYPE_REGULAR)
+            {
+                continue;
+            }
+
+            auto bundle_path = String::format("{}/{}", path, entry.name);
+
+            auto bundle = Bundle::Load(bundle_path);
+
+            if (bundle)
+            {
+                auto path = ::Path::parse(bundle_path);
+
+                domain.bundles[path.basename_without_extension()] = *bundle;
+            }
+        }
+
+        return domain;
+    }
 
     void write(const Path &path, const json::Value &value)
     {
@@ -23,7 +50,7 @@ struct Domain
     {
         if (path.domain == "*")
         {
-            json::Object obj;
+            json::Value::Object obj;
 
             bundles.foreach ([&](auto &key, auto &value) {
                 obj[key] = value.read(path);
@@ -44,4 +71,4 @@ struct Domain
     }
 };
 
-} // namespace settings
+} // namespace Settings

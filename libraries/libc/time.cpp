@@ -1,5 +1,7 @@
-#include <libsystem/Time.h>
+#include <assert.h>
 #include <time.h>
+
+#include <skift/Time.h>
 
 time_t time(time_t *timer)
 {
@@ -45,4 +47,10 @@ size_t strftime(char *s, size_t n, const char *format, const struct tm *tptr)
     __unused(tptr);
 
     return 0;
+}
+
+time_t mktime(struct tm *ptr)
+{
+    __unused(ptr);
+    ASSERT_NOT_REACHED();
 }

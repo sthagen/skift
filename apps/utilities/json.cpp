@@ -1,4 +1,4 @@
-#include <libsystem/json/Json.h>
+#include <libutils/json/Json.h>
 #include <libutils/ArgParse.h>
 
 constexpr auto PROLOGUE = "Reformats JSON to make it easier to read.";
@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
     else
     {
         args.argv().foreach ([&](auto &path) {
-            auto root = json::parse_file(path.cstring());
+            auto root = json::parse_file(path);
 
             Prettifier pretty{options};
             json::prettify(pretty, root);

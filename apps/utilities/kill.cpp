@@ -1,8 +1,7 @@
-#include <libsystem/io/Stream.h>
-#include <libsystem/json/Json.h>
 #include <libsystem/process/Process.h>
-#include <libsystem/utils/NumberParser.h>
 #include <libutils/ArgParse.h>
+#include <libutils/NumberParser.h>
+#include <libutils/json/Json.h>
 
 int kill(int pid)
 {
@@ -16,6 +15,16 @@ int kill(int pid)
 
 int killall(String name)
 {
+    if (name == "neko")
+    {
+        System::errln("Don't kill nekos, your are a bad persone!");
+    }
+
+    if (name == "cat")
+    {
+        System::errln("Don't kill cats, you monster!");
+    }
+
     auto processes = json::parse_file("/System/processes");
 
     for (size_t i = 0; i < processes.length(); i++)
@@ -28,7 +37,7 @@ int killall(String name)
         }
     }
 
-    return SUCCESS;
+    return PROCESS_SUCCESS;
 }
 
 int main(int argc, char const *argv[])

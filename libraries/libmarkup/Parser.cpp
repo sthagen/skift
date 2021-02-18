@@ -1,12 +1,12 @@
-#include <libsystem/Assert.h>
+#include <assert.h>
 #include <libsystem/Logger.h>
-#include <libsystem/core/CString.h>
-#include <libsystem/unicode/Codepoint.h>
-#include <libsystem/utils/NumberParser.h>
+#include <libutils/unicode/Codepoint.h>
+#include <libutils/NumberParser.h>
 #include <libutils/Scanner.h>
 #include <libutils/ScannerUtils.h>
 #include <libutils/StringBuilder.h>
 #include <libutils/Strings.h>
+#include <string.h>
 
 #include <libmarkup/Markup.h>
 
@@ -166,9 +166,9 @@ Node parse(Scanner &scan)
     return node(scan);
 }
 
-Node parse_file(const char *path)
+Node parse_file(String path)
 {
-    __cleanup(stream_cleanup) Stream *json_file = stream_open(path, OPEN_READ | OPEN_BUFFERED);
+    __cleanup(stream_cleanup) Stream *json_file = stream_open(path.cstring(), OPEN_READ | OPEN_BUFFERED);
 
     if (handle_has_error(json_file))
     {

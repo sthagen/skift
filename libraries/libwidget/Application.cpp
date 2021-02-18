@@ -1,12 +1,13 @@
-#include <libsystem/Assert.h>
+#include <assert.h>
 #include <libsystem/Logger.h>
-#include <libsystem/core/CString.h>
 #include <libsystem/eventloop/EventLoop.h>
 #include <libsystem/eventloop/Notifier.h>
 #include <libsystem/io/Connection.h>
 #include <libsystem/io/Socket.h>
 #include <libsystem/process/Process.h>
 #include <libsystem/utils/Hexdump.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <libsettings/Setting.h>
 
@@ -314,14 +315,14 @@ Window *get_window(int id)
 void hide_all_windows();
 void uninitialized();
 
-static OwnPtr<settings::Setting> _setting_theme;
-static OwnPtr<settings::Setting> _setting_wireframe;
+static OwnPtr<Settings::Setting> _setting_theme;
+static OwnPtr<Settings::Setting> _setting_wireframe;
 
 Result initialize(int argc, char **argv)
 {
     assert(_state == State::UNINITIALIZED);
 
-    _setting_theme = own<settings::Setting>(
+    _setting_theme = own<Settings::Setting>(
         "appearance:widgets.theme",
         [](const json::Value &value) {
             auto new_theme = value.as_string();
@@ -336,7 +337,7 @@ Result initialize(int argc, char **argv)
             }
         });
 
-    _setting_wireframe = own<settings::Setting>(
+    _setting_wireframe = own<Settings::Setting>(
         "appearance:widgets.wireframe",
         [](const json::Value &value) {
             _wireframe = value.as_bool();

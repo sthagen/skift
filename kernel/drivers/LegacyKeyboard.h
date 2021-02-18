@@ -1,8 +1,8 @@
 #pragma once
 
 #include <abi/Keyboard.h>
-#include <libsystem/thread/Lock.h>
 #include <libutils/RingBuffer.h>
+#include <skift/Lock.h>
 
 #include "kernel/devices/LegacyDevice.h"
 
@@ -33,4 +33,6 @@ public:
     bool can_read(FsHandle &handle) override;
 
     ResultOr<size_t> read(FsHandle &handle, void *buffer, size_t size) override;
+
+    Result call(FsHandle &handle, IOCall request, void *args) override;
 };

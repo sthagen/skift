@@ -62,6 +62,10 @@ public:
 
     void blit(Icon &icon, IconSize size, Recti destination, Color color);
 
+    void blit_rounded(Bitmap &bitmap, Recti source, Recti destination, int radius);
+
+    void blit_rounded_no_alpha(Bitmap &bitmap, Recti source, Recti destination, int radius);
+
     void clear(Color color);
 
     void clear(Recti rectangle, Color color);
@@ -102,12 +106,12 @@ public:
 
     void sepia(Recti rectangle, float value);
 
-private:
     Recti clip() const
     {
         return _state_stack[_state_stack_top].clip;
     }
 
+private:
     Vec2i origin() const { return _state_stack[_state_stack_top].origin; };
 
     Recti apply_clip(Recti rectangle);

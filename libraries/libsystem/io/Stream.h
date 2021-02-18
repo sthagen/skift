@@ -19,10 +19,22 @@ enum StreamBufferMode
 
 struct Stream;
 
+#ifndef __KERNEL__
+Stream *__stream_get_in_stream();
+Stream *__stream_get_out_stream();
+Stream *__stream_get_err_stream();
+Stream *__stream_get_log_stream();
+
+#    define in_stream (__stream_get_in_stream())
+#    define out_stream (__stream_get_out_stream())
+#    define err_stream (__stream_get_err_stream())
+#    define log_stream (__stream_get_log_stream())
+#else
 extern Stream *in_stream;
 extern Stream *out_stream;
 extern Stream *err_stream;
 extern Stream *log_stream;
+#endif
 
 Stream *stream_open(const char *path, OpenFlag flags);
 
@@ -63,7 +75,3 @@ bool stream_is_end_file(Stream *stream);
 int stream_format(Stream *stream, const char *fmt, ...);
 
 int stream_vprintf(Stream *stream, const char *fmt, va_list va);
-
-#define printf(__args...) stream_format(out_stream, __args)
-
-#define vprintf(__fmt, __va) stream_vprintf(out_stream, __fmt, __va)

@@ -1,8 +1,9 @@
-#include <libsystem/Assert.h>
-#include <libsystem/core/CString.h>
+#include <assert.h>
 #include <libsystem/io/Stream.h>
 #include <libsystem/process/Process.h>
-#include <libsystem/utils/NumberParser.h>
+#include <libutils/NumberParser.h>
+#include <assert.h>
+#include <stdio.h>
 
 #include "shell/Shell.h"
 

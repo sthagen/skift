@@ -1,11 +1,11 @@
 #pragma once
 
 #include <libipc/Peer.h>
-#include <libsystem/json/Json.h>
+#include <libutils/json/Json.h>
 
 #include <libsettings/Path.h>
 
-namespace settings
+namespace Settings
 {
 
 struct Message
@@ -29,11 +29,11 @@ struct Message
 
 struct Protocol
 {
-    using Message = settings::Message;
+    using Message = Settings::Message;
 
     static Result encode_message(Connection *connection, const Message &message);
 
     static ResultOr<Message> decode_message(Connection *connection);
 };
 
-} // namespace settings
+} // namespace Settings

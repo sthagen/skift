@@ -1,4 +1,3 @@
-#include <libsystem/process/Environment.h>
 #include <libsystem/process/Process.h>
 #include <libwidget/Button.h>
 #include <libwidget/Container.h>
@@ -6,6 +5,7 @@
 #include <libwidget/Screen.h>
 #include <libwidget/Separator.h>
 #include <libwidget/Spacer.h>
+#include <skift/Environment.h>
 
 #include "panel/model/MenuEntry.h"
 #include "panel/widgets/ApplicationListing.h"
@@ -17,7 +17,7 @@ namespace panel
 {
 
 MenuWindow::MenuWindow()
-    : Window(WINDOW_BORDERLESS | WINDOW_ALWAYS_FOCUSED | WINDOW_AUTO_CLOSE | WINDOW_ACRYLIC)
+    : Window(WINDOW_BORDERLESS | WINDOW_ALWAYS_FOCUSED | WINDOW_AUTO_CLOSE | WINDOW_ACRYLIC | WINDOW_NO_ROUNDED_CORNERS)
 {
     title("Panel");
     bound(Screen::bound().with_width(WIDTH).shrinked({PanelWindow::HEIGHT, 0, 0, 0}));

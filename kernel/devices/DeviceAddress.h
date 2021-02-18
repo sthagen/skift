@@ -1,8 +1,9 @@
 #pragma once
 
-#include <libsystem/Assert.h>
-#include <libsystem/core/CString.h>
+#include <assert.h>
+#include <libsystem/io/Stream.h>
 #include <libutils/Iteration.h>
+#include <stdio.h>
 
 #include "kernel/bus/LegacyAddress.h"
 #include "kernel/bus/PCIAddress.h"

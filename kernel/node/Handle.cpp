@@ -1,8 +1,8 @@
 
-#include <libsystem/Assert.h>
+#include <assert.h>
 #include <libsystem/Logger.h>
 #include <libsystem/Result.h>
-#include <libsystem/core/CString.h>
+#include <string.h>
 #include <libsystem/math/MinMax.h>
 
 #include "kernel/node/Connection.h"

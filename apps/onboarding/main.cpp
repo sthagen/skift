@@ -7,12 +7,13 @@
 #include <libwidget/Panel.h>
 #include <libwidget/Screen.h>
 #include <libwidget/Spacer.h>
+#include <stdio.h>
 
 int main(int argc, char **argv)
 {
     Application::initialize(argc, argv);
 
-    Window *window = new Window(WINDOW_BORDERLESS | WINDOW_ALWAYS_FOCUSED | WINDOW_ACRYLIC);
+    Window *window = new Window(WINDOW_BORDERLESS | WINDOW_ALWAYS_FOCUSED | WINDOW_ACRYLIC | WINDOW_NO_ROUNDED_CORNERS);
 
     window->title("Onboarding");
     window->type(WINDOW_TYPE_POPOVER);
@@ -86,11 +87,8 @@ int main(int argc, char **argv)
         back_button->enable_if(current_page > 0);
         dots->index(index);
 
-        char image_path[PATH_LENGTH];
-        snprintf(image_path, PATH_LENGTH, "/Applications/onboarding/illustration%d.png", index);
-
-        char content_path[PATH_LENGTH];
-        snprintf(content_path, PATH_LENGTH, "/Applications/onboarding/content%d.markup", index);
+        auto image_path = String::format("/Applications/onboarding/illustration{}.png", index);
+        auto content_path = String::format("/Applications/onboarding/content{}.markup", index);
 
         content->clear_children();
         image->change_bitmap(*Bitmap::load_from(image_path));

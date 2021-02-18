@@ -1,3 +1,6 @@
+#include <libsystem/io_new/File.h>
+#include <libutils/json/Json.h>
+
 #include <libfilepicker/model/Bookmarks.h>
 
 namespace filepicker
@@ -61,7 +64,7 @@ RefPtr<Bookmarks> Bookmarks::load()
 
 void Bookmarks::save()
 {
-    json::Array array;
+    json::Value::Array array;
 
     for (size_t i = 0; i < _bookmarks.count(); i++)
     {
@@ -73,8 +76,8 @@ void Bookmarks::save()
 
     auto data = pretty.finalize();
 
-    File file{"/Configs/file-manager/booksmark.json"};
-    file.write_all(reinterpret_cast<const void *>(data.cstring()), data.length());
+    System::File file{"/Configs/file-manager/booksmark.json", OPEN_WRITE | OPEN_CREATE};
+    file.write(data.cstring(), data.length());
 }
 
 } // namespace filepicker

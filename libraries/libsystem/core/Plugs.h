@@ -5,15 +5,13 @@
 #include <abi/IOCall.h>
 #include <abi/Launchpad.h>
 #include <abi/System.h>
+#include <skift/Time.h>
 
-#include <libsystem/Time.h>
 #include <libutils/String.h>
 
 extern "C" void __plug_initialize();
 
 extern "C" void __plug_uninitialize(int exit_code);
-
-void __no_return __plug_assert_failed(const char *expr, const char *file, const char *function, int line);
 
 class Lock;
 __no_return void __plug_lock_ensure_failed(Lock &, const char *raison, __SOURCE_LOCATION__ location);
@@ -25,16 +23,6 @@ void __plug_logger_lock();
 void __plug_logger_unlock();
 
 void __no_return __plug_logger_fatal();
-
-/* --- Memory allocator ----------------------------------------------------- */
-
-void __plug_memory_lock();
-
-void __plug_memory_unlock();
-
-void *__plug_memory_alloc(size_t size);
-
-void __plug_memory_free(void *address, size_t size);
 
 /* --- File system ---------------------------------------------------------- */
 

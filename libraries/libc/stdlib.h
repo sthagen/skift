@@ -15,6 +15,7 @@ void *malloc(size_t size);
 void free(void *ptr);
 void *calloc(size_t nmemb, size_t size);
 void *realloc(void *ptr, size_t size);
+void malloc_cleanup(void *buffer);
 
 void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));
 
@@ -43,7 +44,7 @@ void _handle_atexit(void);
 
 #define RAND_MAX 0x7FFFFFFF
 
-void abort(void);
+void abort();
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1

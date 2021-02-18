@@ -3,7 +3,8 @@
 #include <initializer_list>
 #include <type_traits>
 
-#include <libsystem/core/CString.h>
+#include <string.h>
+
 #include <libsystem/math/MinMax.h>
 
 #include <libutils/Iteration.h>
@@ -58,7 +59,7 @@ public:
     bool any() const { return !empty(); }
 
     constexpr T *raw_storage() { return _storage; }
-    constexpr const T* raw_storage() const { return _storage; }
+    constexpr const T *raw_storage() const { return _storage; }
 
     T &at(size_t index)
     {
@@ -236,7 +237,7 @@ public:
     template <typename Comparator>
     void sort(Comparator comparator)
     {
-        for (size_t i = 0; i < _count - 1; i++)
+        for (size_t i = 0; i + 1 < _count; i++)
         {
             for (size_t j = i + 1; j < _count; j++)
             {
@@ -514,7 +515,7 @@ public:
         }
     }
 
-    void push_back_data(const T *data, size_t size)
+    void push_back_many(const T *data, size_t size)
     {
         for (size_t i = 0; i < size; i++)
         {

@@ -2,7 +2,8 @@
 /* tar.c: read in memory tar archive                                          */
 
 #include <libfile/TARArchive.h>
-#include <libsystem/core/CString.h>
+#include <stdio.h>
+#include <string.h>
 
 struct __packed TARRawBlock
 {
@@ -146,7 +147,7 @@ void TARArchive::read_archive()
     // Archive does not exist
     if (!archive_file.exist())
     {
-        printf("Archive does not exist: %s", _path.string().cstring());
+        logger_error("Archive does not exist: %s", _path.string().cstring());
         return;
     }
 

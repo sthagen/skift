@@ -1,7 +1,7 @@
+#include <assert.h>
 #include <libfile/ELF.h>
-#include <libsystem/Assert.h>
 #include <libsystem/Logger.h>
-#include <libsystem/core/CString.h>
+#include <string.h>
 
 #include "kernel/interrupts/Interupts.h"
 #include "kernel/scheduling/Scheduler.h"
@@ -19,6 +19,11 @@ struct ELFLoader
 
     static Result load_program(Task *task, Stream *elf_file, Program *program_header)
     {
+        if (program_header->vaddr == 0)
+        {
+            return SUCCESS;
+        }
+
         if (program_header->vaddr <= 0x100000)
         {
             logger_error("ELF program no in user memory (0x%08x)!", program_header->vaddr);

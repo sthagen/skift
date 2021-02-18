@@ -1,11 +1,11 @@
+#include <assert.h>
 #include <libgraphic/Font.h>
-#include <libsystem/Assert.h>
 #include <libsystem/Logger.h>
 #include <libsystem/Result.h>
-#include <libsystem/core/CString.h>
 #include <libsystem/io/File.h>
 #include <libutils/HashMap.h>
 #include <libutils/Path.h>
+#include <stdio.h>
 
 static HashMap<String, RefPtr<Font>> _fonts;
 
@@ -30,9 +30,7 @@ static ResultOr<Vector<Glyph>> font_load_glyph(String name)
 
 static ResultOr<RefPtr<Bitmap>> font_load_bitmap(String name)
 {
-    char bitmap_path[PATH_LENGTH];
-    snprintf(bitmap_path, PATH_LENGTH, "/Files/Fonts/%s.png", name.cstring());
-    return Bitmap::load_from(bitmap_path);
+    return Bitmap::load_from(String::format("/Files/Fonts/{}.png", name));
 }
 
 ResultOr<RefPtr<Font>> Font::get(String name)

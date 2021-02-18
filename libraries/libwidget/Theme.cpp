@@ -1,8 +1,8 @@
 #include <libsystem/Logger.h>
-#include <libsystem/core/CString.h>
-#include <libsystem/json/Json.h>
-#include <libsystem/utils/NumberParser.h>
+#include <libutils/json/Json.h>
+#include <libutils/NumberParser.h>
 #include <libwidget/Theme.h>
+#include <string.h>
 
 static bool _theme_is_dark = true;
 
@@ -136,7 +136,7 @@ void theme_load(const char *path)
 
         if (color.is(json::STRING))
         {
-            _theme_colors[i] = Color::parse(color.as_string().cstring());
+            _theme_colors[i] = Color::parse(color.as_string());
         }
     }
 }
