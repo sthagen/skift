@@ -1,9 +1,10 @@
 
 #include <assert.h>
+#include <string.h>
+
 #include <libsystem/Logger.h>
 #include <libsystem/Result.h>
 #include <libsystem/math/MinMax.h>
-#include <string.h>
 
 #include "kernel/node/Connection.h"
 #include "kernel/node/Handle.h"
@@ -19,7 +20,7 @@ FsHandle::FsHandle(RefPtr<FsNode> node, OpenFlag flags)
     node->ref_handle(*this);
 
     node->acquire(scheduler_running_id());
-    node->open(this);
+    node->open(*this);
     node->release(scheduler_running_id());
 }
 
@@ -32,14 +33,14 @@ FsHandle::FsHandle(FsHandle &other)
     _node->ref_handle(*this);
 
     _node->acquire(scheduler_running_id());
-    _node->open(this);
+    _node->open(*this);
     _node->release(scheduler_running_id());
 }
 
 FsHandle::~FsHandle()
 {
     _node->acquire(scheduler_running_id());
-    _node->close(this);
+    _node->close(*this);
     _node->release(scheduler_running_id());
 
     _node->deref_handle(*this);
@@ -64,12 +65,12 @@ PollEvent FsHandle::poll(PollEvent events)
 {
     PollEvent selected_events = 0;
 
-    if ((events & POLL_READ) && _node->can_read(this))
+    if ((events & POLL_READ) && _node->can_read(*this))
     {
         selected_events |= POLL_READ;
     }
 
-    if ((events & POLL_WRITE) && _node->can_write(this))
+    if ((events & POLL_WRITE) && _node->can_write(*this))
     {
         selected_events |= POLL_WRITE;
     }
@@ -96,7 +97,8 @@ ResultOr<size_t> FsHandle::read(void *buffer, size_t size)
         return ERR_WRITE_ONLY_STREAM;
     }
 
-    task_block(scheduler_running(), new BlockerRead(this), -1);
+    BlockerRead blocker{*this};
+    task_block(scheduler_running(), &blocker, -1);
 
     auto result_or_read = _node->read(*this, buffer, size);
 
@@ -120,7 +122,8 @@ ResultOr<size_t> FsHandle::write(const void *buffer, size_t size)
     }
 
     auto attemp_a_write = [&](const void *buffer, size_t size) {
-        task_block(scheduler_running(), new BlockerWrite(this), -1);
+        BlockerWrite blocker{*this};
+        task_block(scheduler_running(), &blocker, -1);
 
         if (has_flag(OPEN_APPEND))
         {
@@ -222,9 +225,10 @@ Result FsHandle::stat(FileState *stat)
     return SUCCESS;
 }
 
-ResultOr<FsHandle *> FsHandle::accept()
+ResultOr<RefPtr<FsHandle>> FsHandle::accept()
 {
-    task_block(scheduler_running(), new BlockerAccept(_node), -1);
+    BlockerAccept blocker{_node};
+    task_block(scheduler_running(), &blocker, -1);
 
     auto connection_or_result = _node->accept();
 
@@ -239,7 +243,7 @@ ResultOr<FsHandle *> FsHandle::accept()
 
     auto connection = connection_or_result.take_value();
 
-    auto connection_handle = new FsHandle(connection, OPEN_SERVER);
+    auto connection_handle = make<FsHandle>(connection, OPEN_SERVER);
 
     _node->release(scheduler_running_id());
 

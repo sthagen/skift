@@ -2,6 +2,8 @@
 
 #include <skift/Time.h>
 
+#include <libutils/Vector.h>
+
 #include "kernel/node/Handle.h"
 #include "kernel/system/System.h"
 
@@ -69,11 +71,11 @@ public:
 class BlockerRead : public Blocker
 {
 private:
-    FsHandle *_handle;
+    FsHandle &_handle;
 
 public:
-    BlockerRead(FsHandle *handle)
-        : _handle(handle)
+    BlockerRead(FsHandle &handle)
+        : _handle{handle}
     {
     }
 
@@ -82,27 +84,24 @@ public:
     void on_unblock(Task *task);
 };
 
+struct Selected
+{
+    int handle_index;
+    RefPtr<FsHandle> handle;
+    PollEvent events;
+};
+
 class BlockerSelect : public Blocker
 {
 private:
-    FsHandle **_handles;
-    PollEvent *_events;
-    size_t _count;
-
-    FsHandle **_selected;
-    PollEvent *_selected_events;
+    Vector<Selected> &_handles;
+    Optional<Selected> _selected;
 
 public:
-    BlockerSelect(FsHandle **handles,
-                  PollEvent *events,
-                  size_t count,
-                  FsHandle **selected,
-                  PollEvent *selected_events)
-        : _handles(handles),
-          _events(events),
-          _count(count),
-          _selected(selected),
-          _selected_events(selected_events)
+    Optional<Selected> selected() { return _selected; }
+
+    BlockerSelect(Vector<Selected> &handles)
+        : _handles{handles}
     {
     }
 
@@ -145,11 +144,11 @@ public:
 class BlockerWrite : public Blocker
 {
 private:
-    FsHandle *_handle;
+    FsHandle &_handle;
 
 public:
-    BlockerWrite(FsHandle *handle)
-        : _handle(handle)
+    BlockerWrite(FsHandle &handle)
+        : _handle{handle}
     {
     }
 

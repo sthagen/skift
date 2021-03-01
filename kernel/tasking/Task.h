@@ -9,6 +9,9 @@
 #include "kernel/memory/Memory.h"
 #include "kernel/scheduling/Blocker.h"
 
+#include "kernel/tasking/Domain.h"
+#include "kernel/tasking/Handles.h"
+
 typedef void (*TaskEntryPoint)();
 
 struct Task
@@ -29,13 +32,16 @@ struct Task
     TaskEntryPoint entry_point;
     char fpu_registers[512];
 
-    Lock handles_lock{"handles-lock"};
-    FsHandle *handles[PROCESS_HANDLE_COUNT];
-
     List *memory_mapping;
     void *address_space;
 
     int exit_value = 0;
+
+    Handles _handles;
+    Domain _domain;
+
+    Handles &handles() { return _handles; }
+    Domain &domain() { return _domain; }
 
     TaskState state();
 
