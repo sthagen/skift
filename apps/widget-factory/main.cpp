@@ -3,6 +3,7 @@
 #include <libwidget/Container.h>
 #include <libwidget/Label.h>
 #include <libwidget/Panel.h>
+#include <libwidget/Switch.h>
 #include <libwidget/TextField.h>
 #include <libwidget/TitleBar.h>
 
@@ -28,16 +29,14 @@ int main(int argc, char **argv)
     {
         panel_hflow->layout(HFLOW(8));
 
-        auto p0 = new Panel(panel_hflow);
-        p0->flags(Widget::FILL);
-
         auto p1 = new Panel(panel_hflow);
         p1->flags(Widget::FILL);
 
         auto button = new Button(panel_hflow, Button::TEXT, "Hello, world!");
         button->flags(Widget::FILL);
 
-        auto p2 = new Panel(panel_hflow);
+        auto p2 = new Container(panel_hflow);
+        p2->layout(STACK());
         p2->flags(Widget::FILL);
 
         auto p3 = new Panel(panel_hflow);

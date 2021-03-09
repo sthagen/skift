@@ -3,6 +3,7 @@
 #define RESULT_ENUM(__ENTRY, __ENTRY_WITH_VALUE)                                  \
     __ENTRY_WITH_VALUE(SUCCESS, 0, "Success")                                     \
     __ENTRY(TIMEOUT, "Timed out")                                                 \
+    __ENTRY(INTERRUPTED, "Interrupted")                                           \
     __ENTRY(ERR_BAD_ADDRESS, "Bad address")                                       \
     __ENTRY(ERR_BAD_HANDLE, "Bad file descriptor")                                \
     __ENTRY(ERR_BAD_FONT_FILE_FORMAT, "Bad font file format")                     \
@@ -33,7 +34,6 @@
     __ENTRY(ERR_TOO_MANY_HANDLE, "Too many files open")                           \
     __ENTRY(ERR_WRITE_ONLY_STREAM, "Write only stream")                           \
     __ENTRY(ERR_DIRECTORY_NOT_EMPTY, "Directory not empty")                       \
-    __ENTRY(ERR_WRITE_STDOUT, "Failed to write to stdout")                        \
     __ENTRY(ERR_EXTENSION, "Unrecognized file extension")                         \
     __ENTRY(ERR_ACCESS_DENIED, "Acces denied")
 
