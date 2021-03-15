@@ -1,4 +1,5 @@
 #include <libsystem/Logger.h>
+#include <libutils/ResultOr.h>
 
 #include "kernel/interrupts/Interupts.h"
 #include "kernel/memory/Memory.h"
@@ -137,12 +138,7 @@ Result arch_virtual_map(void *address_space, MemoryRange physical_range, uintptr
 
         if (!pml4_entry->present)
         {
-            Result alloc_result = memory_alloc_identity(address_space, MEMORY_CLEAR, (uintptr_t *)&pml3);
-
-            if (alloc_result != SUCCESS)
-            {
-                return alloc_result;
-            }
+            TRY(memory_alloc_identity(address_space, MEMORY_CLEAR, (uintptr_t *)&pml3));
 
             pml4_entry->present = 1;
             pml4_entry->writable = 1;
@@ -155,12 +151,7 @@ Result arch_virtual_map(void *address_space, MemoryRange physical_range, uintptr
 
         if (!pml3_entry->present)
         {
-            Result alloc_result = memory_alloc_identity(address_space, MEMORY_CLEAR, (uintptr_t *)&pml2);
-
-            if (alloc_result != SUCCESS)
-            {
-                return alloc_result;
-            }
+            TRY(memory_alloc_identity(address_space, MEMORY_CLEAR, (uintptr_t *)&pml2));
 
             pml3_entry->present = 1;
             pml3_entry->writable = 1;
@@ -173,12 +164,7 @@ Result arch_virtual_map(void *address_space, MemoryRange physical_range, uintptr
 
         if (!pml2_entry->present)
         {
-            Result alloc_result = memory_alloc_identity(address_space, MEMORY_CLEAR, (uintptr_t *)&pml1);
-
-            if (alloc_result != SUCCESS)
-            {
-                return alloc_result;
-            }
+            TRY(memory_alloc_identity(address_space, MEMORY_CLEAR, (uintptr_t *)&pml1));
 
             pml2_entry->present = 1;
             pml2_entry->writable = 1;

@@ -1,4 +1,6 @@
 #pragma once
+
+#include <libio/Seek.h>
 #include <libsystem/io/SeekableReader.h>
 #include <libutils/Slice.h>
 #include <libutils/String.h>
@@ -15,7 +17,7 @@ public:
     inline T peek()
     {
         T result = get<T>();
-        _reader.seek(-sizeof(T), WHENCE_HERE);
+        _reader.seek(IO::SeekFrom::current(-sizeof(T)));
         return result;
     }
 
@@ -31,12 +33,12 @@ public:
     {
         char *cstr = new char[len];
         assert(_reader.read(cstr, len) == len);
-        return String(make<StringStorage>(cstr, len));
+        return String(make<StringStorage>(ADOPT, cstr, len));
     }
 
     inline void skip(size_t num_bytes)
     {
-        _reader.seek(num_bytes, WHENCE_HERE);
+        _reader.seek(IO::SeekFrom::current(num_bytes));
     }
 
     inline bool good()
@@ -47,7 +49,7 @@ public:
     // Inherited from SeekableReader
     virtual size_t length() override;
     virtual size_t position() override;
-    virtual size_t seek(size_t pos, Whence whence) override;
+    virtual size_t seek(IO::SeekFrom from) override;
     virtual size_t read(void *buffer, size_t size) override;
 
 private:

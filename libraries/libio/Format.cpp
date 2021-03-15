@@ -1,21 +1,19 @@
+#include <libio/Format.h>
 #include <libutils/NumberFormat.h>
-#include <libutils/String.h>
 
-#include <libsystem/io_new/Format.h>
-
-namespace System
+namespace IO
 {
 
 ResultOr<size_t> Format::format(Writer &writer)
 {
-    return System::format(writer, "Object({#x})", reinterpret_cast<uintptr_t>(this));
+    return IO::format(writer, "Object({#x})", reinterpret_cast<uintptr_t>(this));
 }
 
 ResultOr<size_t> format(Writer &writer, const Formating &formating, char value)
 {
     if (formating.type == Formating::CHARACTER)
     {
-        return writer.write(value);
+        return IO::write(writer, value);
     }
     else
     {
@@ -27,7 +25,7 @@ ResultOr<size_t> format(Writer &writer, const Formating &formating, unsigned cha
 {
     if (formating.type == Formating::CHARACTER)
     {
-        return writer.write(value);
+        return IO::write(writer, value);
     }
     else
     {
@@ -77,12 +75,12 @@ ResultOr<size_t> format(Writer &writer, const Formating &, double value)
 
 ResultOr<size_t> format(Writer &writer, const Formating &, const char *cstring)
 {
-    return writer.write(cstring);
+    return IO::write(writer, cstring);
 }
 
 ResultOr<size_t> format(Writer &writer, const Formating &, const String string)
 {
-    return writer.write(string.cstring());
+    return IO::write(writer, string.cstring());
 }
 
-} // namespace System
+} // namespace IO

@@ -7,6 +7,7 @@
 #include <abi/System.h>
 #include <skift/Time.h>
 
+#include <libio/Seek.h>
 #include <libutils/String.h>
 
 extern "C" void __plug_initialize();
@@ -78,7 +79,7 @@ size_t __plug_handle_write(Handle *handle, const void *buffer, size_t size);
 
 Result __plug_handle_call(Handle *handle, IOCall request, void *args);
 
-int __plug_handle_seek(Handle *handle, int offset, Whence whence);
+int __plug_handle_seek(Handle *handle, IO::SeekFrom from);
 
 int __plug_handle_tell(Handle *handle);
 

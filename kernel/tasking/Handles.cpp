@@ -87,26 +87,14 @@ Result Handles::release(int handle_index)
 
 ResultOr<int> Handles::open(Domain &domain, Path &path, OpenFlag flags)
 {
-    auto open_result = domain.open(path, flags);
-
-    if (!open_result)
-    {
-        return open_result.result();
-    }
-
-    return add(*open_result);
+    auto handle = TRY(domain.open(path, flags));
+    return add(handle);
 }
 
 ResultOr<int> Handles::connect(Domain &domain, Path &path)
 {
-    auto connect_result = domain.connect(path);
-
-    if (!connect_result)
-    {
-        return connect_result.result();
-    }
-
-    return add(*connect_result);
+    auto handle = TRY(domain.connect(path));
+    return add(handle);
 }
 
 Result Handles::close(int handle_index)
@@ -135,14 +123,7 @@ Result Handles::reopen(int handle, int *reopened)
 
     auto reopened_handle = make<FsHandle>(*original_handle);
 
-    auto result_or_handle_index = add(reopened_handle);
-
-    if (!result_or_handle_index.success())
-    {
-        return result_or_handle_index.result();
-    }
-
-    *reopened = result_or_handle_index.take_value();
+    *reopened = TRY(add(reopened_handle));
 
     return SUCCESS;
 }
@@ -191,12 +172,12 @@ Result Handles::poll(
 
     {
         BlockerSelect blocker{selected};
-        Result result = task_block(scheduler_running(), blocker, timeout);
+        Result block_result = task_block(scheduler_running(), blocker, timeout);
 
-        if (result != SUCCESS)
+        if (block_result != SUCCESS)
         {
             release_handles();
-            return result;
+            return block_result;
         }
 
         if (blocker.selected())
@@ -243,7 +224,7 @@ ResultOr<size_t> Handles::write(int handle_index, const void *buffer, size_t siz
     return result_or_written;
 }
 
-ResultOr<int> Handles::seek(int handle_index, int offset, Whence whence)
+ResultOr<ssize64_t> Handles::seek(int handle_index, IO::SeekFrom from)
 {
     auto handle = acquire(handle_index);
 
@@ -252,7 +233,7 @@ ResultOr<int> Handles::seek(int handle_index, int offset, Whence whence)
         return ERR_BAD_HANDLE;
     }
 
-    auto seek_result = handle->seek(offset, whence);
+    auto seek_result = handle->seek(from);
 
     release(handle_index);
 
@@ -393,6 +374,15 @@ Result Handles::pipe(int *reader, int *writer)
 
 Result Handles::pass(Handles &handles, int source, int destination)
 {
+    {
+        LockHolder holder(_lock);
+
+        if (!is_valid_handle(source))
+        {
+            return ERR_BAD_HANDLE;
+        }
+    }
+
     auto handle = acquire(source);
 
     if (!handle)

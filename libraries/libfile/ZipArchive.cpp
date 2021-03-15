@@ -1,4 +1,8 @@
 #include <assert.h>
+#include <stdio.h>
+
+#include <libio/File.h>
+
 #include <libfile/ZipArchive.h>
 #include <libsystem/Logger.h>
 #include <libsystem/compression/Deflate.h>
@@ -10,7 +14,6 @@
 #include <libsystem/io/MemoryWriter.h>
 #include <libsystem/io/ScopedReader.h>
 #include <libutils/Endian.h>
-#include <stdio.h>
 
 // Central header
 #define ZIP_END_OF_CENTRAL_DIR_HEADER_SIG 0x06054b50
@@ -205,7 +208,7 @@ void ZipArchive::read_archive()
 {
     _valid = false;
 
-    File archive_file = File(_path);
+    IO::File archive_file{_path};
 
     // Archive does not exist
     if (!archive_file.exist())
@@ -302,7 +305,7 @@ Result ZipArchive::extract(unsigned int entry_index, const char *dest_path)
 
     // Get a reader to the uncompressed data
     FileReader file_reader(_path);
-    file_reader.seek(entry.archive_offset, WHENCE_START);
+    file_reader.seek(IO::SeekFrom::start(entry.archive_offset));
     ScopedReader scoped_reader(file_reader, entry.uncompressed_size);
 
     // Get a writer to the output
@@ -313,7 +316,7 @@ Result ZipArchive::extract(unsigned int entry_index, const char *dest_path)
 
 Result ZipArchive::insert(const char *entry_name, const char *src_path)
 {
-    File src_file(src_path);
+    IO::File src_file{src_path};
 
     if (!src_file.exist())
     {
@@ -328,7 +331,8 @@ Result ZipArchive::insert(const char *entry_name, const char *src_path)
     for (const auto &entry : _entries)
     {
         FileReader file_reader(_path);
-        file_reader.seek(entry.archive_offset, WHENCE_START);
+        file_reader.seek(IO::SeekFrom::start(entry.archive_offset));
+
         ScopedReader scoped_reader(file_reader, entry.compressed_size);
         logger_trace("Write existing local header: '%s'", entry.name.cstring());
         write_entry(entry, binary_writer, scoped_reader);
@@ -340,11 +344,7 @@ Result ZipArchive::insert(const char *entry_name, const char *src_path)
 
     // Perform deflate on the data
     Deflate def(5);
-    auto def_result = def.perform(src_reader, compressed_writer);
-    if (def_result != Result::SUCCESS)
-    {
-        return def_result;
-    }
+    TRY(def.perform(src_reader, compressed_writer));
 
     // Write our new entry
     logger_trace("Write new local header: '%s'", entry_name);

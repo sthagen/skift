@@ -25,17 +25,53 @@ void Task::state(TaskState state)
     _state = state;
 }
 
-void Task::cancel(int exit_value)
+void Task::interrupt()
 {
     InterruptsRetainer retainer;
 
-    this->exit_value = exit_value;
-    state(TASK_STATE_CANCELED);
+    _is_interrupted = true;
 
-    if (this == scheduler_running())
+    if (_blocker)
     {
-        scheduler_yield();
-        ASSERT_NOT_REACHED();
+        _blocker->interrupt(*this, INTERRUPTED);
+    }
+}
+
+Result Task::cancel(int exit_value)
+{
+    InterruptsRetainer retainer;
+
+    if (_is_canceled)
+    {
+        return SUCCESS;
+    }
+
+    _is_canceled = true;
+    this->exit_value = exit_value;
+
+    if (_is_doing_syscall)
+    {
+        interrupt();
+        return SUCCESS;
+    }
+
+    kill_me_if_you_dare();
+    ASSERT_NOT_REACHED();
+}
+
+void Task::kill_me_if_you_dare()
+{
+    InterruptsRetainer retainer;
+
+    if (_is_canceled)
+    {
+        state(TASK_STATE_CANCELED);
+
+        if (this == scheduler_running())
+        {
+            scheduler_yield();
+            ASSERT_NOT_REACHED();
+        }
     }
 }
 
@@ -147,6 +183,8 @@ Task *task_clone(Task *parent, uintptr_t sp, uintptr_t ip)
     task->entry_point = (TaskEntryPoint)ip;
     task->user = true;
 
+    list_pushback(_tasks, task);
+
     task_go(task);
 
     return task;
@@ -213,7 +251,9 @@ Task *task_by_id(int id)
     list_foreach(Task, task, _tasks)
     {
         if (task->id == id)
+        {
             return task;
+        }
     }
 
     return nullptr;
@@ -285,10 +325,8 @@ void task_go(Task *task)
 
 Result task_sleep(Task *task, int timeout)
 {
-    BlockerTime blocker{system_get_tick() + timeout};
-    task_block(task, blocker, -1);
-
-    return TIMEOUT;
+    BlockerTime blocker{};
+    return task_block(task, blocker, timeout);
 }
 
 Result task_wait(int task_id, int *exit_value)
@@ -303,9 +341,7 @@ Result task_wait(int task_id, int *exit_value)
     }
 
     BlockerWait blocker{task, exit_value};
-    task_block(scheduler_running(), blocker, -1);
-
-    return SUCCESS;
+    return task_block(scheduler_running(), blocker, -1);
 }
 
 Result task_block(Task *task, Blocker &blocker, Timeout timeout)
@@ -313,6 +349,12 @@ Result task_block(Task *task, Blocker &blocker, Timeout timeout)
     assert(!task->_blocker);
 
     interrupts_retain();
+    if (task->_is_interrupted)
+    {
+        interrupts_release();
+        return INTERRUPTED;
+    }
+
     if (blocker.can_unblock(*task))
     {
         blocker.unblock(*task);

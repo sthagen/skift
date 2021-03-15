@@ -1,15 +1,9 @@
 #pragma once
 
-#include <libutils/String.h>
+#include <libio/Format.h>
+#include <libio/Handle.h>
 
-#include <libsystem/Handle.h>
-#include <libsystem/io_new/Format.h>
-#include <libsystem/io_new/MemoryWriter.h>
-#include <libsystem/io_new/Reader.h>
-#include <libsystem/io_new/Scanner.h>
-#include <libsystem/io_new/Writer.h>
-
-namespace System
+namespace IO
 {
 
 class InStream :
@@ -17,13 +11,15 @@ class InStream :
     public RawHandle
 {
 private:
-    Handle _handle{0};
+    RefPtr<Handle> _handle;
 
 public:
     using Reader::read;
 
-    ResultOr<size_t> read(void *buffer, size_t size) override { return _handle.read(buffer, size); }
-    Handle &handle() override { return _handle; }
+    InStream() : _handle{make<Handle>(0)} {}
+
+    ResultOr<size_t> read(void *buffer, size_t size) override { return _handle->read(buffer, size); }
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 class OutStream :
@@ -31,13 +27,15 @@ class OutStream :
     public RawHandle
 {
 private:
-    Handle _handle{1};
+    RefPtr<Handle> _handle;
 
 public:
     using Writer::write;
 
-    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle.write(buffer, size); }
-    Handle &handle() override { return _handle; }
+    OutStream() : _handle{make<Handle>(1)} {}
+
+    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle->write(buffer, size); }
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 class ErrStream :
@@ -46,13 +44,15 @@ class ErrStream :
 
 {
 private:
-    Handle _handle{2};
+    RefPtr<Handle> _handle;
 
 public:
     using Writer::write;
 
-    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle.write(buffer, size); }
-    Handle &handle() override { return _handle; }
+    ErrStream() : _handle{make<Handle>(2)} {}
+
+    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle->write(buffer, size); }
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 class LogStream :
@@ -60,13 +60,15 @@ class LogStream :
     public RawHandle
 {
 private:
-    Handle _handle{3};
+    RefPtr<Handle> _handle;
 
 public:
     using Writer::write;
 
-    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle.write(buffer, size); }
-    Handle &handle() override { return _handle; }
+    LogStream() : _handle{make<Handle>(3)} {}
+
+    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle->write(buffer, size); }
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 InStream &in();
@@ -79,17 +81,17 @@ LogStream &log();
 
 static inline ResultOr<String> inln()
 {
-    Scanner<Reader &> scan{in()};
+    Scanner scan{in()};
     MemoryWriter writer{};
 
     while (!(scan.ended() || scan.current() == '\n'))
     {
         writer.write(scan.current());
-        out().write(scan.current());
-        scan.foreward();
+        IO::write(out(), scan.current());
+        scan.forward();
     }
 
-    out().write('\n');
+    IO::write(out(), '\n');
     scan.skip('\n');
 
     return String{writer.string()};
@@ -98,36 +100,18 @@ static inline ResultOr<String> inln()
 template <Formatable... Args>
 static ResultOr<size_t> print(Writer &writer, const char *fmt, Args... args)
 {
-    StringScanner scan{fmt, strlen(fmt)};
-    auto format_result = format(writer, scan, forward<Args>(args)...);
-
-    if (!format_result)
-    {
-        return format_result.result();
-    }
-
-    return *format_result;
+    MemoryReader memory{fmt};
+    Scanner scan{memory};
+    return format(writer, scan, forward<Args>(args)...);
 }
 
 template <Formatable... Args>
 static ResultOr<size_t> println(Writer &writer, const char *fmt, Args... args)
 {
-    StringScanner scan{fmt, strlen(fmt)};
-    auto format_result = format(writer, scan, forward<Args>(args)...);
-
-    if (!format_result)
-    {
-        return format_result.result();
-    }
-
-    auto endline_result = writer.write('\n');
-
-    if (endline_result != SUCCESS)
-    {
-        return endline_result;
-    }
-
-    return *format_result + 1;
+    MemoryReader memory{fmt};
+    Scanner scan{memory};
+    size_t written = TRY(format(writer, scan, forward<Args>(args)...));
+    return written + TRY(IO::write(writer, '\n'));
 }
 
 template <Formatable... Args>
@@ -148,5 +132,4 @@ static ResultOr<size_t> log(const char *fmt, Args... args) { return print(log(),
 template <Formatable... Args>
 static ResultOr<size_t> logln(const char *fmt, Args... args) { return println(log(), fmt, forward<Args>(args)...); }
 
-} // namespace System
-
+} // namespace IO

@@ -1,12 +1,13 @@
 #pragma once
 
-#include <libsystem/Handle.h>
+#include <libio/Handle.h>
 #include <libutils/Path.h>
 
-namespace System
+namespace IO
 {
 
-class Directory
+class Directory :
+    public RawHandle
 {
 public:
     struct Entry
@@ -16,11 +17,11 @@ public:
     };
 
 private:
-    System::Handle _handle;
+    RefPtr<Handle> _handle;
     Optional<Path> _path;
     Vector<Entry> _entries;
 
-    void read_entries();
+    Result read_entries();
 
 public:
     const Optional<Path> &path() { return _path; }
@@ -29,9 +30,11 @@ public:
     Directory(const char *path);
     Directory(String path);
     Directory(const Path &path);
-    Directory(System::Handle &&handle);
+    Directory(RefPtr<Handle> handle);
+
+    RefPtr<Handle> handle() override { return _handle; }
 
     bool exist();
 };
 
-} // namespace System
+} // namespace IO

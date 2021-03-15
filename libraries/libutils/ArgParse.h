@@ -1,16 +1,17 @@
 #pragma once
 
-#include <libsystem/io_new/Streams.h>
+#include <libio/MemoryReader.h>
+#include <libio/NumberScanner.h>
+#include <libio/Scanner.h>
+#include <libio/Streams.h>
+
 #include <libsystem/process/Process.h>
 
 #include <libutils/Callback.h>
 #include <libutils/Optional.h>
-#include <libutils/Scanner.h>
 #include <libutils/String.h>
 #include <libutils/Traits.h>
 #include <libutils/Vector.h>
-
-#include <stdio.h>
 
 class ArgParseContext
 {
@@ -154,10 +155,66 @@ public:
         });
     }
 
+    void option_int(char shortname, String longname, String description, Callback<int(int)> callback)
+    {
+        _option.push_back({
+            shortname,
+            longname,
+            description,
+
+            [this, callback](ArgParseContext &ctx) {
+                auto maybe_string = ctx.pop_operand();
+
+                if (!maybe_string)
+                {
+                    return usage();
+                }
+
+                IO::MemoryReader memory{*maybe_string};
+                IO::Scanner scan{memory};
+
+                auto maybe_value = IO::NumberScanner::decimal().scan_int(scan);
+
+                if (!maybe_value)
+                {
+                    return usage();
+                }
+
+                return callback(*maybe_value);
+            },
+        });
+    }
+
+    void option_bool(char shortname, String longname, String description, Callback<int(bool)> callback)
+    {
+        option(shortname, longname, description, [this, callback](ArgParseContext &ctx) {
+            bool value = true;
+
+            if (ctx.any())
+            {
+                if (ctx.current() == "true" ||
+                    ctx.current() == "yes")
+                {
+                    value = true;
+                    ctx.pop();
+                }
+
+                if (ctx.current() == "false" ||
+                    ctx.current() == "no")
+                {
+                    value = false;
+                    ctx.pop();
+                }
+            }
+
+            return callback(value);
+        });
+    }
+
     void option(bool &value, char shortname, String longname, String description)
     {
-        option(shortname, longname, description, [&](auto &) {
-            value = true;
+        option_bool(shortname, longname, description, [&](bool v) {
+            value = v;
             return PROCESS_SUCCESS;
         });
     }
@@ -181,19 +238,19 @@ public:
     {
         if (!_prologue.null_or_empty())
         {
-            System::outln("{}\n", _prologue);
+            IO::outln("{}\n", _prologue);
         }
 
         if (_usages.any())
         {
-            System::outln("\e[1mUsages:\e[0m");
+            IO::outln("\e[1mUsages:\e[0m");
 
             for (size_t i = 0; i < _usages.count(); i++)
             {
-                System::outln("    {} {}", _name, _usages[i]);
+                IO::outln("    {} {}", _name, _usages[i]);
             }
 
-            System::outln("");
+            IO::outln("");
         }
 
         if (_option.any())
@@ -214,35 +271,35 @@ public:
 
             auto padding = compute_padding(_option);
 
-            System::outln("\e[1mOptions:\e[0m");
+            IO::outln("\e[1mOptions:\e[0m");
 
             for (size_t i = 0; i < _option.count(); i++)
             {
                 auto &opt = _option[i];
 
-                System::out().write("    ");
+                IO::write(IO::out(), "    ");
 
                 if (opt.shortname != '\0')
                 {
-                    System::format(System::out(), "-{c}", opt.shortname);
+                    IO::format(IO::out(), "-{c}", opt.shortname);
                 }
                 else
                 {
-                    System::out().write("  ");
+                    IO::write(IO::out(), "  ");
                 }
 
                 if (opt.shortname && !opt.longname.null_or_empty())
                 {
-                    System::out().write(", ");
+                    IO::write(IO::out(), ", ");
                 }
                 else
                 {
-                    System::out().write("  ");
+                    IO::write(IO::out(), "  ");
                 }
 
                 if (!opt.longname.null_or_empty())
                 {
-                    System::format(System::out(), "--{}", opt.longname);
+                    IO::format(IO::out(), "--{}", opt.longname);
 
                     if (padding > opt.longname.length())
                     {
@@ -250,7 +307,7 @@ public:
 
                         for (size_t i = 0; i < computed_padding; i++)
                         {
-                            System::out().write(" ");
+                            IO::write(IO::out(), " ");
                         }
                     }
                 }
@@ -258,24 +315,24 @@ public:
                 {
                     for (size_t i = 0; i < padding; i++)
                     {
-                        System::out().write(" ");
+                        IO::write(IO::out(), " ");
                     }
                 }
 
                 if (!opt.description.null_or_empty())
                 {
-                    System::format(System::out(), " {}", opt.description);
+                    IO::format(IO::out(), " {}", opt.description);
                 }
 
-                System::out().write("\n");
+                IO::write(IO::out(), "\n");
             }
 
-            System::out().write("\n");
+            IO::write(IO::out(), "\n");
         }
 
         if (!_epiloge.null_or_empty())
         {
-            System::outln("{}", _epiloge);
+            IO::outln("{}", _epiloge);
         }
 
         return PROCESS_SUCCESS;
@@ -283,19 +340,19 @@ public:
 
     int fail()
     {
-        System::errln("Try '{} --help' for more information.\n", _name);
+        IO::errln("Try '{} --help' for more information.\n", _name);
         return PROCESS_FAILURE;
     }
 
     int usage()
     {
-        System::errln("{}: missing operand.", _name.cstring());
+        IO::errln("{}: missing operand.", _name.cstring());
         return fail();
     }
 
     int invalid_option(String option)
     {
-        System::errln("{}: invalide option '{}'!", _name.cstring(), option.cstring());
+        IO::errln("{}: invalide option '{}'!", _name.cstring(), option.cstring());
         return fail();
     }
 
@@ -310,7 +367,9 @@ public:
         while (context.any())
         {
             auto current = context.pop();
-            StringScanner scan{current.cstring(), current.length()};
+
+            IO::MemoryReader memory{current};
+            IO::Scanner scan{memory};
 
             if (scan.skip_word("--"))
             {
@@ -376,7 +435,7 @@ public:
                         return invalid_option(scan.current());
                     }
 
-                    scan.foreward();
+                    scan.forward();
                 }
             }
             else

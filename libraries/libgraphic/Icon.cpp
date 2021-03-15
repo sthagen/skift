@@ -1,12 +1,15 @@
 #include <assert.h>
-#include <libgraphic/Icon.h>
-#include <libsystem/Logger.h>
-#include <libutils/HashMap.h>
-#include <libutils/Path.h>
 #include <stdio.h>
 #include <string.h>
 
-static HashMap<String, RefPtr<Icon>> _icons{};
+#include <libgraphic/Icon.h>
+#include <libio/Format.h>
+#include <libsystem/Logger.h>
+#include <libutils/HashMap.h>
+#include <libutils/Path.h>
+
+static HashMap<String, RefPtr<Icon>>
+    _icons{};
 
 #define ICON_SIZE_NAME_ENTRY(__size) #__size,
 const char *_icon_size_names[] = {ICON_SIZE_LIST(ICON_SIZE_NAME_ENTRY)};
@@ -20,9 +23,9 @@ static RefPtr<Icon> icon_load(String name)
 
     for (size_t i = 0; i < __ICON_SIZE_COUNT; i++)
     {
-        auto path = String::format("/Files/Icons/{}@{}px.png", name, _icon_size_names[i]);
+        auto path = IO::format("/Files/Icons/{}@{}px.png", name, _icon_size_names[i]);
         auto bitmap_or_result = Bitmap::load_from(path);
-        
+
         if (bitmap_or_result.success())
         {
             icon->set_bitmap(static_cast<IconSize>(i), bitmap_or_result.take_value());

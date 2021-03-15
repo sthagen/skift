@@ -1,5 +1,7 @@
 #pragma once
 
+#include <libio/Format.h>
+
 #include "settings-service/Bundle.h"
 
 namespace Settings
@@ -12,7 +14,7 @@ struct Domain
     static Domain load(const String &path)
     {
         Domain domain;
-        System::Directory directory{path};
+        IO::Directory directory{path};
 
         for (auto entry : directory.entries())
         {
@@ -21,7 +23,7 @@ struct Domain
                 continue;
             }
 
-            auto bundle_path = String::format("{}/{}", path, entry.name);
+            auto bundle_path = IO::format("{}/{}", path, entry.name);
 
             auto bundle = Bundle::Load(bundle_path);
 

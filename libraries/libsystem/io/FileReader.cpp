@@ -1,26 +1,25 @@
 #include <libsystem/io/FileReader.h>
 
-FileReader::FileReader(const char *path) : _handle{path, OPEN_READ | OPEN_STREAM}
+FileReader::FileReader(const char *path) : _handle{make<IO::Handle>(path, OPEN_READ | OPEN_STREAM)}
 {
 }
 
-FileReader::FileReader(Path &path) : _handle{path.string(), OPEN_READ | OPEN_STREAM}
+FileReader::FileReader(Path &path) : _handle{make<IO::Handle>(path.string(), OPEN_READ | OPEN_STREAM)}
 {
 }
 
-FileReader::FileReader(System::Handle &&handle) : _handle{move(handle)}
+FileReader::FileReader(RefPtr<IO::Handle> handle) : _handle{handle}
 {
 }
 
-size_t FileReader::seek(size_t pos, Whence whence)
+size_t FileReader::seek(IO::SeekFrom from)
 {
-    _handle.seek(pos, whence);
-    return pos;
+    return _handle->seek(from).value();
 }
 
 size_t FileReader::read(void *buffer, size_t size)
 {
-    auto result_or_read = _handle.read(buffer, size);
+    auto result_or_read = _handle->read(buffer, size);
 
     if (result_or_read)
     {
@@ -34,7 +33,7 @@ size_t FileReader::read(void *buffer, size_t size)
 
 size_t FileReader::length()
 {
-    auto result_or_stat = _handle.stat();
+    auto result_or_stat = _handle->stat();
 
     if (result_or_stat)
     {
@@ -48,7 +47,7 @@ size_t FileReader::length()
 
 size_t FileReader::position()
 {
-    auto result_or_tell = _handle.tell();
+    auto result_or_tell = _handle->tell();
 
     if (result_or_tell)
     {

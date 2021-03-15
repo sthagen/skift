@@ -98,18 +98,16 @@ ResultOr<size_t> FsHandle::read(void *buffer, size_t size)
     }
 
     BlockerRead blocker{*this};
-    task_block(scheduler_running(), blocker, -1);
 
-    auto result_or_read = _node->read(*this, buffer, size);
+    TRY(task_block(scheduler_running(), blocker, -1));
 
-    if (result_or_read)
-    {
-        _offset += *result_or_read;
-    }
+    size_t read_amount = TRY(_node->read(*this, buffer, size));
+
+    _offset += read_amount;
 
     _node->release(scheduler_running_id());
 
-    return result_or_read;
+    return read_amount;
 }
 
 ResultOr<size_t> FsHandle::write(const void *buffer, size_t size)
@@ -121,25 +119,23 @@ ResultOr<size_t> FsHandle::write(const void *buffer, size_t size)
         return ERR_READ_ONLY_STREAM;
     }
 
-    auto attempt_a_write = [&](const void *buffer, size_t size) {
+    auto attempt_a_write = [&](const void *buffer, size_t size) -> ResultOr<size_t> {
         BlockerWrite blocker{*this};
-        task_block(scheduler_running(), blocker, -1);
+
+        TRY(task_block(scheduler_running(), blocker, -1));
 
         if (has_flag(OPEN_APPEND))
         {
             _offset = _node->size();
         }
 
-        auto result_or_written = _node->write(*this, buffer, size);
+        auto written_amount = TRY(_node->write(*this, buffer, size));
 
-        if (result_or_written)
-        {
-            _offset += *result_or_written;
-        }
+        _offset += written_amount;
 
         _node->release(scheduler_running_id());
 
-        return result_or_written;
+        return written_amount;
     };
 
     size_t written = 0;
@@ -149,43 +145,34 @@ ResultOr<size_t> FsHandle::write(const void *buffer, size_t size)
         auto remaining = size - written;
         auto remaining_buffer = reinterpret_cast<const char *>((reinterpret_cast<uintptr_t>(buffer)) + written);
 
-        auto result_or_written = attempt_a_write(remaining_buffer, remaining);
-
-        if (result_or_written)
-        {
-            written += *result_or_written;
-        }
-        else
-        {
-            return result_or_written;
-        }
+        written += TRY(attempt_a_write(remaining_buffer, remaining));
     } while (written < size);
 
     return written;
 }
 
-ResultOr<int> FsHandle::seek(int offset, Whence whence)
+ResultOr<ssize64_t> FsHandle::seek(IO::SeekFrom from)
 {
     _node->acquire(scheduler_running_id());
     size_t size = _node->size();
     _node->release(scheduler_running_id());
 
-    switch (whence)
+    switch (from.whence)
     {
-    case WHENCE_START:
-        _offset = MAX(0, offset);
+    case IO::Whence::START:
+        _offset = MAX(0, from.position);
         break;
 
-    case WHENCE_HERE:
-        _offset = _offset + offset;
+    case IO::Whence::CURRENT:
+        _offset = _offset + from.position;
         break;
 
-    case WHENCE_END:
-        if (offset < 0)
+    case IO::Whence::END:
+        if (from.position < 0)
         {
-            if ((size_t)-offset <= size)
+            if ((size_t)-from.position <= size)
             {
-                _offset = size + offset;
+                _offset = size + from.position;
             }
             else
             {
@@ -194,7 +181,7 @@ ResultOr<int> FsHandle::seek(int offset, Whence whence)
         }
         else
         {
-            _offset = size + offset;
+            _offset = size + from.position;
         }
 
         break;
@@ -228,7 +215,7 @@ Result FsHandle::stat(FileState *stat)
 ResultOr<RefPtr<FsHandle>> FsHandle::accept()
 {
     BlockerAccept blocker{_node};
-    task_block(scheduler_running(), blocker, -1);
+    TRY(task_block(scheduler_running(), blocker, -1));
 
     auto connection_or_result = _node->accept();
 
