@@ -24,6 +24,7 @@ DISKS_DIRECTORY=$(shell pwd)/disks
 SYSROOT=$(CONFIG_BUILD_DIRECTORY)/sysroot
 BOOTROOT=$(CONFIG_BUILD_DIRECTORY)/bootroot-$(CONFIG_LOADER)-$(CONFIG_ARCH)
 BOOTDISK=$(DISKS_DIRECTORY)/bootdisk-$(CONFIG_LOADER)-$(CONFIG_ARCH).img
+BOOTDISK_GZIP=$(BOOTDISK).gz
 
 RAMDISK=$(CONFIG_BUILD_DIRECTORY)/ramdisk.tar
 
@@ -35,7 +36,11 @@ BUILD_DIRECTORY_UTILITIES=$(SYSROOT)/System/Utilities
 BUILD_WARNING:= \
 	-Wall \
 	-Wextra  \
-	-Werror \
+	-Werror
+
+CXX_WARNINGS := \
+	-Wnon-virtual-dtor \
+	-Woverloaded-virtual
 
 BUILD_INCLUDE:= \
 	-I. \
@@ -69,6 +74,7 @@ CXXFLAGS:= \
 	-MD \
 	$(CONFIG_OPTIMISATIONS) \
 	$(BUILD_WARNING) \
+	$(CXX_WARNINGS) \
 	$(BUILD_INCLUDE) \
 	$(BUILD_DEFINES) \
 	$(BUILD_CONFIGS)
@@ -131,10 +137,16 @@ $(RAMDISK): $(CRTS) $(TARGETS) $(HEADERS) $(SYSROOT_CONTENT)
 
 	@cd $(SYSROOT); tar -cf $@ *
 
+$(BOOTDISK_GZIP): $(BOOTDISK)
+	@gzip -c $(BOOTDISK) > $(BOOTDISK_GZIP)
+
 # --- Phony ---------------------------------------------- #
 
 .PHONY: all
 all: $(BOOTDISK)
+
+.PHONY: distro
+distro: $(BOOTDISK_GZIP)
 
 .PHONY: run
 include vms/$(CONFIG_VMACHINE).mk

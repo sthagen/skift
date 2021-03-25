@@ -1,13 +1,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <assert.h>
-
 #include <libutils/Random.h>
 
 #include <libgraphic/Font.h>
 #include <libgraphic/Painter.h>
 #include <libgraphic/StackBlur.h>
+
+#include <libtest/AssertGreaterThan.h>
+#include <libtest/AssertLowerThan.h>
 
 Painter::Painter(RefPtr<Bitmap> bitmap)
 {
@@ -23,7 +24,7 @@ Painter::Painter(RefPtr<Bitmap> bitmap)
 
 void Painter::push()
 {
-    assert(_state_stack_top < STATESTACK_SIZE);
+    assert_lower_than(_state_stack_top, STATESTACK_SIZE);
 
     _state_stack_top++;
     _state_stack[_state_stack_top] = _state_stack[_state_stack_top - 1];
@@ -31,7 +32,7 @@ void Painter::push()
 
 void Painter::pop()
 {
-    assert(_state_stack_top > 0);
+    assert_greater_than(_state_stack_top, 0);
     _state_stack_top--;
 }
 
@@ -65,7 +66,6 @@ Recti Painter::apply_clip(Recti rectangle)
 
 Recti Painter::apply_transform(Recti rectangle)
 {
-
     return rectangle.offset(_state_stack[_state_stack_top].origin);
 }
 
@@ -572,7 +572,7 @@ __flatten void Painter::draw_triangle(Vec2i p0, Vec2i p1, Vec2i p2, Color color)
     draw_line(p2, p0, color);
 }
 
-void Painter::draw_path(const graphic::Path &path, Vec2f pos, Trans2f transform, Color color)
+void Painter::draw_path(const Graphic::Path &path, Vec2f pos, Trans2f transform, Color color)
 {
     for (size_t i = 0; i < path.subpath_count(); i++)
     {

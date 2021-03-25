@@ -18,6 +18,8 @@ private:
     __noncopyable(Handle);
 
 public:
+    int id() const { return _handle; }
+
     Handle(int handle) : _handle(handle), _result(handle != HANDLE_INVALID_ID ? SUCCESS : ERR_BAD_HANDLE)
     {
     }
@@ -93,21 +95,28 @@ public:
         return stat;
     }
 
-    ResultOr<Handle> accept()
+    ResultOr<RefPtr<Handle>> accept()
     {
         int connection_handle;
         _result = TRY(hj_handle_accept(_handle, &connection_handle));
-        return Handle{connection_handle};
+        return make<Handle>(connection_handle);
     }
 
     bool valid()
     {
         return _handle != HANDLE_INVALID_ID;
     }
+
+    Result result()
+    {
+        return _result;
+    }
 };
 
 struct RawHandle
 {
+    virtual ~RawHandle() {}
+
     virtual RefPtr<Handle> handle() = 0;
 };
 

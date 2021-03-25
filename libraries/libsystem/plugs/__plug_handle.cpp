@@ -20,7 +20,7 @@ Result __plug_process_set_directory(const char *path)
 
     int handle;
 
-    TRY(hj_handle_open(&handle, path, strlen(path), OPEN_DIRECTORY));
+    TRY(hj_handle_open(&handle, new_path.cstring(), new_path.length(), OPEN_DIRECTORY));
     TRY(hj_handle_close(handle));
 
     environment().get("POSIX").put("PWD", new_path);
@@ -112,11 +112,6 @@ void __plug_handle_close(Handle *handle)
     {
         handle->result = hj_handle_close(handle->id);
     }
-}
-
-Result __plug_handle_poll(HandleSet *handles, int *selected, PollEvent *selected_events, Timeout timeout)
-{
-    return hj_handle_poll(handles, selected, selected_events, timeout);
 }
 
 size_t __plug_handle_read(Handle *handle, void *buffer, size_t size)

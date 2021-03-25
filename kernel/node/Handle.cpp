@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include <libsystem/Logger.h>
 #include <libsystem/Result.h>
 #include <libsystem/math/MinMax.h>
 
@@ -101,13 +100,18 @@ ResultOr<size_t> FsHandle::read(void *buffer, size_t size)
 
     TRY(task_block(scheduler_running(), blocker, -1));
 
-    size_t read_amount = TRY(_node->read(*this, buffer, size));
+    auto read_result = _node->read(*this, buffer, size);
 
-    _offset += read_amount;
+    if (!read_result.success())
+    {
+        _node->release(scheduler_running_id());
+        return read_result;
+    }
 
+    _offset += read_result.value();
     _node->release(scheduler_running_id());
 
-    return read_amount;
+    return read_result;
 }
 
 ResultOr<size_t> FsHandle::write(const void *buffer, size_t size)
@@ -129,13 +133,20 @@ ResultOr<size_t> FsHandle::write(const void *buffer, size_t size)
             _offset = _node->size();
         }
 
-        auto written_amount = TRY(_node->write(*this, buffer, size));
+        auto write_result = _node->write(*this, buffer, size);
 
-        _offset += written_amount;
+        if (!write_result.success())
+        {
+            _node->release(scheduler_running_id());
+
+            return write_result;
+        }
+
+        _offset += write_result.value();
 
         _node->release(scheduler_running_id());
 
-        return written_amount;
+        return write_result;
     };
 
     size_t written = 0;
@@ -164,7 +175,21 @@ ResultOr<ssize64_t> FsHandle::seek(IO::SeekFrom from)
         break;
 
     case IO::Whence::CURRENT:
-        _offset = _offset + from.position;
+        if (from.position < 0)
+        {
+            if ((size_t)-from.position <= _offset)
+            {
+                _offset = _offset + from.position;
+            }
+            else
+            {
+                _offset = 0;
+            }
+        }
+        else
+        {
+            _offset = _offset + from.position;
+        }
         break;
 
     case IO::Whence::END:

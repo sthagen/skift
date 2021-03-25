@@ -5,7 +5,7 @@
 #include <libgraphic/Bitmap.h>
 #include <libgraphic/Font.h>
 #include <libgraphic/Icon.h>
-#include <libgraphic/vector/Path.h>
+#include <libgraphic/svg/Path.h>
 
 #define STATESTACK_SIZE 32
 
@@ -84,7 +84,7 @@ public:
 
     void draw_triangle(Vec2i p0, Vec2i p1, Vec2i p2, Color color);
 
-    void draw_path(const graphic::Path &path, Vec2f pos, Trans2f transform, Color color);
+    void draw_path(const Graphic::Path &path, Vec2f pos, Trans2f transform, Color color);
 
     void draw_rectangle_rounded(Recti bound, int radius, int thickness, Color color);
 

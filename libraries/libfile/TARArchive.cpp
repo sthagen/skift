@@ -1,5 +1,6 @@
 #include <libfile/TARArchive.h>
 #include <libio/File.h>
+#include <libsystem/Logger.h>
 
 struct __packed TARRawBlock
 {
@@ -75,7 +76,6 @@ bool tar_read(void *tarfile, TARBlock *block, size_t index)
 #ifndef __KERNEL__
 
 #    include <libfile/TARArchive.h>
-#    include <libsystem/io/FileReader.h>
 
 TARArchive::TARArchive(Path path, bool read) : Archive(path)
 {
@@ -90,7 +90,7 @@ Result TARArchive::extract(unsigned int entry_index, const char *dest_path)
     __unused(entry_index);
     __unused(dest_path);
 
-    return ERR_FUNCTION_NOT_IMPLEMENTED;
+    return ERR_NOT_IMPLEMENTED;
 }
 
 Result TARArchive::insert(const char *entry_name, const char *src_path)
@@ -98,14 +98,14 @@ Result TARArchive::insert(const char *entry_name, const char *src_path)
     __unused(entry_name);
     __unused(src_path);
 
-    return ERR_FUNCTION_NOT_IMPLEMENTED;
+    return ERR_NOT_IMPLEMENTED;
 }
 
 Result TARArchive::read_archive()
 {
     _valid = false;
 
-    IO::File archive_file{_path};
+    IO::File archive_file{_path, OPEN_READ};
 
     // Archive does not exist
     if (!archive_file.exist())

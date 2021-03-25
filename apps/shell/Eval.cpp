@@ -1,16 +1,14 @@
-#include <assert.h>
 #include <skift/Environment.h>
-#include <stdio.h>
 
 #include <libio/File.h>
 #include <libio/Format.h>
-#include <libsystem/Result.h>
+#include <libio/Pipe.h>
+#include <libio/Streams.h>
 #include <libsystem/io/Filesystem.h>
-#include <libsystem/io/Pipe.h>
 #include <libsystem/io/Stream.h>
 #include <libsystem/process/Launchpad.h>
 #include <libsystem/process/Process.h>
-#include <libutils/Path.h>
+#include <libtest/AssertTrue.h>
 
 #include "shell/Shell.h"
 
@@ -48,7 +46,11 @@ Optional<String> find_command_path(String command)
     return {};
 }
 
-Result shell_exec(ShellCommand *command, Stream *instream, Stream *outstream, int *pid)
+Result shell_exec(
+    ShellCommand *command,
+    RefPtr<IO::Handle> instream,
+    RefPtr<IO::Handle> outstream,
+    int *pid)
 {
     auto executable = find_command_path(command->command);
     if (!executable)
@@ -58,19 +60,20 @@ Result shell_exec(ShellCommand *command, Stream *instream, Stream *outstream, in
     }
 
     Launchpad *launchpad = launchpad_create(command->command, executable->cstring());
+    launchpad_flags(launchpad, TASK_WAITABLE);
 
     list_foreach(char, arg, command->arguments)
     {
         launchpad_argument(launchpad, arg);
     }
 
-    launchpad_handle(launchpad, HANDLE(instream), 0);
-    launchpad_handle(launchpad, HANDLE(outstream), 1);
+    launchpad_handle(launchpad, *instream, 0);
+    launchpad_handle(launchpad, *outstream, 1);
 
     return launchpad_launch(launchpad, pid);
 }
 
-int shell_eval(ShellNode *node, Stream *instream, Stream *outstream)
+int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> outstream)
 {
     switch (node->type)
     {
@@ -117,7 +120,7 @@ int shell_eval(ShellNode *node, Stream *instream, Stream *outstream)
         }
         else
         {
-            printf("%s: Command not found! \e[90m%s\e[m\n", command->command, result_to_string(result));
+            IO::errln("{}: Command not found! \e[90m{}\e[m", command->command, result_to_string(result));
             return PROCESS_FAILURE;
         }
     }
@@ -127,42 +130,38 @@ int shell_eval(ShellNode *node, Stream *instream, Stream *outstream)
     {
         ShellPipeline *pipeline = (ShellPipeline *)node;
 
-        List *pipes = list_create();
+        Vector<IO::Pipe> pipes;
 
         for (int i = 0; i < pipeline->commands->count() - 1; i++)
         {
-            list_pushback(pipes, pipe_create());
+            pipes.push_back(IO::Pipe::create().take_value());
         }
 
-        int *processes = (int *)calloc(pipeline->commands->count(), sizeof(int));
+        Vector<int> processes;
 
         for (int i = 0; i < pipeline->commands->count(); i++)
         {
             ShellCommand *command = nullptr;
             list_peekat(pipeline->commands, i, (void **)&command);
-            assert(command);
+            assert_true(command);
 
-            Stream *command_stdin = instream;
-            Stream *command_stdout = outstream;
+            RefPtr<IO::Handle> command_stdin = instream;
+            RefPtr<IO::Handle> command_stdout = outstream;
 
             if (i > 0)
             {
-                Pipe *input_pipe;
-                assert(list_peekat(pipes, i - 1, (void **)&input_pipe));
-                command_stdin = input_pipe->out;
+                command_stdin = pipes[i - 1].reader;
             }
 
             if (i < pipeline->commands->count() - 1)
             {
-                Pipe *output_pipe;
-                assert(list_peekat(pipes, i, (void **)&output_pipe));
-                command_stdout = output_pipe->in;
+                command_stdout = pipes[i].writer;
             }
 
-            shell_exec(command, command_stdin, command_stdout, &processes[i]);
+            shell_exec(command, command_stdin, command_stdout, &processes.emplace_back(-1));
         }
 
-        list_destroy_with_callback(pipes, (ListDestroyElementCallback)pipe_destroy);
+        pipes.clear();
 
         int exit_value;
 
@@ -170,8 +169,6 @@ int shell_eval(ShellNode *node, Stream *instream, Stream *outstream)
         {
             process_wait(processes[i], &exit_value);
         }
-
-        free(processes);
 
         return exit_value;
     }
@@ -181,15 +178,15 @@ int shell_eval(ShellNode *node, Stream *instream, Stream *outstream)
     {
         ShellRedirect *redirect = (ShellRedirect *)node;
 
-        __cleanup(stream_cleanup) Stream *stream = stream_open(redirect->destination, OPEN_WRITE | OPEN_CREATE);
+        IO::File file{redirect->destination, OPEN_WRITE | OPEN_CREATE};
 
-        if (handle_has_error(stream))
+        if (file.exist())
         {
-            handle_printf_error(stream, "Failed to open '%s'", redirect->destination);
+            IO::errln("Failed to open '{}'", redirect->destination);
             return PROCESS_FAILURE;
         }
 
-        return shell_eval(redirect->command, instream, stream);
+        return shell_eval(redirect->command, instream, file.handle());
     }
     break;
 

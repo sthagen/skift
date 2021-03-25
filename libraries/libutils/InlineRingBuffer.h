@@ -2,7 +2,7 @@
 
 #include <libutils/Move.h>
 
-namespace utils
+namespace Utils
 {
 
 template <typename T, size_t N>
@@ -13,7 +13,7 @@ private:
     size_t _tail = 0;
     size_t _used = 0;
 
-    T _buffer[N];
+    T _buffer[N] = {};
 
 public:
     InlineRingBuffer() {}
@@ -36,6 +36,13 @@ public:
         other._tail = 0;
         other._used = 0;
         other._buffer = nullptr;
+    }
+
+    void flush()
+    {
+        _head = 0;
+        _tail = 0;
+        _used = 0;
     }
 
     InlineRingBuffer &operator=(const InlineRingBuffer &other)
@@ -113,4 +120,4 @@ public:
     }
 };
 
-} // namespace utils
+} // namespace Utils

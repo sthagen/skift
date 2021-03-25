@@ -6,12 +6,11 @@
 #undef LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
 #undef LODEPNG_NO_COMPILE_DISK
 
-#include <assert.h>
-
 #include <libgraphic/Bitmap.h>
+#include <libgraphic/png/PngReader.h>
 #include <libio/Copy.h>
 #include <libio/File.h>
-#include <libsystem/Logger.h>
+#include <libio/MemoryReader.h>
 #include <libsystem/system/Memory.h>
 
 static Color _placeholder_buffer[] = {
@@ -73,6 +72,9 @@ ResultOr<RefPtr<Bitmap>> Bitmap::load_from(String path)
     }
 
     auto png_data = TRY(IO::read_all(file));
+
+    // IO::MemoryReader mem_reader{png_data.start(), png_data.size()};
+    // Graphic::PngReader png_reader(mem_reader);
 
     unsigned int decoded_width = 0;
     unsigned int decoded_height = 0;

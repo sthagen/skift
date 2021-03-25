@@ -12,7 +12,7 @@
     __ENTRY(ERR_CONNECTION_REFUSED, "Connection refused")                         \
     __ENTRY(ERR_EXEC_FORMAT_ERROR, "Exec format error")                           \
     __ENTRY(ERR_FILE_EXISTS, "File exists")                                       \
-    __ENTRY(ERR_FUNCTION_NOT_IMPLEMENTED, "Function not implemented")             \
+    __ENTRY(ERR_NOT_IMPLEMENTED, "Function not implemented")                      \
     __ENTRY(ERR_INAPPROPRIATE_CALL_FOR_DEVICE, "Inappropriate call for device")   \
     __ENTRY(ERR_INVALID_ARGUMENT, "Invalid argument")                             \
     __ENTRY(ERR_INVALID_DATA, "Invalid data")                                     \
@@ -21,6 +21,7 @@
     __ENTRY(ERR_NO_SUCH_DEVICE, "No such device")                                 \
     __ENTRY(ERR_NO_SUCH_FILE_OR_DIRECTORY, "No such file or directory")           \
     __ENTRY(ERR_NO_SUCH_TASK, "No such task")                                     \
+    __ENTRY(ERR_TASK_NOT_WAITABLE, "Task not waitable")                           \
     __ENTRY(ERR_NOT_A_DIRECTORY, "File is not a directory")                       \
     __ENTRY(ERR_NOT_A_SOCKET, "Not a socket")                                     \
     __ENTRY(ERR_NOT_A_STREAM, "Not a stream")                                     \
@@ -35,7 +36,7 @@
     __ENTRY(ERR_WRITE_ONLY_STREAM, "Write only stream")                           \
     __ENTRY(ERR_DIRECTORY_NOT_EMPTY, "Directory not empty")                       \
     __ENTRY(ERR_EXTENSION, "Unrecognized file extension")                         \
-    __ENTRY(ERR_ACCESS_DENIED, "Acces denied")
+    __ENTRY(ERR_ACCESS_DENIED, "Access denied")
 
 enum Result
 {

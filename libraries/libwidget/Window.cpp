@@ -1,10 +1,7 @@
 #include <assert.h>
 
-#include <libsystem/Logger.h>
 #include <libsystem/eventloop/EventLoop.h>
-#include <libsystem/io/Stream.h>
 #include <libsystem/system/Memory.h>
-
 #include <libwidget/Application.h>
 #include <libwidget/Container.h>
 #include <libwidget/Event.h>
@@ -318,6 +315,12 @@ void Window::do_resize(Vec2i mouse_position)
     Event resize_event = {};
     resize_event.type = Event::WINDOW_RESIZED;
     dispatch_event(&resize_event);
+}
+
+void Window::resize_to_content()
+{
+    Vec2i content_size = root()->compute_size();
+    bound({position(), content_size});
 }
 
 void Window::end_resize()

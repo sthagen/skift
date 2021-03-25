@@ -105,6 +105,8 @@ Result hj_process_launch(Launchpad *launchpad, int *pid)
 
     auto launchpad_copy = copy_launchpad(launchpad);
 
+    launchpad_copy.flags |= TASK_USER;
+
     Result result = task_launch(scheduler_running(), &launchpad_copy, pid);
 
     free_launchpad(&launchpad_copy);
@@ -112,10 +114,12 @@ Result hj_process_launch(Launchpad *launchpad, int *pid)
     return result;
 }
 
-Result hj_process_clone(int *pid)
+Result hj_process_clone(int *pid, TaskFlags flags)
 {
     // Implemented in archs/x86_32/kernel/Interrupts.cpp
     __unused(pid);
+    __unused(flags);
+
     ASSERT_NOT_REACHED();
 }
 
@@ -156,7 +160,7 @@ Result hj_process_cancel(int pid)
     {
         return ERR_NO_SUCH_TASK;
     }
-    else if (!task->user)
+    else if (!(task->_flags & TASK_USER))
     {
         return ERR_ACCESS_DENIED;
     }
@@ -464,60 +468,31 @@ Result hj_handle_copy(int source, int destination)
     return handles.copy(source, destination);
 }
 
-Result hj_handle_poll(
-    HandleSet *handles_set,
-    int *selected,
-    PollEvent *selected_events,
-    Timeout timeout)
+Result hj_handle_poll(HandlePoll *handle_poll, size_t count, Timeout timeout)
 {
-    if (!syscall_validate_ptr((uintptr_t)handles_set, sizeof(HandleSet)) ||
-        !syscall_validate_ptr((uintptr_t)handles_set->handles, sizeof(int) * handles_set->count) ||
-        !syscall_validate_ptr((uintptr_t)handles_set->events, sizeof(PollEvent) * handles_set->count) ||
-        !syscall_validate_ptr((uintptr_t)selected, sizeof(int)) ||
-        !syscall_validate_ptr((uintptr_t)selected_events, sizeof(PollEvent)))
+    if (!syscall_validate_ptr((uintptr_t)handle_poll, sizeof(HandlePoll) * count))
     {
         return ERR_BAD_ADDRESS;
     }
 
-    if (handles_set->count > PROCESS_HANDLE_COUNT)
+    if (count > PROCESS_HANDLE_COUNT)
     {
         return ERR_TOO_MANY_HANDLE;
     }
 
-    if (handles_set->count == 0)
+    if (count == 0)
     {
-        *selected = -1;
-        *selected_events = 0;
-
         return SUCCESS;
     }
 
-    // We need to copy these because this syscall uses task_fshandle_poll
-    // who block the current thread using a blocker which does a context switch.
-
-    __cleanup_malloc int *handles_copy = (int *)calloc(handles_set->count, sizeof(int));
-    memcpy(handles_copy, handles_set->handles, handles_set->count * sizeof(int));
-
-    __cleanup_malloc PollEvent *events_copy = (PollEvent *)calloc(handles_set->count, sizeof(PollEvent));
-    memcpy(events_copy, handles_set->events, handles_set->count * sizeof(PollEvent));
-
-    int selected_copy;
-    PollEvent selected_event_copy;
-
-    HandleSet handle_set = (HandleSet){handles_copy, events_copy, handles_set->count};
+    for (size_t i = 0; i < count; i++)
+    {
+        handle_poll[i].result = 0;
+    }
 
     auto &handles = scheduler_running()->handles();
 
-    Result result = handles.poll(
-        &handle_set,
-        &selected_copy,
-        &selected_event_copy,
-        timeout);
-
-    *selected = selected_copy;
-    *selected_events = selected_event_copy;
-
-    return result;
+    return handles.poll(handle_poll, count, timeout);
 }
 
 Result hj_handle_read(int handle, void *buffer, size_t size, size_t *read)
@@ -590,14 +565,7 @@ Result hj_handle_seek(int handle, ssize64_t *offset, HjWhence whence, ssize64_t 
 
     if (result_offset != nullptr)
     {
-        if (seek_result)
-        {
-            *result_offset = *seek_result;
-        }
-        else
-        {
-            *result_offset = 0;
-        }
+        *result_offset = seek_result.value_or_default(0);
     }
 
     return seek_result.result();

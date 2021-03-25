@@ -23,12 +23,12 @@ struct SeekFrom
         return {Whence::START, position};
     }
 
-    static SeekFrom end(ssize64_t position = 0)
+    static SeekFrom current(ssize64_t position = 0)
     {
         return {Whence::CURRENT, position};
     }
 
-    static SeekFrom current(ssize64_t position = 0)
+    static SeekFrom end(ssize64_t position = 0)
     {
         return {Whence::END, position};
     }
@@ -36,6 +36,8 @@ struct SeekFrom
 
 struct Seek
 {
+    virtual ~Seek() {}
+
     virtual ResultOr<size_t> seek(SeekFrom from) = 0;
     virtual ResultOr<size_t> tell() = 0;
 

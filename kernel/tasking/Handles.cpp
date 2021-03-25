@@ -142,24 +142,21 @@ Result Handles::copy(int source, int destination)
     return add_at(copy_handle, destination);
 }
 
-Result Handles::poll(
-    HandleSet *handles_set,
-    int *selected_index,
-    PollEvent *selected_events,
-    Timeout timeout)
+Result Handles::poll(HandlePoll *handles, size_t count, Timeout timeout)
 {
     Vector<Selected> selected;
 
     auto release_handles = [&]() {
         for (size_t i = 0; i < selected.count(); i++)
         {
+            handles[i].result = selected[i].result;
             release(selected[i].handle_index);
         }
     };
 
-    for (size_t i = 0; i < handles_set->count; i++)
+    for (size_t i = 0; i < count; i++)
     {
-        auto handle = acquire(handles_set->handles[i]);
+        auto handle = acquire(handles[i].handle);
 
         if (!handle)
         {
@@ -167,7 +164,12 @@ Result Handles::poll(
             return ERR_BAD_HANDLE;
         }
 
-        selected.push_back({handles_set->handles[i], handle, handles_set->events[i]});
+        selected.push_back({
+            handles[i].handle,
+            handle,
+            handles[i].events,
+            0,
+        });
     }
 
     {
@@ -178,12 +180,6 @@ Result Handles::poll(
         {
             release_handles();
             return block_result;
-        }
-
-        if (blocker.selected())
-        {
-            *selected_index = blocker.selected()->handle_index;
-            *selected_events = blocker.selected()->events;
         }
     }
 
@@ -283,14 +279,14 @@ ResultOr<int> Handles::accept(int socket_handle_index)
 
     auto accept_result = socket_handle->accept();
 
-    if (!accept_result)
+    if (!accept_result.success())
     {
         release(socket_handle_index);
 
         return accept_result.result();
     }
 
-    auto add_result = add(*accept_result);
+    auto add_result = add(accept_result.value());
 
     release(socket_handle_index);
 
@@ -324,26 +320,26 @@ Result Handles::duplex(
 
     auto result_or_server = add(server_handle);
 
-    if (!result_or_server)
+    if (!result_or_server.success())
     {
         close_opened_handles();
         return result_or_server.result();
     }
     else
     {
-        *server = *result_or_server;
+        *server = result_or_server.value();
     }
 
     auto result_or_client = add(client_handle);
 
-    if (!result_or_client)
+    if (!result_or_client.success())
     {
         close_opened_handles();
         return result_or_client.result();
     }
     else
     {
-        *client = *result_or_client;
+        *client = result_or_client.value();
     }
 
     return SUCCESS;

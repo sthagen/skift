@@ -1,6 +1,3 @@
-
-#include <assert.h>
-#include <libsystem/Logger.h>
 #include <libsystem/eventloop/EventLoop.h>
 #include <libsystem/eventloop/Invoker.h>
 #include <libsystem/eventloop/Notifier.h>
@@ -8,6 +5,8 @@
 #include <libsystem/math/MinMax.h>
 #include <libsystem/system/System.h>
 #include <libsystem/utils/List.h>
+#include <libtest/AssertFalse.h>
+#include <libtest/AssertTrue.h>
 #include <libutils/Vector.h>
 
 namespace EventLoop
@@ -15,21 +14,21 @@ namespace EventLoop
 
 /* --- Notifiers ------------------------------------------------------------ */
 
-static size_t _handles_count;
-static Handle *_handles[PROCESS_HANDLE_COUNT];
-static PollEvent _events[PROCESS_HANDLE_COUNT];
-
 static Vector<Notifier *> _notifiers;
+static Vector<HandlePoll> _polls;
 
 void update_notifier()
 {
-    for (size_t i = 0; i < _notifiers.count(); i++)
-    {
-        _handles[i] = _notifiers[i]->handle();
-        _events[i] = _notifiers[i]->events();
-    }
+    _polls.clear();
 
-    _handles_count = _notifiers.count();
+    for (Notifier *notifier : _notifiers)
+    {
+        _polls.push_back({
+            notifier->handle()->id(),
+            notifier->events(),
+            0,
+        });
+    }
 }
 
 void register_notifier(Notifier *notifier)
@@ -47,11 +46,11 @@ void unregister_notifier(Notifier *notifier)
     update_notifier();
 }
 
-void update_notifier(Handle *handle, PollEvent event)
+void update_notifier(int id, PollEvent event)
 {
     for (size_t i = 0; i < _notifiers.count(); i++)
     {
-        if (_notifiers[i]->handle() == handle &&
+        if (_notifiers[i]->handle()->id() == id &&
             _notifiers[i]->events() & event)
         {
             _notifiers[i]->invoke();
@@ -129,14 +128,14 @@ static Vector<AtExitHook> _atexit_hooks;
 
 void initialize()
 {
-    assert(!_is_initialize);
+    assert_false(_is_initialize);
 
     _is_initialize = true;
 }
 
 void uninitialize()
 {
-    assert(_is_initialize);
+    assert_true(_is_initialize);
 
     for (size_t i = 0; i < _atexit_hooks.count(); i++)
     {
@@ -186,7 +185,7 @@ void atexit(AtExitHook hook)
 
 void pump(bool pool)
 {
-    assert(_is_initialize);
+    assert_true(_is_initialize);
 
     Timeout timeout = 0;
 
@@ -195,34 +194,27 @@ void pump(bool pool)
         timeout = get_timeout();
     }
 
-    Handle *selected = nullptr;
-    PollEvent selected_events = 0;
-
-    Result result = handle_poll(
-        &_handles[0],
-        &_events[0],
-        _handles_count,
-        &selected,
-        &selected_events,
-        timeout);
+    Result result = hj_handle_poll(_polls.raw_storage(), _polls.count(), timeout);
 
     if (result_is_error(result))
     {
-        logger_error("Failed to select : %s", result_to_string(result));
         exit(PROCESS_FAILURE);
     }
 
-    update_timers();
+    for (const HandlePoll &poll : _polls)
+    {
+        update_notifier(poll.handle, poll.result);
+    }
 
-    update_notifier(selected, selected_events);
+    update_timers();
 
     update_invoker();
 }
 
 int run()
 {
-    assert(_is_initialize);
-    assert(!_is_running);
+    assert_true(_is_initialize);
+    assert_false(_is_running);
 
     _is_running = true;
 
@@ -238,7 +230,7 @@ int run()
 
 void exit(int exit_value)
 {
-    assert(_is_initialize);
+    assert_true(_is_initialize);
 
     _is_running = false;
     _exit_value = exit_value;
@@ -246,9 +238,9 @@ void exit(int exit_value)
 
 int run_nested()
 {
-    assert(_is_initialize);
-    assert(_is_running);
-    assert(!_nested_is_running);
+    assert_true(_is_initialize);
+    assert_true(_is_running);
+    assert_false(_nested_is_running);
 
     _nested_is_running = true;
 
@@ -262,8 +254,8 @@ int run_nested()
 
 void exit_nested(int exit_value)
 {
-    assert(_is_initialize);
-    assert(_nested_is_running);
+    assert_true(_is_initialize);
+    assert_true(_nested_is_running);
 
     _nested_is_running = false;
     _nested_exit_value = exit_value;

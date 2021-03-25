@@ -6,7 +6,6 @@
 /*                                                                            */
 
 #include <assert.h>
-#include <libsystem/Logger.h>
 
 #include "kernel/devices/Devices.h"
 #include "kernel/devices/Driver.h"
@@ -41,7 +40,6 @@ void system_main(Handover *handover)
     splash_screen();
     system_initialize();
     memory_initialize(handover);
-
     scheduler_initialize();
     tasking_initialize();
     interrupts_initialize();

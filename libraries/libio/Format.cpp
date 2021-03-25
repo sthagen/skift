@@ -63,6 +63,16 @@ ResultOr<size_t> format(Writer &writer, const Formating &, unsigned long int val
     return NumberFormat::decimal().format(writer, (uint64_t)value);
 }
 
+ResultOr<size_t> format(IO::Writer &writer, const Formating &, long long int value)
+{
+    return NumberFormat::decimal().format(writer, (int64_t)value);
+}
+
+ResultOr<size_t> format(IO::Writer &writer, const Formating &, unsigned long long int value)
+{
+    return NumberFormat::decimal().format(writer, (uint64_t)value);
+}
+
 ResultOr<size_t> format(Writer &writer, const Formating &, float value)
 {
     return NumberFormat::decimal().format(writer, value);
@@ -81,6 +91,11 @@ ResultOr<size_t> format(Writer &writer, const Formating &, const char *cstring)
 ResultOr<size_t> format(Writer &writer, const Formating &, const String string)
 {
     return IO::write(writer, string.cstring());
+}
+
+ResultOr<size_t> format(Writer &writer, const Formating &, const Path path)
+{
+    return IO::write(writer, path.string());
 }
 
 } // namespace IO

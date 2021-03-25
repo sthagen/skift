@@ -24,11 +24,11 @@ Result hj_process_launch(Launchpad *launchpad, int *pid)
     return __syscall(HJ_PROCESS_LAUNCH, (uintptr_t)launchpad, (uintptr_t)pid);
 }
 
-Result hj_process_clone(int *pid)
+Result hj_process_clone(int *pid, TaskFlags flags)
 {
     _pid_cache = -1;
 
-    return __syscall(HJ_PROCESS_CLONE, (uintptr_t)pid);
+    return __syscall(HJ_PROCESS_CLONE, (uintptr_t)pid, flags);
 }
 
 Result hj_process_exec(Launchpad *launchpad)
@@ -68,7 +68,7 @@ Result hj_memory_map(uintptr_t address, size_t size, int flags)
 
 Result hj_memory_free(uintptr_t address)
 {
-    return __syscall(HJ_MEMORY_FREE, (uintptr_t)address);
+    return __syscall(HJ_MEMORY_FREE, address);
 }
 
 Result hj_memory_include(int handle, uintptr_t *out_address, size_t *out_size)
@@ -78,7 +78,7 @@ Result hj_memory_include(int handle, uintptr_t *out_address, size_t *out_size)
 
 Result hj_memory_get_handle(uintptr_t address, int *out_handle)
 {
-    return __syscall(HJ_MEMORY_GET_HANDLE, (uintptr_t)address, (uintptr_t)out_handle);
+    return __syscall(HJ_MEMORY_GET_HANDLE, address, (uintptr_t)out_handle);
 }
 
 Result hj_filesystem_mkdir(const char *raw_path, size_t size)
@@ -161,7 +161,7 @@ Result hj_create_term(int *server_handle, int *client_handle)
 
 Result hj_handle_open(int *handle, const char *raw_path, size_t size, OpenFlag flags)
 {
-    return __syscall(HJ_HANDLE_OPEN, (uintptr_t)handle, (uintptr_t)raw_path, (uintptr_t)size, (uintptr_t)flags);
+    return __syscall(HJ_HANDLE_OPEN, (uintptr_t)handle, (uintptr_t)raw_path, (uintptr_t)size, flags);
 }
 
 Result hj_handle_close(int handle)
@@ -179,9 +179,9 @@ Result hj_handle_copy(int source, int destination)
     return __syscall(HJ_HANDLE_COPY, (uintptr_t)source, (uintptr_t)destination);
 }
 
-Result hj_handle_poll(HandleSet *handles_set, int *selected, PollEvent *selected_events, Timeout timeout)
+Result hj_handle_poll(HandlePoll *handles, size_t count, Timeout timeout)
 {
-    return __syscall(HJ_HANDLE_POLL, (uintptr_t)handles_set, (uintptr_t)selected, (uintptr_t)selected_events, (uintptr_t)timeout);
+    return __syscall(HJ_HANDLE_POLL, (uintptr_t)handles, (uintptr_t)count, timeout);
 }
 
 Result hj_handle_read(int handle, void *buffer, size_t size, size_t *read)

@@ -1,10 +1,8 @@
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <libgraphic/Icon.h>
 #include <libio/Format.h>
-#include <libsystem/Logger.h>
 #include <libutils/HashMap.h>
 #include <libutils/Path.h>
 

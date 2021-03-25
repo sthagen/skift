@@ -4,6 +4,10 @@
 
 #include <assert.h>
 
+#ifdef __KERNEL__
+#    include "kernel/interrupts/Interupts.h"
+#endif
+
 class Lock
 {
 private:
@@ -15,6 +19,9 @@ private:
 
     __SOURCE_LOCATION__ _last_acquire_location = INVALID_SOURCE_LOCATION;
     __SOURCE_LOCATION__ _last_release_location = INVALID_SOURCE_LOCATION;
+
+    __nonmovable(Lock);
+    __noncopyable(Lock);
 
     void ensure_failed(const char *raison, __SOURCE_LOCATION__ location)
     {
@@ -67,6 +74,11 @@ public:
     {
         while (!__sync_bool_compare_and_swap(&_locked, 0, 1))
         {
+
+#ifdef __KERNEL__
+            ASSERT_INTERRUPTS_NOT_RETAINED();
+#endif
+
             asm("pause");
         }
 

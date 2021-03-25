@@ -51,6 +51,11 @@ void launchpad_destroy(Launchpad *launchpad)
     free(launchpad);
 }
 
+void launchpad_flags(Launchpad *launchpad, TaskFlags flags)
+{
+    launchpad->flags = flags;
+}
+
 void launchpad_argument(Launchpad *launchpad, const char *argument)
 {
     assert(launchpad->argc < PROCESS_ARG_COUNT);
@@ -77,6 +82,20 @@ void launchpad_arguments(Launchpad *launchpad, const Vector<String> &arguments)
     {
         launchpad_argument(launchpad, arguments[i].cstring());
     }
+}
+
+void launchpad_handle(Launchpad *launchpad, IO::RawHandle &handle_to_pass, int destination)
+{
+    assert(destination >= 0 && destination < PROCESS_ARG_COUNT);
+
+    launchpad->handles[destination] = handle_to_pass.handle()->id();
+}
+
+void launchpad_handle(Launchpad *launchpad, IO::Handle &handle, int destination)
+{
+    assert(destination >= 0 && destination < PROCESS_ARG_COUNT);
+
+    launchpad->handles[destination] = handle.id();
 }
 
 void launchpad_handle(Launchpad *launchpad, Handle *handle_to_pass, int destination)

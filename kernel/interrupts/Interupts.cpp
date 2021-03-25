@@ -1,3 +1,5 @@
+#include <libsystem/Logger.h>
+
 #include "archs/Architectures.h"
 
 #include "kernel/interrupts/Dispatcher.h"
@@ -9,9 +11,10 @@ static int _depth = 0;
 void interrupts_initialize()
 {
     dispatcher_initialize();
-    interrupts_enable_holding();
 
     logger_info("Enabling interrupts!");
+
+    interrupts_enable_holding();
     arch_enable_interrupts();
 }
 
