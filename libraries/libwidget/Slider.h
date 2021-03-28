@@ -2,10 +2,13 @@
 
 #include <libgraphic/Painter.h>
 #include <libutils/Callback.h>
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 #include <libwidget/Window.h>
 
-class Slider : public Widget
+namespace Widget
+{
+
+class Slider : public Component
 {
 private:
     static constexpr auto THUMP_SIZE = 12;
@@ -26,9 +29,11 @@ public:
 
     void value(double value) { _value = value; }
 
-    Slider(Widget *parent);
+    Slider(Component *parent);
 
     void event(Event *event) override;
 
-    void paint(Painter &painter, const Recti &) override;
+    void paint(Graphic::Painter &painter, const Recti &) override;
 };
+
+} // namespace Widget

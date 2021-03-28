@@ -50,7 +50,7 @@ String TaskModel::header(int column)
     }
 }
 
-Variant TaskModel::data(int row, int column)
+Widget::Variant TaskModel::data(int row, int column)
 {
     auto &task = _data.get((size_t)row);
 
@@ -58,15 +58,15 @@ Variant TaskModel::data(int row, int column)
     {
     case COLUMN_ID:
     {
-        Variant value = task.get("id").as_integer();
+        Widget::Variant value = task.get("id").as_integer();
 
-        if (task.get("user").is(json::TRUE))
+        if (task.get("user").is(Json::TRUE))
         {
-            return value.with_icon(Icon::get("account"));
+            return value.with_icon(Graphic::Icon::get("account"));
         }
         else
         {
-            return value.with_icon(Icon::get("cog"));
+            return value.with_icon(Graphic::Icon::get("cog"));
         }
     }
 
@@ -77,10 +77,10 @@ Variant TaskModel::data(int row, int column)
         return task.get("state").as_string();
 
     case COLUMN_CPU:
-        return Variant("%2d%%", task.get("cpu").as_integer());
+        return Widget::Variant("%2d%%", task.get("cpu").as_integer());
 
     case COLUMN_RAM:
-        return Variant("%5d Kio", task.get("ram").as_integer() / 1024);
+        return Widget::Variant("%5d Kio", task.get("ram").as_integer() / 1024);
 
     default:
         ASSERT_NOT_REACHED();
@@ -89,11 +89,11 @@ Variant TaskModel::data(int row, int column)
 
 void TaskModel::update()
 {
-    _data = json::parse_file("/System/processes");
+    _data = Json::parse_file("/System/processes");
     did_update();
 }
 
-static String greedy(json::Value &data, const char *field)
+static String greedy(Json::Value &data, const char *field)
 {
     size_t most_greedy_index = 0;
     int most_greedy_value = 0;

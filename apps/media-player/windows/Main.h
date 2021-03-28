@@ -4,14 +4,13 @@
 
 #include "media-player/widgets/Cover.h"
 
-namespace media_player
+namespace MediaPlayer
 {
 
-class Main : public Window
+class Main : public Widget::Window
 {
-private:
 public:
     Main();
 };
 
-} // namespace media_player
+} // namespace MediaPlayer

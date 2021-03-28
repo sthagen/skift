@@ -1,10 +1,14 @@
 #pragma once
 
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-class Container : public Widget
+namespace Widget
 {
-private:
+
+class Container : public Component
+{
 public:
-    Container(Widget *parent);
+    Container(Component *parent);
 };
+
+} // namespace Widget

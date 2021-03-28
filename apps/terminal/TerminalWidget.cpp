@@ -1,18 +1,18 @@
 #include <libgraphic/Painter.h>
+#include <libsystem/Logger.h>
 #include <libsystem/process/Launchpad.h>
 #include <libtest/AssertEqual.h>
 #include <libwidget/Event.h>
 #include <libwidget/Window.h>
-#include <libsystem/Logger.h>
 
 #include "terminal/Common.h"
 #include "terminal/TerminalWidget.h"
 
 #define TERMINAL_IO_BUFFER_SIZE 4096
 
-TerminalWidget::TerminalWidget(Widget *parent) : Widget(parent)
+TerminalWidget::TerminalWidget(Component *parent) : Component(parent)
 {
-    _terminal = own<terminal::Terminal>(80, 24);
+    _terminal = own<Terminal::Terminal>(80, 24);
 
     _terminal_device = IO::Terminal::create().value();
 
@@ -38,13 +38,13 @@ TerminalWidget::TerminalWidget(Widget *parent) : Widget(parent)
     launchpad_launch(shell_launchpad, nullptr);
 }
 
-void TerminalWidget::paint(Painter &painter, const Recti &dirty)
+void TerminalWidget::paint(Graphic::Painter &painter, const Recti &dirty)
 {
     for (int y = 0; y < _terminal->height(); y++)
     {
         for (int x = 0; x < _terminal->width(); x++)
         {
-            terminal::Cell cell = _terminal->cell_at(x, y);
+            Terminal::Cell cell = _terminal->cell_at(x, y);
             render_cell(painter, x, y, cell);
             _terminal->cell_undirty(x, y);
         }
@@ -55,7 +55,7 @@ void TerminalWidget::paint(Painter &painter, const Recti &dirty)
 
     if (cell_bound(cx, cy).colide_with(dirty))
     {
-        terminal::Cell cell = _terminal->cell_at(cx, cy);
+        Terminal::Cell cell = _terminal->cell_at(cx, cy);
 
         if (window()->focused())
         {
@@ -66,9 +66,9 @@ void TerminalWidget::paint(Painter &painter, const Recti &dirty)
                     cx,
                     cy,
                     cell.codepoint,
-                    terminal::BACKGROUND,
-                    terminal::FOREGROUND,
-                    terminal::Attributes::defaults());
+                    Terminal::BACKGROUND,
+                    Terminal::FOREGROUND,
+                    Terminal::Attributes::defaults());
             }
             else
             {
@@ -78,19 +78,19 @@ void TerminalWidget::paint(Painter &painter, const Recti &dirty)
         else
         {
             render_cell(painter, cx, cy, cell);
-            painter.draw_rectangle(cell_bound(cx, cy), color(THEME_ANSI_CURSOR));
+            painter.draw_rectangle(cell_bound(cx, cy), color(Widget::THEME_ANSI_CURSOR));
         }
     }
 }
 
-void TerminalWidget::event(Event *event)
+void TerminalWidget::event(Widget::Event *event)
 {
     auto send_sequence = [&](auto sequence) {
         _terminal_device.server.write(sequence, strlen(sequence));
         event->accepted = true;
     };
 
-    if (event->type == Event::KEYBOARD_KEY_TYPED)
+    if (event->type == Widget::Event::KEYBOARD_KEY_TYPED)
     {
         switch (event->keyboard.key)
         {

@@ -5,10 +5,10 @@
 namespace Settings
 {
 
-class HomePage : public Container
+class HomePage : public Widget::Container
 {
 public:
-    HomePage(Widget *parent);
+    HomePage(Component *parent);
 };
 
 } // namespace Settings

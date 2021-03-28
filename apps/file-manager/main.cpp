@@ -5,15 +5,15 @@
 
 int main(int argc, char **argv)
 {
-    Application::initialize(argc, argv);
+    Widget::Application::initialize(argc, argv);
 
-    auto navigation = make<filepicker::Navigation>();
-    auto bookmarks = filepicker::Bookmarks::load();
+    auto navigation = make<FilePicker::Navigation>();
+    auto bookmarks = FilePicker::Bookmarks::load();
 
     auto window = new MainWindow(navigation, bookmarks);
 
     navigation->go_home_dont_record_history();
     window->show();
 
-    return Application::run();
+    return Widget::Application::run();
 }

@@ -1,16 +1,21 @@
 #pragma once
 
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-class TitleBar : public Widget
+namespace Widget
+{
+
+class TitleBar : public Component
 {
 private:
     bool _is_dragging = false;
 
 public:
-    TitleBar(Widget *parent);
+    TitleBar(Component *parent);
 
     ~TitleBar() override;
 
     void event(Event *event) override;
 };
+
+} // namespace Widget

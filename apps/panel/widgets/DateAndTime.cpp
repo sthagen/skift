@@ -8,9 +8,9 @@
 namespace panel
 {
 
-DateAndTime::DateAndTime(Widget *parent) : Button(parent, Button::TEXT)
+DateAndTime::DateAndTime(Component *parent) : Button(parent, Button::TEXT)
 {
-    auto label = new Label(this, "");
+    auto label = new Widget::Label(this, "");
 
     _timer = own<Timer>(1000, [this, label]() {
         TimeStamp timestamp = timestamp_now();

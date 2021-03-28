@@ -7,10 +7,10 @@
 #include <libfilepicker/model/FileInfo.h>
 #include <libfilepicker/model/Navigation.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
-class DirectoryListing : public TableModel
+class DirectoryListing : public Widget::TableModel
 {
 private:
     RefPtr<Navigation> _navigation;
@@ -26,11 +26,11 @@ public:
 
     String header(int column) override;
 
-    Variant data(int row, int column) override;
+    Widget::Variant data(int row, int column) override;
 
     void update() override;
 
     const FileInfo &info(int index) const;
 };
 
-} // namespace filepicker
+} // namespace FilePicker

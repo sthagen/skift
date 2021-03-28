@@ -5,13 +5,13 @@
 namespace panel
 {
 
-class ApplicationListing : public VScroll
+class ApplicationListing : public Widget::VScroll
 {
 private:
     String _filter;
 
 public:
-    ApplicationListing(Widget *parent);
+    ApplicationListing(Widget::Component *parent);
 
     void filter(const String &filter);
 

@@ -3,8 +3,11 @@
 #include <libgraphic/Painter.h>
 #include <libwidget/Graph.h>
 
-Graph::Graph(Widget *parent, size_t data_size, Color data_color)
-    : Widget(parent)
+namespace Widget
+{
+
+Graph::Graph(Component *parent, size_t data_size, Graphic::Color data_color)
+    : Component(parent)
 {
     _data = (float *)calloc(data_size, sizeof(float));
     _data_size = data_size;
@@ -17,7 +20,7 @@ Graph::~Graph()
     free(_data);
 }
 
-void Graph::paint(Painter &painter, const Recti &)
+void Graph::paint(Graphic::Painter &painter, const Recti &)
 {
     int height = bound().height();
     int width = bound().width();
@@ -69,3 +72,5 @@ void Graph::record(float data)
 
     should_repaint();
 }
+
+} // namespace Widget

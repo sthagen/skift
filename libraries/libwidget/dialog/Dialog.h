@@ -4,6 +4,9 @@
 #include <libwidget/Application.h>
 #include <libwidget/Button.h>
 
+namespace Widget
+{
+
 enum DialogButton
 {
     YES = (1 << 0),
@@ -81,7 +84,7 @@ public:
 
     virtual void render(Window *) {}
 
-    void create_buttons(Widget *parent)
+    void create_buttons(Component *parent)
     {
         if (_buttons & DialogButton::YES)
         {
@@ -120,3 +123,5 @@ public:
         }
     }
 };
+
+} // namespace Widget

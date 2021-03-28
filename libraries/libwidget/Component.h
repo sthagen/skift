@@ -8,7 +8,14 @@
 #include <libwidget/Event.h>
 #include <libwidget/Theme.h>
 
+namespace Graphic
+{
 class Painter;
+} // namespace Graphic
+
+namespace Widget
+{
+
 struct Window;
 
 struct Layout
@@ -30,25 +37,55 @@ struct Layout
     Vec2i spacing;
 };
 
-#define STACK() \
-    (Layout{Layout::STACK, 0, 0, Vec2i::zero()})
+#define STACK()                  \
+    (::Widget::Layout{           \
+        ::Widget::Layout::STACK, \
+        0,                       \
+        0,                       \
+        Vec2i::zero(),           \
+    })
 
 #define GRID(_hcell, _vcell, _hspacing, _vspacing) \
-    (Layout{Layout::GRID, (_hcell), (_vcell), Vec2i((_hspacing), (_vspacing))})
+    (::Widget::Layout{                             \
+        ::Widget::Layout::GRID,                    \
+        (_hcell),                                  \
+        (_vcell),                                  \
+        Vec2i((_hspacing), (_vspacing)),           \
+    })
 
-#define VGRID(_vspacing) \
-    (Layout{Layout::VGRID, 0, 0, Vec2i(0, (_vspacing))})
+#define VGRID(_vspacing)         \
+    (::Widget::Layout{           \
+        ::Widget::Layout::VGRID, \
+        0,                       \
+        0,                       \
+        Vec2i(0, (_vspacing)),   \
+    })
 
-#define HGRID(_hspacing) \
-    (Layout{Layout::HGRID, 0, 0, Vec2i((_hspacing), 0)})
+#define HGRID(_hspacing)         \
+    (::Widget::Layout{           \
+        ::Widget::Layout::HGRID, \
+        0,                       \
+        0,                       \
+        Vec2i((_hspacing), 0),   \
+    })
 
-#define VFLOW(_vspacing) \
-    (Layout{Layout::VFLOW, 0, 0, Vec2i(0, (_vspacing))})
+#define VFLOW(_vspacing)         \
+    (::Widget::Layout{           \
+        ::Widget::Layout::VFLOW, \
+        0,                       \
+        0,                       \
+        Vec2i(0, (_vspacing)),   \
+    })
 
-#define HFLOW(_hspacing) \
-    (Layout{Layout::HFLOW, 0, 0, Vec2i((_hspacing), 0)})
+#define HFLOW(_hspacing)         \
+    (::Widget::Layout{           \
+        ::Widget::Layout::HFLOW, \
+        0,                       \
+        0,                       \
+        Vec2i((_hspacing), 0),   \
+    })
 
-class Widget
+class Component
 {
 private:
     bool _enabled = true;
@@ -65,18 +102,21 @@ private:
     Insetsi _insets{};
     Vec2i _content_scroll{};
 
-    Optional<Color> _colors[__THEME_COLOR_COUNT] = {};
+    Optional<Graphic::Color> _colors[__THEME_COLOR_COUNT] = {};
     Layout _layout = {};
-    RefPtr<Font> _font;
+    RefPtr<Graphic::Font> _font;
 
     CursorState _cursor = CURSOR_DEFAULT;
 
     EventHandler _handlers[EventType::__COUNT] = {};
 
-    Widget *_parent = {};
+    Component *_parent = {};
     Window *_window = {};
 
-    Vector<Widget *> _childs = {};
+    Vector<Component *> _childs = {};
+
+    __noncopyable(Component);
+    __nonmovable(Component);
 
 public:
     static constexpr auto FILL = (1 << 0);
@@ -87,24 +127,24 @@ public:
 
     void id(String id);
 
-    RefPtr<Font> font()
+    RefPtr<Graphic::Font> font()
     {
         if (!_font)
         {
-            _font = Font::get("sans").take_value();
+            _font = Graphic::Font::get("sans").take_value();
         }
 
         return _font;
     }
 
-    void font(RefPtr<Font> font)
+    void font(RefPtr<Graphic::Font> font)
     {
         _font = font;
     }
 
-    Color color(ThemeColorRole role);
+    Graphic::Color color(ThemeColorRole role);
 
-    void color(ThemeColorRole role, Color color);
+    void color(ThemeColorRole role, Graphic::Color color);
 
     void layout(Layout layout) { _layout = layout; }
 
@@ -154,11 +194,11 @@ public:
 
     /* --- subclass API ----------------------------------------------------- */
 
-    Widget(Widget *parent);
+    Component(Component *parent);
 
-    virtual ~Widget();
+    virtual ~Component();
 
-    virtual void paint(Painter &, const Recti &) {}
+    virtual void paint(Graphic::Painter &, const Recti &) {}
 
     virtual void event(Event *) {}
 
@@ -248,11 +288,11 @@ public:
 
     /* --- Childs ----------------------------------------------------------- */
 
-    Widget *child_at(Vec2i position);
+    Component *child_at(Vec2i position);
 
-    void add_child(Widget *child);
+    void add_child(Component *child);
 
-    void remove_child(Widget *child);
+    void remove_child(Component *child);
 
     void clear_children();
 
@@ -264,7 +304,7 @@ public:
 
     /* --- Paint ------------------------------------------------------------ */
 
-    void repaint(Painter &painter, Recti rectangle);
+    void repaint(Graphic::Painter &painter, Recti rectangle);
 
     void should_repaint();
 
@@ -284,3 +324,5 @@ public:
 
     void dispatch_event(Event *event);
 };
+
+} // namespace Widget

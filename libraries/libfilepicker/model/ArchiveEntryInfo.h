@@ -5,16 +5,16 @@
 #include <libgraphic/Icon.h>
 #include <libutils/String.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
 struct ArchiveEntryInfo
 {
     String name;
     FileType type;
-    RefPtr<Icon> icon;
+    RefPtr<Graphic::Icon> icon;
     size_t compressed_size;
     size_t uncompressed_size;
 };
 
-} // namespace filepicker
+} // namespace FilePicker

@@ -5,7 +5,10 @@
 #include <libwidget/ScrollBar.h>
 #include <libwidget/model/TableModel.h>
 
-class Table : public Widget
+namespace Widget
+{
+
+class Table : public Component
 {
 private:
     static constexpr int TABLE_ROW_HEIGHT = 32;
@@ -26,7 +29,7 @@ private:
     Recti column_bound(int column) const;
     Recti cell_bound(int row, int column) const;
     int row_at(Vec2i position) const;
-    void paint_cell(Painter &painter, int row, int column);
+    void paint_cell(Graphic::Painter &painter, int row, int column);
 
 public:
     void model(RefPtr<TableModel> model)
@@ -69,13 +72,15 @@ public:
         should_relayout();
     }
 
-    Table(Widget *parent);
+    Table(Component *parent);
 
-    Table(Widget *parent, RefPtr<TableModel> model);
+    Table(Component *parent, RefPtr<TableModel> model);
 
-    void paint(Painter &painter, const Recti &dirty) override;
+    void paint(Graphic::Painter &painter, const Recti &dirty) override;
 
     void event(Event *event) override;
 
     void do_layout() override;
 };
+
+} // namespace Widget

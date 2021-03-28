@@ -5,15 +5,15 @@
 #include <libgraphic/Icon.h>
 #include <libutils/String.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
 struct FileInfo
 {
     String name;
     FileType type;
-    RefPtr<Icon> icon;
+    RefPtr<Graphic::Icon> icon;
     size_t size;
 };
 
-} // namespace filepicker
+} // namespace FilePicker

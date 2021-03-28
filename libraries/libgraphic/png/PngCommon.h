@@ -1,7 +1,8 @@
 #pragma once
+
 #include <libutils/Endian.h>
 
-namespace Png
+namespace Graphic::Png
 {
 
 enum CompressionMethod : uint8_t
@@ -11,6 +12,17 @@ enum CompressionMethod : uint8_t
 
 using be_cm = LittleEndian<CompressionMethod>;
 
+enum ColourType : uint8_t
+{
+    CT_GREY = 0,       /*grayscale: 1,2,4,8,16 bit*/
+    CT_RGB = 2,        /*RGB: 8,16 bit*/
+    CT_PALETTE = 3,    /*palette: 1,2,4,8 bit*/
+    CT_GREY_ALPHA = 4, /*grayscale with alpha: 8,16 bit*/
+    CT_RGBA = 6
+};
+
+using be_ct = LittleEndian<ColourType>;
+
 struct __packed ImageHeader
 {
     // iHDR
@@ -18,7 +30,7 @@ struct __packed ImageHeader
     be_uint32_t width;
     be_uint32_t height;
     be_uint8_t bit_depth;
-    be_uint8_t colour_type;
+    be_ct colour_type;
     be_cm compression_method;
     be_uint8_t filter_method;
     be_uint8_t interlace_method;
@@ -80,4 +92,42 @@ struct __packed ImageEnd
     // iEND
     static constexpr uint32_t SIG = 0x49454E44;
 };
-} // namespace Png
+
+struct __packed PhysicalDimensions
+{
+    // pHYs
+    static constexpr uint32_t SIG = 0x70485973;
+    be_uint32_t pixels_per_x;
+    be_uint32_t pixels_per_y;
+    be_uint8_t unit_specifier;
+};
+
+struct __packed sRGB
+{
+    // sRGB
+    static constexpr uint32_t SIG = 0x73524742;
+    be_uint8_t rendering_intent;
+};
+
+struct __packed Palette
+{
+    // PLTE
+    static constexpr uint32_t SIG = 0x504C5445;
+};
+
+struct Transparency
+{
+    // tRNS
+    static constexpr uint32_t SIG = 0x74524E53;
+};
+
+enum FilterType : uint8_t
+{
+    FT_None = 0,
+    FT_Sub = 1,
+    FT_Up = 2,
+    FT_Average = 3,
+    FT_Paeth = 4
+};
+
+} // namespace Graphic::Png

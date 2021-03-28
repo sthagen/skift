@@ -3,7 +3,7 @@
 #include <libfilepicker/model/ArchiveListing.h>
 #include <libutils/json/Json.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
 enum Column
@@ -57,14 +57,14 @@ String ArchiveListing::header(int column)
     }
 }
 
-Variant ArchiveListing::data(int row, int column)
+Widget::Variant ArchiveListing::data(int row, int column)
 {
     auto &entry = _entries[row];
 
     switch (column)
     {
     case COLUMN_NAME:
-        return Variant(entry.name.cstring()).with_icon(entry.icon);
+        return Widget::Variant(entry.name.cstring()).with_icon(entry.icon);
 
     case COLUMN_TYPE:
         switch (entry.type)
@@ -80,10 +80,10 @@ Variant ArchiveListing::data(int row, int column)
         }
 
     case COLUMN_COMPRESSED_SIZE:
-        return Variant((int)entry.compressed_size);
+        return Widget::Variant((int)entry.compressed_size);
 
     case COLUMN_UNCOMPRESSED_SIZE:
-        return Variant((int)entry.uncompressed_size);
+        return Widget::Variant((int)entry.uncompressed_size);
 
     default:
         ASSERT_NOT_REACHED();
@@ -104,7 +104,7 @@ void ArchiveListing::update()
         entry_info.uncompressed_size = entry.uncompressed_size;
         entry_info.type = FILE_TYPE_REGULAR;
         entry_info.name = entry.name;
-        entry_info.icon = Icon::get("file");
+        entry_info.icon = Graphic::Icon::get("file");
     }
 
     did_update();
@@ -115,4 +115,4 @@ const ArchiveEntryInfo &ArchiveListing::info(int index) const
     return _entries[index];
 }
 
-} // namespace filepicker
+} // namespace FilePicker

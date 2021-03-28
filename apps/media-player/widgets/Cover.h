@@ -1,21 +1,21 @@
 #pragma once
 
 #include <libgraphic/Bitmap.h>
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-namespace media_player
+namespace MediaPlayer
 {
 
-class Cover : public Widget
+class Cover : public Widget::Component
 {
 private:
-    RefPtr<Bitmap> _cover;
-    RefPtr<Bitmap> _backdrop;
+    RefPtr<Graphic::Bitmap> _cover;
+    RefPtr<Graphic::Bitmap> _backdrop;
 
 public:
-    Cover(Widget *parent, RefPtr<Bitmap> bitmap);
+    Cover(Widget::Component *parent, RefPtr<Graphic::Bitmap> bitmap);
 
-    void paint(Painter &painter, const Recti &) override;
+    void paint(Graphic::Painter &painter, const Recti &) override;
 };
 
-} // namespace media_player
+} // namespace MediaPlayer

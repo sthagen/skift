@@ -5,13 +5,16 @@
 #include <libsystem/eventloop/Invoker.h>
 #include <libutils/HashMap.h>
 #include <libutils/Vector.h>
+#include <libwidget/Component.h>
 #include <libwidget/Cursor.h>
 #include <libwidget/Event.h>
-#include <libwidget/Widget.h>
 
 #include "compositor/Protocol.h"
 
 #define WINDOW_RESIZE_AREA 16
+
+namespace Widget
+{
 
 class Window
 {
@@ -19,7 +22,7 @@ private:
     int _handle = -1;
 
     String _title = "Window";
-    RefPtr<Icon> _icon;
+    RefPtr<Graphic::Icon> _icon;
     Recti _bound{250, 250};
     WindowFlag _flags;
     WindowType _type = WINDOW_TYPE_REGULAR;
@@ -40,24 +43,24 @@ private:
 
     CursorState cursor_state = CURSOR_DEFAULT;
 
-    RefPtr<Bitmap> frontbuffer;
-    OwnPtr<Painter> frontbuffer_painter;
+    RefPtr<Graphic::Bitmap> frontbuffer;
+    OwnPtr<Graphic::Painter> frontbuffer_painter;
 
-    RefPtr<Bitmap> backbuffer;
-    OwnPtr<Painter> backbuffer_painter;
+    RefPtr<Graphic::Bitmap> backbuffer;
+    OwnPtr<Graphic::Painter> backbuffer_painter;
 
     Vector<Recti> _dirty_rects{};
     bool _dirty_layout;
 
     EventHandler _handlers[EventType::__COUNT];
 
-    Widget *_root;
+    Component *_root;
 
-    Widget *_keyboard_focus = nullptr;
-    Widget *_mouse_focus = nullptr;
-    Widget *_mouse_over = nullptr;
+    Component *_keyboard_focus = nullptr;
+    Component *_mouse_focus = nullptr;
+    Component *_mouse_over = nullptr;
 
-    HashMap<String, Widget *> _widget_by_id{};
+    HashMap<String, Component *> _widget_by_id{};
 
     OwnPtr<Invoker> _repaint_invoker;
     OwnPtr<Invoker> _relayout_invoker;
@@ -79,7 +82,7 @@ public:
 
     WindowFlag flags() { return _flags; }
 
-    void icon(RefPtr<Icon> icon)
+    void icon(RefPtr<Graphic::Icon> icon)
     {
         if (icon)
         {
@@ -87,7 +90,7 @@ public:
         }
     }
 
-    RefPtr<Icon> icon() { return _icon; }
+    RefPtr<Graphic::Icon> icon() { return _icon; }
 
     void opacity(float value) { _opacity = value; }
 
@@ -108,7 +111,7 @@ public:
 
     void type(WindowType type) { _type = type; }
 
-    Color color(ThemeColorRole role);
+    Graphic::Color color(ThemeColorRole role);
 
     Window(WindowFlag flags);
 
@@ -150,15 +153,15 @@ public:
 
     /* --- Childs ----------------------------------------------------------- */
 
-    Widget *root() { return _root; }
+    Component *root() { return _root; }
 
-    void focus_widget(Widget *widget);
+    void focus_widget(Component *widget);
 
-    void widget_removed(Widget *widget);
+    void widget_removed(Component *widget);
 
-    void register_widget_by_id(String id, Widget *widget);
+    void register_widget_by_id(String id, Component *widget);
 
-    Widget *child_at(Vec2i position);
+    Component *child_at(Vec2i position);
 
     template <typename WidgetType, typename CallbackType>
     void with_widget(String name, CallbackType callback)
@@ -176,7 +179,7 @@ public:
 
     /* --- Focus ------------------------------------------------------------ */
 
-    bool has_keyboard_focus(Widget *widget);
+    bool has_keyboard_focus(Component *widget);
 
     /* --- Layout ----------------------------------------------------------- */
 
@@ -186,7 +189,7 @@ public:
 
     /* --- Render ----------------------------------------------------------- */
 
-    virtual void repaint(Painter &painter, Recti rectangle);
+    virtual void repaint(Graphic::Painter &painter, Recti rectangle);
 
     void repaint_dirty();
 
@@ -222,3 +225,5 @@ public:
 
     void handle_keyboard_key_release(Event *event);
 };
+
+} // namespace Widget

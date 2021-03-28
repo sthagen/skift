@@ -4,6 +4,10 @@
 #include <libwidget/Theme.h>
 #include <libwidget/Window.h>
 
+namespace Widget
+{
+
+
 Recti Table::header_bound() const
 {
     return bound().take_top(TABLE_ROW_HEIGHT);
@@ -71,7 +75,7 @@ int Table::row_at(Vec2i position) const
     return row;
 }
 
-void Table::paint_cell(Painter &painter, int row, int column)
+void Table::paint_cell(Graphic::Painter &painter, int row, int column)
 {
     Recti bound = cell_bound(row, column);
     Variant data = _model->data(row, column);
@@ -83,7 +87,7 @@ void Table::paint_cell(Painter &painter, int row, int column)
     {
         painter.blit(
             *data.icon(),
-            ICON_18PX,
+            Graphic::ICON_18PX,
             Recti(bound.x() + 7, bound.y() + 7, 18, 18),
             color(THEME_FOREGROUND));
 
@@ -105,8 +109,8 @@ void Table::paint_cell(Painter &painter, int row, int column)
     painter.pop();
 }
 
-Table::Table(Widget *parent)
-    : Widget(parent)
+Table::Table(Component *parent)
+    : Component(parent)
 {
     _scrollbar = new ScrollBar(this);
 
@@ -116,13 +120,13 @@ Table::Table(Widget *parent)
     });
 }
 
-Table::Table(Widget *parent, RefPtr<TableModel> model)
+Table::Table(Component *parent, RefPtr<TableModel> model)
     : Table(parent)
 {
     this->model(model);
 }
 
-void Table::paint(Painter &painter, const Recti &)
+void Table::paint(Graphic::Painter &painter, const Recti &)
 {
     if (!_model)
     {
@@ -233,3 +237,5 @@ void Table::do_layout()
     _scrollbar->container(scrollbar_bound());
     _scrollbar->update(TABLE_ROW_HEIGHT * _model->rows(), list_bound().height(), _scroll_offset);
 }
+
+} // namespace Widget

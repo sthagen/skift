@@ -6,7 +6,7 @@
 
 #include <libfilepicker/model/DirectoryListing.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
 static auto get_icon_for_node(String current_directory, IO::Directory::Entry &entry)
@@ -15,33 +15,33 @@ static auto get_icon_for_node(String current_directory, IO::Directory::Entry &en
     {
         auto manifest_path = IO::format("{}/{}/manifest.json", current_directory, entry.name);
 
-        auto root = json::parse_file(manifest_path);
+        auto root = Json::parse_file(manifest_path);
 
-        if (root.is(json::OBJECT))
+        if (root.is(Json::OBJECT))
         {
             auto icon_name = root.get("icon");
 
-            if (icon_name.is(json::STRING))
+            if (icon_name.is(Json::STRING))
             {
-                return Icon::get(icon_name.as_string());
+                return Graphic::Icon::get(icon_name.as_string());
             }
         }
 
-        return Icon::get("folder");
+        return Graphic::Icon::get("folder");
     }
     else if (entry.stat.type == FILE_TYPE_PIPE ||
              entry.stat.type == FILE_TYPE_DEVICE ||
              entry.stat.type == FILE_TYPE_SOCKET)
     {
-        return Icon::get("pipe");
+        return Graphic::Icon::get("pipe");
     }
     else if (entry.stat.type == FILE_TYPE_TERMINAL)
     {
-        return Icon::get("console-network");
+        return Graphic::Icon::get("console-network");
     }
     else
     {
-        return Icon::get("file");
+        return Graphic::Icon::get("file");
     }
 }
 
@@ -92,14 +92,14 @@ String DirectoryListing::header(int column)
     }
 }
 
-Variant DirectoryListing::data(int row, int column)
+Widget::Variant DirectoryListing::data(int row, int column)
 {
     auto &entry = _files[row];
 
     switch (column)
     {
     case COLUMN_NAME:
-        return Variant(entry.name.cstring()).with_icon(entry.icon);
+        return Widget::Variant(entry.name.cstring()).with_icon(entry.icon);
 
     case COLUMN_TYPE:
         switch (entry.type)
@@ -118,7 +118,7 @@ Variant DirectoryListing::data(int row, int column)
         }
 
     case COLUMN_SIZE:
-        return Variant((int)entry.size);
+        return Widget::Variant((int)entry.size);
 
     default:
         ASSERT_NOT_REACHED();
@@ -156,4 +156,4 @@ const FileInfo &DirectoryListing::info(int index) const
     return _files[index];
 }
 
-} // namespace filepicker
+} // namespace FilePicker

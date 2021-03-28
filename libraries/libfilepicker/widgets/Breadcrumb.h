@@ -1,14 +1,14 @@
 #pragma once
 
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
 #include <libfilepicker/model/Bookmarks.h>
 #include <libfilepicker/model/Navigation.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
-struct Breadcrumb : public Widget
+struct Breadcrumb : public Widget::Component
 {
 private:
     RefPtr<Navigation> _navigation;
@@ -17,15 +17,15 @@ private:
     OwnPtr<Observer<Navigation>> _navigation_observer;
     OwnPtr<Observer<Bookmarks>> _bookmarks_observer;
 
-    RefPtr<Icon> _icon_computer;
-    RefPtr<Icon> _icon_expand;
-    RefPtr<Icon> _icon_bookmark;
-    RefPtr<Icon> _icon_bookmark_outline;
+    RefPtr<Graphic::Icon> _icon_computer;
+    RefPtr<Graphic::Icon> _icon_expand;
+    RefPtr<Graphic::Icon> _icon_bookmark;
+    RefPtr<Graphic::Icon> _icon_bookmark_outline;
 
 public:
-    Breadcrumb(Widget *parent, RefPtr<Navigation> navigation, RefPtr<Bookmarks> bookmarks);
+    Breadcrumb(Widget::Component *parent, RefPtr<Navigation> navigation, RefPtr<Bookmarks> bookmarks);
 
     void render();
 };
 
-} // namespace filepicker
+} // namespace FilePicker

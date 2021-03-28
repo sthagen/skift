@@ -1,11 +1,14 @@
 #pragma once
 
 #include <libgraphic/Painter.h>
+#include <libwidget/Component.h>
 #include <libwidget/Container.h>
 #include <libwidget/Label.h>
-#include <libwidget/Widget.h>
 
-class Switch : public Widget
+namespace Widget
+{
+
+class Switch : public Component
 {
 private:
     bool _state;
@@ -25,7 +28,7 @@ public:
         should_repaint();
     }
 
-    Switch(Widget *parent) : Widget(parent)
+    Switch(Component *parent) : Component(parent)
     {
         pin_width(WIDTH);
         pin_height(HEIGHT);
@@ -35,7 +38,7 @@ public:
     {
     }
 
-    virtual void paint(Painter &painter, const Recti &)
+    virtual void paint(Graphic::Painter &painter, const Recti &)
     {
         auto c = _state ? color(THEME_ACCENT) : color(THEME_FOREGROUND_DISABLED);
 
@@ -68,3 +71,5 @@ public:
         }
     }
 };
+
+} // namespace Widget

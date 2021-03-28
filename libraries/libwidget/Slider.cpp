@@ -1,5 +1,8 @@
 #include <libwidget/Slider.h>
 
+namespace Widget
+{
+
 Recti Slider::track_bound()
 {
     return Recti{
@@ -42,7 +45,7 @@ void Slider::slide_to(Vec2i position)
     should_relayout();
 }
 
-Slider::Slider(Widget *parent) : Widget(parent)
+Slider::Slider(Component *parent) : Component(parent)
 {
     min_width(160);
 }
@@ -66,7 +69,7 @@ void Slider::event(Event *event)
     }
 }
 
-void Slider::paint(Painter &painter, const Recti &)
+void Slider::paint(Graphic::Painter &painter, const Recti &)
 {
     if (window()->focused())
     {
@@ -80,3 +83,5 @@ void Slider::paint(Painter &painter, const Recti &)
         painter.fill_rectangle_rounded(thumb_bound(), bound().height() / 2, color(THEME_BACKGROUND));
     }
 }
+
+} // namespace Widget

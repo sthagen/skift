@@ -5,11 +5,12 @@
 #include <libsystem/eventloop/Notifier.h>
 #include <libsystem/eventloop/Timer.h>
 #include <libterminal/Terminal.h>
-#include <libwidget/Widget.h>
-class TerminalWidget : public Widget
+#include <libwidget/Component.h>
+
+class TerminalWidget : public Widget::Component
 {
 private:
-    OwnPtr<terminal::Terminal> _terminal;
+    OwnPtr<Terminal::Terminal> _terminal;
     bool _cursor_blink;
 
     IO::Terminal _terminal_device;
@@ -20,13 +21,13 @@ private:
 public:
     void blink() { _cursor_blink = !_cursor_blink; };
 
-    TerminalWidget(Widget *parent);
+    TerminalWidget(Component *parent);
 
     void handle_read();
 
-    void paint(Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Recti &) override;
 
-    void event(Event *event) override;
+    void event(Widget::Event *event) override;
 
     void do_layout() override;
 };

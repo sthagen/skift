@@ -1,12 +1,16 @@
-#include <libsystem/Logger.h>
-#include <libutils/json/Json.h>
-#include <libutils/NumberParser.h>
-#include <libwidget/Theme.h>
 #include <string.h>
+
+#include <libsystem/Logger.h>
+#include <libutils/NumberParser.h>
+#include <libutils/json/Json.h>
+#include <libwidget/Theme.h>
+
+namespace Widget
+{
 
 static bool _theme_is_dark = true;
 
-static constexpr Color _theme_default_colors[__THEME_COLOR_COUNT] = {
+static constexpr Graphic::Color _theme_default_colors[__THEME_COLOR_COUNT] = {
     [THEME_BORDER] = THEME_DEFAULT_BORDER,
     [THEME_BACKGROUND] = THEME_DEFAULT_BACKGROUND,
     [THEME_MIDDLEGROUND] = THEME_DEFAULT_MIDDLEGROUND,
@@ -38,7 +42,7 @@ static constexpr Color _theme_default_colors[__THEME_COLOR_COUNT] = {
     [THEME_ANSI_BRIGHT_WHITE] = THEME_DEFAULT_ANSI_BRIGHT_WHITE,
 };
 
-static Color _theme_colors[__THEME_COLOR_COUNT] = {
+static Graphic::Color _theme_colors[__THEME_COLOR_COUNT] = {
     [THEME_BORDER] = THEME_DEFAULT_BORDER,
     [THEME_BACKGROUND] = THEME_DEFAULT_BACKGROUND,
     [THEME_MIDDLEGROUND] = THEME_DEFAULT_MIDDLEGROUND,
@@ -107,11 +111,11 @@ bool theme_is_dark()
     return _theme_is_dark;
 }
 
-void theme_load(const char *path)
+void theme_load(String path)
 {
-    logger_info("Loading theme from '%s'", path);
+    logger_info("Loading theme from '%s'", path.cstring());
 
-    auto root = json::parse_file(path);
+    auto root = Json::parse_file(path);
 
     if (!root.has("colors"))
     {
@@ -123,7 +127,7 @@ void theme_load(const char *path)
 
     if (root.has("dark"))
     {
-        _theme_is_dark = root.get("dark").is(json::TRUE);
+        _theme_is_dark = root.get("dark").is(Json::TRUE);
     }
     else
     {
@@ -134,19 +138,21 @@ void theme_load(const char *path)
     {
         const auto &color = colors.get(_theme_colors_names[i]);
 
-        if (color.is(json::STRING))
+        if (color.is(Json::STRING))
         {
-            _theme_colors[i] = Color::parse(color.as_string());
+            _theme_colors[i] = Graphic::Color::parse(color.as_string());
         }
     }
 }
 
-Color theme_get_color(ThemeColorRole role)
+Graphic::Color theme_get_color(ThemeColorRole role)
 {
     return _theme_colors[role];
 }
 
-void theme_set_color(ThemeColorRole role, Color color)
+void theme_set_color(ThemeColorRole role, Graphic::Color color)
 {
     _theme_colors[role] = color;
 }
+
+} // namespace Widget

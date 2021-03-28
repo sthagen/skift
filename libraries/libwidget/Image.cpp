@@ -1,17 +1,20 @@
 #include <libgraphic/Painter.h>
 #include <libwidget/Image.h>
 
-Image::Image(Widget *parent, RefPtr<Bitmap> bitmap)
-    : Widget(parent), _bitmap(bitmap)
+namespace Widget
+{
+
+Image::Image(Component *parent, RefPtr<Graphic::Bitmap> bitmap)
+    : Component(parent), _bitmap(bitmap)
 {
 }
 
-Image::Image(Widget *parent, RefPtr<Bitmap> bitmap, BitmapScaling scaling)
-    : Widget(parent), _bitmap(bitmap), _scaling(scaling)
+Image::Image(Component *parent, RefPtr<Graphic::Bitmap> bitmap, Graphic::BitmapScaling scaling)
+    : Component(parent), _bitmap(bitmap), _scaling(scaling)
 {
 }
 
-void Image::change_bitmap(RefPtr<Bitmap> bitmap)
+void Image::change_bitmap(RefPtr<Graphic::Bitmap> bitmap)
 {
     if (_bitmap != bitmap)
     {
@@ -20,7 +23,7 @@ void Image::change_bitmap(RefPtr<Bitmap> bitmap)
     }
 }
 
-void Image::scaling(BitmapScaling scaling)
+void Image::scaling(Graphic::BitmapScaling scaling)
 {
     if (_scaling != scaling)
     {
@@ -29,7 +32,7 @@ void Image::scaling(BitmapScaling scaling)
     }
 }
 
-void Image::paint(Painter &painter, const Recti &)
+void Image::paint(Graphic::Painter &painter, const Recti &)
 {
     if (!_bitmap)
     {
@@ -38,3 +41,15 @@ void Image::paint(Painter &painter, const Recti &)
 
     painter.blit(*_bitmap, _scaling, bound());
 }
+
+Vec2i Image::size()
+{
+    if (_scaling == Graphic::BitmapScaling::CENTER)
+    {
+        return _bitmap->bound().size();
+    }
+
+    return {};
+}
+
+} // namespace Widget

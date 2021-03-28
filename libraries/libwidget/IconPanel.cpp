@@ -1,12 +1,15 @@
 #include <libgraphic/Painter.h>
 #include <libwidget/IconPanel.h>
 
-IconPanel::IconPanel(Widget *parent, RefPtr<Icon> icon)
-    : Widget(parent), _icon(icon)
+namespace Widget
+{
+
+IconPanel::IconPanel(Component *parent, RefPtr<Graphic::Icon> icon)
+    : Component(parent), _icon(icon)
 {
 }
 
-void IconPanel::paint(Painter &painter, const Recti &)
+void IconPanel::paint(Graphic::Painter &painter, const Recti &)
 {
     if (!_icon)
     {
@@ -33,3 +36,5 @@ Vec2i IconPanel::size()
         return bound().size();
     }
 }
+
+} // namespace Widget

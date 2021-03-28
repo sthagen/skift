@@ -1,11 +1,13 @@
 #include <libgraphic/Painter.h>
-
 #include <libwidget/Button.h>
 #include <libwidget/IconPanel.h>
 #include <libwidget/Image.h>
 #include <libwidget/Label.h>
 
-void Button::paint(Painter &painter, const Recti &rectangle)
+namespace Widget
+{
+
+void Button::paint(Graphic::Painter &painter, const Recti &rectangle)
 {
     __unused(rectangle);
 
@@ -73,33 +75,33 @@ void Button::event(Event *event)
     }
 }
 
-Button::Button(Widget *parent, Style style)
-    : Widget(parent),
+Button::Button(Component *parent, Style style)
+    : Component(parent),
       _style(style)
 {
     layout(HFLOW(0));
     insets(Insetsi(0, 6));
     min_height(32);
-    flags(Widget::GREEDY);
+    flags(Component::GREEDY);
 }
 
-Button::Button(Widget *parent, Style style, RefPtr<Icon> icon)
+Button::Button(Component *parent, Style style, RefPtr<Graphic::Icon> icon)
     : Button(parent, style)
 {
     layout(STACK());
     insets(Insetsi(6));
     min_width(32);
-    flags(Widget::GREEDY | Widget::SQUARE);
+    flags(Component::GREEDY | Component::SQUARE);
 
     auto icon_panel = new IconPanel(this, icon);
 
     if (style == FILLED)
     {
-        icon_panel->color(THEME_FOREGROUND, Colors::WHITE);
+        icon_panel->color(THEME_FOREGROUND, Graphic::Colors::WHITE);
     }
 }
 
-Button::Button(Widget *parent, Style style, String text)
+Button::Button(Component *parent, Style style, String text)
     : Button(parent, style)
 {
     layout(STACK());
@@ -109,11 +111,11 @@ Button::Button(Widget *parent, Style style, String text)
     auto label = new Label(this, text, Anchor::CENTER);
     if (style == FILLED)
     {
-        label->color(THEME_FOREGROUND, Colors::WHITE);
+        label->color(THEME_FOREGROUND, Graphic::Colors::WHITE);
     }
 }
 
-Button::Button(Widget *parent, Style style, RefPtr<Icon> icon, String text)
+Button::Button(Component *parent, Style style, RefPtr<Graphic::Icon> icon, String text)
     : Button(parent, style)
 {
     insets(Insetsi(0, 0, 6, 10));
@@ -126,18 +128,18 @@ Button::Button(Widget *parent, Style style, RefPtr<Icon> icon, String text)
 
     if (style == FILLED)
     {
-        label->color(THEME_FOREGROUND, Colors::WHITE);
-        icon_panel->color(THEME_FOREGROUND, Colors::WHITE);
+        label->color(THEME_FOREGROUND, Graphic::Colors::WHITE);
+        icon_panel->color(THEME_FOREGROUND, Graphic::Colors::WHITE);
     }
 }
 
-Button::Button(Widget *parent, Style style, RefPtr<Bitmap> image, String text)
+Button::Button(Component *parent, Style style, RefPtr<Graphic::Bitmap> image, String text)
     : Button(parent, style)
 {
     insets(Insetsi(4, 4, 6, 10));
     min_width(64);
 
-    auto image_panel = new Image(this, image, BitmapScaling::FIT);
+    auto image_panel = new Image(this, image, Graphic::BitmapScaling::FIT);
     image_panel->outsets(Insetsi(0, 0, 0, 8));
     image_panel->min_width(36);
     image_panel->min_height(36);
@@ -146,6 +148,8 @@ Button::Button(Widget *parent, Style style, RefPtr<Bitmap> image, String text)
 
     if (style == FILLED)
     {
-        label->color(THEME_FOREGROUND, Colors::WHITE);
+        label->color(THEME_FOREGROUND, Graphic::Colors::WHITE);
     }
 }
+
+} // namespace Widget

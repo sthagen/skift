@@ -1,13 +1,15 @@
 #pragma once
 
-#include <libutils/unicode/Codepoint.h>
+#include <libgraphic/Font.h>
 #include <libutils/Observable.h>
 #include <libutils/OwnPtr.h>
 #include <libutils/RefCounted.h>
 #include <libutils/Vector.h>
-
-#include <libgraphic/Font.h>
+#include <libutils/unicode/Codepoint.h>
 #include <libwidget/Theme.h>
+
+namespace Widget
+{
 
 struct TextCursor;
 
@@ -62,7 +64,7 @@ public:
         _codepoints.remove_index(index);
     }
 
-    Recti bound(const Font &font)
+    Recti bound(const Graphic::Font &font)
     {
         int width = 0;
 
@@ -131,7 +133,7 @@ public:
 
     ~TextModel() {}
 
-    Recti bound(const Font &font)
+    Recti bound(const Graphic::Font &font)
     {
         int width = 0;
         int height = 0;
@@ -349,3 +351,5 @@ public:
         _column = clamp(_column, 0, model.line(_line).length());
     }
 };
+
+} // namespace Widget

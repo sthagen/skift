@@ -2,8 +2,11 @@
 
 #include <libgraphic/Painter.h>
 
-PaginationDots::PaginationDots(Widget *parent, int count)
-    : Widget(parent),
+namespace Widget
+{
+
+PaginationDots::PaginationDots(Component *parent, int count)
+    : Component(parent),
       _count(count)
 {
     max_height(DOTSIZE);
@@ -14,7 +17,7 @@ PaginationDots::~PaginationDots()
 {
 }
 
-void PaginationDots::paint(Painter &painter, const Recti &)
+void PaginationDots::paint(Graphic::Painter &painter, const Recti &)
 {
     for (int i = 0; i < _count; i++)
     {
@@ -35,3 +38,5 @@ Vec2i PaginationDots::size()
 {
     return {DOTSIZE * _count + DOTSPACING * (_count - 1), DOTSIZE};
 }
+
+} // namespace Widget

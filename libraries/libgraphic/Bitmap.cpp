@@ -1,17 +1,12 @@
-#define LODEPNG_NO_COMPILE_DISK
-#define LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
-#define LODEPNG_NO_COMPILE_CPP
-#include <thirdparty/lodepng/lodepng.cpp>
-#undef LODEPNG_NO_COMPILE_CPP
-#undef LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
-#undef LODEPNG_NO_COMPILE_DISK
-
 #include <libgraphic/Bitmap.h>
 #include <libgraphic/png/PngReader.h>
 #include <libio/Copy.h>
 #include <libio/File.h>
 #include <libio/MemoryReader.h>
 #include <libsystem/system/Memory.h>
+
+namespace Graphic
+{
 
 static Color _placeholder_buffer[] = {
     Colors::MAGENTA,
@@ -71,26 +66,16 @@ ResultOr<RefPtr<Bitmap>> Bitmap::load_from(String path)
         return ERR_NO_SUCH_FILE_OR_DIRECTORY;
     }
 
-    auto png_data = TRY(IO::read_all(file));
+    Graphic::PngReader png_reader{file};
 
-    // IO::MemoryReader mem_reader{png_data.start(), png_data.size()};
-    // Graphic::PngReader png_reader(mem_reader);
-
-    unsigned int decoded_width = 0;
-    unsigned int decoded_height = 0;
-    void *decoded_data = nullptr;
-
-    int decode_result = lodepng_decode32(
-        (unsigned char **)&decoded_data,
-        &decoded_width,
-        &decoded_height,
-        (const unsigned char *)png_data.start(),
-        png_data.size());
-
-    if (decode_result != 0)
+    if (!png_reader.valid())
     {
         return ERR_BAD_IMAGE_FILE_FORMAT;
     }
+
+    unsigned int decoded_width = png_reader.width();
+    unsigned int decoded_height = png_reader.height();
+    const Color *decoded_data = png_reader.pixels().raw_storage();
 
     auto bitmap_or_result = Bitmap::create_shared(decoded_width, decoded_height);
 
@@ -98,12 +83,10 @@ ResultOr<RefPtr<Bitmap>> Bitmap::load_from(String path)
     {
         auto bitmap = bitmap_or_result.take_value();
         memcpy(bitmap->pixels(), decoded_data, sizeof(Color) * decoded_width * decoded_height);
-        free(decoded_data);
         return bitmap;
     }
     else
     {
-        free(decoded_data);
         return bitmap_or_result;
     }
 }
@@ -122,31 +105,19 @@ RefPtr<Bitmap> Bitmap::load_from_or_placeholder(String path)
 
 Result Bitmap::save_to(String path)
 {
-    void *outbuffer __cleanup_malloc = nullptr;
+    __unused(path);
+    return Result::ERR_OPERATION_NOT_SUPPORTED;
 
-    size_t outbuffer_size = 0;
+    // void *outbuffer __cleanup_malloc = nullptr;
 
-    int err = lodepng_encode_memory(
-        (unsigned char **)&outbuffer,
-        &outbuffer_size,
-        (const unsigned char *)_pixels,
-        _width,
-        _height,
-        LCT_RGBA, 8);
+    // IO::File file{path, OPEN_READ};
 
-    if (err != 0)
-    {
-        return ERR_BAD_IMAGE_FILE_FORMAT;
-    }
+    // if (!file.exist())
+    // {
+    //     return ERR_NO_SUCH_FILE_OR_DIRECTORY;
+    // }
 
-    IO::File file{path, OPEN_READ};
-
-    if (!file.exist())
-    {
-        return ERR_NO_SUCH_FILE_OR_DIRECTORY;
-    }
-
-    return IO::write_all(file, {outbuffer, outbuffer_size});
+    // return IO::write_all(file, {outbuffer, outbuffer_size});
 }
 
 Bitmap::~Bitmap()
@@ -156,3 +127,5 @@ Bitmap::~Bitmap()
         memory_free(reinterpret_cast<uintptr_t>(_pixels));
     }
 }
+
+} // namespace Graphic

@@ -41,7 +41,7 @@ String DeviceModel::header(int column)
     }
 }
 
-Variant DeviceModel::data(int row, int column)
+Widget::Variant DeviceModel::data(int row, int column)
 {
     auto &device = _data.get(row);
 
@@ -66,7 +66,7 @@ Variant DeviceModel::data(int row, int column)
 
 void DeviceModel::update()
 {
-    _data = json::parse_file("/System/devices");
+    _data = Json::parse_file("/System/devices");
 
     did_update();
 }

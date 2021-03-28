@@ -9,16 +9,16 @@
 namespace panel
 {
 
-class SettingToggle : public Button
+class SettingToggle : public Widget::Button
 {
 private:
     String _name;
-    RefPtr<Icon> _icon;
+    RefPtr<Graphic::Icon> _icon;
     OwnPtr<Settings::Setting> _setting;
     bool _enabled;
 
 public:
-    SettingToggle(Widget *parent, String name, RefPtr<Icon> icon, const char *setting)
+    SettingToggle(Widget::Component *parent, String name, RefPtr<Graphic::Icon> icon, const char *setting)
         : Button(parent, Button::TEXT),
           _name(name),
           _icon(icon)
@@ -41,19 +41,19 @@ public:
 
         insets({12, 12, 12, 12});
 
-        auto icon = new IconPanel(this, _icon);
+        auto icon = new Widget::IconPanel(this, _icon);
         icon->insets(Insetsi(0, 0, 0, 4));
 
-        auto label = new Label(this, _name);
-        label->flags(Widget::FILL);
+        auto label = new Widget::Label(this, _name);
+        label->flags(Component::FILL);
 
-        auto sw = new Switch(this);
+        auto sw = new Widget::Switch(this);
         sw->state(_enabled);
     }
 
-    void event(Event *event) override
+    void event(Widget::Event *event) override
     {
-        if (event->type == Event::ACTION)
+        if (event->type == Widget::Event::ACTION)
         {
             _setting->write(!_enabled);
             event->accepted = true;

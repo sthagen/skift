@@ -2,8 +2,11 @@
 #include <libwidget/TextEditor.h>
 #include <libwidget/Window.h>
 
-TextEditor::TextEditor(Widget *parent, RefPtr<TextModel> model)
-    : Widget(parent),
+namespace Widget
+{
+
+TextEditor::TextEditor(Component *parent, RefPtr<TextModel> model)
+    : Component(parent),
       _model(model)
 {
     _vscrollbar = new ScrollBar(this);
@@ -25,7 +28,7 @@ TextEditor::~TextEditor()
 {
 }
 
-void TextEditor::paint(Painter &painter, const Recti &)
+void TextEditor::paint(Graphic::Painter &painter, const Recti &)
 {
     auto metrics = font()->metrics();
 
@@ -51,7 +54,7 @@ void TextEditor::paint(Painter &painter, const Recti &)
         painter.push();
         painter.transform(Vec2i{-_hscroll_offset, 0} + view_bound().position().extract_x());
 
-        auto paint_cursor = [&](Painter &painter, int position) {
+        auto paint_cursor = [&](Graphic::Painter &painter, int position) {
             Vec2 cursor_position{position, metrics.fullascend(baseline)};
             Vec2 cursor_size{2, metrics.fulllineheight()};
             Rect cursor_bound{cursor_position, cursor_size};
@@ -274,3 +277,5 @@ void TextEditor::scroll_to_cursor()
 
     update_scrollbar();
 }
+
+} // namespace Widget

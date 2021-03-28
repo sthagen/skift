@@ -46,7 +46,7 @@ public:
 
     ResultOr<size_t> length()
     {
-        return _size;
+        return _used;
     }
 
     ResultOr<size_t> tell()
@@ -73,6 +73,11 @@ public:
         default:
             ASSERT_NOT_REACHED();
         }
+    }
+
+    inline uint8_t *buffer()
+    {
+        return _buffer;
     }
 
     // Create a string and flush the buffer!;

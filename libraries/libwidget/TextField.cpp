@@ -1,9 +1,11 @@
 #include <libgraphic/Painter.h>
-
 #include <libwidget/TextField.h>
 
-TextField::TextField(Widget *parent, RefPtr<TextModel> model)
-    : Widget(parent), _model(model)
+namespace Widget
+{
+
+TextField::TextField(Component *parent, RefPtr<TextModel> model)
+    : Component(parent), _model(model)
 {
     _model_observer = _model->observe([this](auto &) {
         _cursor.clamp_within(*_model);
@@ -17,13 +19,13 @@ TextField::~TextField()
 {
 }
 
-void TextField::paint(Painter &painter, const Recti &)
+void TextField::paint(Graphic::Painter &painter, const Recti &)
 {
     int advance = 0;
     auto metrics = font()->metrics();
     int baseline = bound().height() / 2 + metrics.capheight() / 2;
 
-    auto paint_cursor = [&](Painter &painter, int position) {
+    auto paint_cursor = [&](Graphic::Painter &painter, int position) {
         Vec2 cursor_position{position, metrics.fullascend(baseline)};
         Vec2 cursor_size{2, metrics.fulllineheight()};
         Rect cursor_bound{cursor_position, cursor_size};
@@ -132,3 +134,5 @@ void TextField::event(Event *event)
         event->accepted = true;
     }
 }
+
+} // namespace Widget

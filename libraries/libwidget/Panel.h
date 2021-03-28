@@ -1,8 +1,11 @@
 #pragma once
 
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-class Panel : public Widget
+namespace Widget
+{
+
+class Panel : public Component
 {
 private:
     int _border_radius = 0;
@@ -10,7 +13,9 @@ private:
 public:
     void border_radius(int value) { _border_radius = value; }
 
-    Panel(Widget *parent);
+    Panel(Component *parent);
 
-    void paint(Painter &painter, const Recti &) override;
+    void paint(Graphic::Painter &painter, const Recti &) override;
 };
+
+} // namespace Widget

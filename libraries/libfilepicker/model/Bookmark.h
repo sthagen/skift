@@ -1,18 +1,18 @@
 #pragma once
 
 #include <libgraphic/Icon.h>
-#include <libutils/json/Json.h>
 #include <libutils/Path.h>
 #include <libutils/RefPtr.h>
+#include <libutils/json/Json.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
 struct Bookmark
 {
 private:
     String _name;
-    RefPtr<Icon> _icon;
+    RefPtr<Graphic::Icon> _icon;
     Path _path;
 
 public:
@@ -21,7 +21,7 @@ public:
         return _name;
     }
 
-    const RefPtr<Icon> icon() const
+    const RefPtr<Graphic::Icon> icon() const
     {
         return _icon;
     }
@@ -31,16 +31,16 @@ public:
         return _path;
     }
 
-    Bookmark(const json::Value &value)
+    Bookmark(const Json::Value &value)
     {
-        if (value.is(json::OBJECT))
+        if (value.is(Json::OBJECT))
         {
             value.with("name", [&](auto &value) {
                 _name = value.as_string();
             });
 
             value.with("icon", [&](auto &value) {
-                _icon = Icon::get(value.as_string());
+                _icon = Graphic::Icon::get(value.as_string());
             });
 
             value.with("path", [&](auto &value) {
@@ -49,7 +49,7 @@ public:
         }
     }
 
-    Bookmark(const String &name, const RefPtr<Icon> icon, const Path &path)
+    Bookmark(const String &name, const RefPtr<Graphic::Icon> icon, const Path &path)
         : _name(name),
           _icon(icon),
           _path(path)
@@ -61,9 +61,9 @@ public:
         return _path == other._path;
     }
 
-    json::Value serialize()
+    Json::Value serialize()
     {
-        json::Value::Object obj{};
+        Json::Value::Object obj{};
 
         obj["name"] = _name;
         obj["icon"] = _icon->name();
@@ -73,4 +73,4 @@ public:
     }
 };
 
-} // namespace filepicker
+} // namespace FilePicker

@@ -6,10 +6,10 @@
 #include <libfilepicker/model/DirectoryListing.h>
 #include <libfilepicker/model/Navigation.h>
 
-namespace filepicker
+namespace FilePicker
 {
 
-class DirectoryBrowser : public Table
+class DirectoryBrowser : public Widget::Table
 {
 private:
     RefPtr<Navigation> _navigation;
@@ -25,13 +25,13 @@ public:
 
     Callback<void(String &path)> on_element_selected;
 
-    DirectoryBrowser(Widget *parent, RefPtr<Navigation> navigation)
-        : Table(parent), _navigation(navigation)
+    DirectoryBrowser(Widget::Component *parent, RefPtr<Navigation> navigation)
+        : Widget::Table(parent), _navigation(navigation)
     {
         _listing = make<DirectoryListing>(navigation);
         model(_listing);
 
-        flags(Widget::FILL);
+        flags(Component::FILL);
 
         empty_message("This directory is empty.");
 
@@ -40,7 +40,7 @@ public:
             scroll_to_top();
         });
 
-        on(Event::ACTION, [this](auto) {
+        on(Widget::Event::ACTION, [this](auto) {
             if (selected() >= 0)
             {
                 if (_listing->info(selected()).type == FILE_TYPE_DIRECTORY)
@@ -57,4 +57,4 @@ public:
     }
 };
 
-} // namespace filepicker
+} // namespace FilePicker

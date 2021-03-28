@@ -1,12 +1,15 @@
 #include <libgraphic/Painter.h>
 #include <libwidget/Panel.h>
 
-Panel::Panel(Widget *parent)
-    : Widget(parent)
+namespace Widget
+{
+
+Panel::Panel(Component *parent)
+    : Component(parent)
 {
 }
 
-void Panel::paint(Painter &painter, const Recti &)
+void Panel::paint(Graphic::Painter &painter, const Recti &)
 {
     if (_border_radius > 0)
     {
@@ -17,3 +20,5 @@ void Panel::paint(Painter &painter, const Recti &)
         painter.clear(bound(), color(THEME_MIDDLEGROUND));
     }
 }
+
+} // namespace Widget

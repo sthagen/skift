@@ -2,40 +2,40 @@
 
 #include "terminal/Common.h"
 
-RefPtr<Font> font()
+RefPtr<Graphic::Font> font()
 {
-    static RefPtr<Font> font = nullptr;
+    static RefPtr<Graphic::Font> font = nullptr;
 
     if (font == nullptr)
     {
-        font = Font::get("mono").take_value();
+        font = Graphic::Font::get("mono").take_value();
     }
 
     return font;
 }
 
-static ThemeColorRole _color_to_role[terminal::_COLOR_COUNT] = {
-    [terminal::BLACK] = THEME_ANSI_BLACK,
-    [terminal::RED] = THEME_ANSI_RED,
-    [terminal::GREEN] = THEME_ANSI_GREEN,
-    [terminal::YELLOW] = THEME_ANSI_YELLOW,
-    [terminal::BLUE] = THEME_ANSI_BLUE,
-    [terminal::MAGENTA] = THEME_ANSI_MAGENTA,
-    [terminal::CYAN] = THEME_ANSI_CYAN,
-    [terminal::GREY] = THEME_ANSI_WHITE,
-    [terminal::BRIGHT_BLACK] = THEME_ANSI_BRIGHT_BLACK,
-    [terminal::BRIGHT_RED] = THEME_ANSI_BRIGHT_RED,
-    [terminal::BRIGHT_GREEN] = THEME_ANSI_BRIGHT_GREEN,
-    [terminal::BRIGHT_YELLOW] = THEME_ANSI_BRIGHT_YELLOW,
-    [terminal::BRIGHT_BLUE] = THEME_ANSI_BRIGHT_BLUE,
-    [terminal::BRIGHT_MAGENTA] = THEME_ANSI_BRIGHT_MAGENTA,
-    [terminal::BRIGHT_CYAN] = THEME_ANSI_BRIGHT_CYAN,
-    [terminal::BRIGHT_GREY] = THEME_ANSI_BRIGHT_WHITE,
-    [terminal::FOREGROUND] = THEME_ANSI_FOREGROUND,
-    [terminal::BACKGROUND] = THEME_ANSI_BACKGROUND,
+static Widget::ThemeColorRole _color_to_role[Terminal::_COLOR_COUNT] = {
+    [Terminal::BLACK] = Widget::THEME_ANSI_BLACK,
+    [Terminal::RED] = Widget::THEME_ANSI_RED,
+    [Terminal::GREEN] = Widget::THEME_ANSI_GREEN,
+    [Terminal::YELLOW] = Widget::THEME_ANSI_YELLOW,
+    [Terminal::BLUE] = Widget::THEME_ANSI_BLUE,
+    [Terminal::MAGENTA] = Widget::THEME_ANSI_MAGENTA,
+    [Terminal::CYAN] = Widget::THEME_ANSI_CYAN,
+    [Terminal::GREY] = Widget::THEME_ANSI_WHITE,
+    [Terminal::BRIGHT_BLACK] = Widget::THEME_ANSI_BRIGHT_BLACK,
+    [Terminal::BRIGHT_RED] = Widget::THEME_ANSI_BRIGHT_RED,
+    [Terminal::BRIGHT_GREEN] = Widget::THEME_ANSI_BRIGHT_GREEN,
+    [Terminal::BRIGHT_YELLOW] = Widget::THEME_ANSI_BRIGHT_YELLOW,
+    [Terminal::BRIGHT_BLUE] = Widget::THEME_ANSI_BRIGHT_BLUE,
+    [Terminal::BRIGHT_MAGENTA] = Widget::THEME_ANSI_BRIGHT_MAGENTA,
+    [Terminal::BRIGHT_CYAN] = Widget::THEME_ANSI_BRIGHT_CYAN,
+    [Terminal::BRIGHT_GREY] = Widget::THEME_ANSI_BRIGHT_WHITE,
+    [Terminal::FOREGROUND] = Widget::THEME_ANSI_FOREGROUND,
+    [Terminal::BACKGROUND] = Widget::THEME_ANSI_BACKGROUND,
 };
 
-Color color(terminal::Color terminal_color)
+Graphic::Color color(Terminal::Color terminal_color)
 {
     return theme_get_color(_color_to_role[terminal_color]);
 }
@@ -56,13 +56,13 @@ Vec2i cell_size()
 }
 
 void render_cell(
-    Painter &painter,
+    Graphic::Painter &painter,
     int x,
     int y,
     Codepoint codepoint,
-    terminal::Color foreground,
-    terminal::Color background,
-    terminal::Attributes attributes)
+    Terminal::Color foreground,
+    Terminal::Color background,
+    Terminal::Attributes attributes)
 {
     Recti bound = cell_bound(x, y);
 
@@ -71,7 +71,7 @@ void render_cell(
         swap(foreground, background);
     }
 
-    if (background != terminal::BACKGROUND)
+    if (background != Terminal::BACKGROUND)
     {
         painter.clear(bound, color(background));
     }
@@ -107,7 +107,7 @@ void render_cell(
     }
 }
 
-void render_cell(Painter &painter, int x, int y, terminal::Cell cell)
+void render_cell(Graphic::Painter &painter, int x, int y, Terminal::Cell cell)
 {
     render_cell(painter, x, y, cell.codepoint, cell.attributes.foreground, cell.attributes.background, cell.attributes);
 }

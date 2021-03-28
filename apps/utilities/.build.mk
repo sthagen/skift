@@ -3,6 +3,7 @@ UTILITIES = \
 	CAT \
 	CLEAR \
 	CP \
+	CRC32 \
 	DIRNAME \
 	DISPLAYCTL \
 	DSTART \
@@ -18,7 +19,6 @@ UTILITIES = \
 	KILL \
 	LINK  \
 	LS \
-	MARKUP \
 	MKDIR \
 	MV \
 	NETCTL\
@@ -53,6 +53,9 @@ CLEAR_NAME = clear
 
 CP_LIBS = system io
 CP_NAME = cp
+
+CRC32_LIBS = system io compression
+CRC32_NAME = crc32
 
 PLAY_LIBS = system io
 PLAY_NAME = play
@@ -92,9 +95,6 @@ LINK_NAME = link
 
 LS_LIBS = system io
 LS_NAME = ls
-
-MARKUP_LIBS = markup system io
-MARKUP_NAME = markup
 
 MKDIR_LIBS = system io
 MKDIR_NAME = mkdir

@@ -19,10 +19,10 @@ private:
 
     struct Client *_client;
     Recti _bound;
-    CursorState _cursor_state{};
+    Widget::CursorState _cursor_state{};
 
-    RefPtr<Bitmap> _frontbuffer;
-    RefPtr<Bitmap> _backbuffer;
+    RefPtr<Graphic::Bitmap> _frontbuffer;
+    RefPtr<Graphic::Bitmap> _backbuffer;
 
 public:
     int id() { return _id; }
@@ -31,11 +31,11 @@ public:
 
     Client *client() { return _client; }
 
-    CursorState cursor_state() { return _cursor_state; }
+    Widget::CursorState cursor_state() { return _cursor_state; }
 
-    void cursor_state(CursorState cursor_state) { _cursor_state = cursor_state; }
+    void cursor_state(Widget::CursorState cursor_state) { _cursor_state = cursor_state; }
 
-    Bitmap &frontbuffer()
+    Graphic::Bitmap &frontbuffer()
     {
         assert_true(_frontbuffer);
         return *_frontbuffer;
@@ -47,8 +47,8 @@ public:
         WindowType type,
         struct Client *client,
         Recti bound,
-        RefPtr<Bitmap> frontbuffer,
-        RefPtr<Bitmap> backbuffer);
+        RefPtr<Graphic::Bitmap> frontbuffer,
+        RefPtr<Graphic::Bitmap> backbuffer);
 
     ~Window();
 
@@ -60,11 +60,11 @@ public:
 
     void resize(Recti new_bound);
 
-    void send_event(Event event);
+    void send_event(Widget::Event event);
 
-    void handle_mouse_move(Vec2i old_position, Vec2i position, MouseButton buttons);
+    void handle_mouse_move(Vec2i old_position, Vec2i position, Widget::MouseButton buttons);
 
-    void handle_mouse_buttons(MouseButton old_buttons, MouseButton buttons, Vec2i position);
+    void handle_mouse_buttons(Widget::MouseButton old_buttons, Widget::MouseButton buttons, Vec2i position);
 
     void handle_double_click(Vec2i position);
 

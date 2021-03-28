@@ -13,11 +13,11 @@ struct MenuEntry
     String id;
     String name;
     String comment;
-    RefPtr<Icon> icon;
-    RefPtr<Bitmap> image;
+    RefPtr<Graphic::Icon> icon;
+    RefPtr<Graphic::Bitmap> image;
     String command;
 
-    MenuEntry(String id, const json::Value &value);
+    MenuEntry(String id, const Json::Value &value);
 
     static Vector<MenuEntry> load();
 };

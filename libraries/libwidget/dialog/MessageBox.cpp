@@ -1,20 +1,22 @@
 #include <libwidget/Container.h>
 #include <libwidget/Label.h>
 #include <libwidget/Spacer.h>
-
 #include <libwidget/dialog/MessageBox.h>
+
+namespace Widget
+{
 
 DialogResult MessageBox::create_and_show(String title, String message)
 {
-    return create_and_show(title, message, Icon::get("info"), DialogButton::OK);
+    return create_and_show(title, message, Graphic::Icon::get("info"), DialogButton::OK);
 }
 
-DialogResult MessageBox::create_and_show(String title, String message, RefPtr<Icon> icon)
+DialogResult MessageBox::create_and_show(String title, String message, RefPtr<Graphic::Icon> icon)
 {
     return create_and_show(title, message, icon, DialogButton::OK);
 }
 
-DialogResult MessageBox::create_and_show(String title, String message, RefPtr<Icon> icon, int buttons)
+DialogResult MessageBox::create_and_show(String title, String message, RefPtr<Graphic::Icon> icon, int buttons)
 {
     MessageBox dialog;
 
@@ -36,7 +38,7 @@ void MessageBox::render(Window *window)
     window->root()->insets(Insetsi(8));
 
     auto message_label = new Label(window->root(), _message, Anchor::CENTER);
-    message_label->flags(Widget::FILL);
+    message_label->flags(Component::FILL);
 
     auto container = new Container(window->root());
     container->layout(HFLOW(4));
@@ -45,3 +47,5 @@ void MessageBox::render(Window *window)
 
     create_buttons(container);
 }
+
+} // namespace Widget

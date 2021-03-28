@@ -5,6 +5,10 @@
 #include <libsystem/math/Lerp.h>
 #include <libutils/String.h>
 
+namespace Graphic
+{
+
+
 struct Color
 {
 private:
@@ -48,14 +52,24 @@ public:
 
     constexpr float alphaf() const { return _alpha / 255.0; }
 
-    static constexpr Color from_byte(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
+    static constexpr Color from_rgba_byte(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
     {
         return {red, green, blue, alpha};
     }
 
-    static constexpr Color from_byte(uint8_t red, uint8_t green, uint8_t blue)
+    static constexpr Color from_rgb_byte(uint8_t red, uint8_t green, uint8_t blue)
     {
         return {red, green, blue, 0xff};
+    }
+
+    static constexpr Color from_monochrome_byte(uint8_t grey)
+    {
+        return {grey, grey, grey, 0xff};
+    }
+
+    static constexpr Color from_monochrome_alpha_byte(uint8_t grey, uint8_t alpha)
+    {
+        return {grey, grey, grey, alpha};
     }
 
     static constexpr Color from_hex(uint32_t hex)
@@ -176,6 +190,16 @@ public:
         };
     }
 
+    constexpr Color with_alpha_byte(uint8_t alpha) const
+    {
+        return {
+            red(),
+            green(),
+            blue(),
+            alpha,
+        };
+    }
+
     constexpr bool operator==(const Color &other) const
     {
         return red() == other.red() &&
@@ -196,3 +220,5 @@ public:
     COLOR_LIST(__ENTRY)
 #undef __ENTRY
 };
+
+} // namespace Graphic

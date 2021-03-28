@@ -1,12 +1,17 @@
 #pragma once
 
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-struct Separator : public Widget
+namespace Widget
 {
-    Separator(Widget *parent);
 
-    void paint(Painter &, const Recti &) override;
+struct Separator : public Component
+{
+    Separator(Component *parent);
+
+    void paint(Graphic::Painter &, const Recti &) override;
 
     Vec2i size() override;
 };
+
+} // namespace Widget

@@ -1,9 +1,12 @@
 #pragma once
 
 #include <libutils/String.h>
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-class Label : public Widget
+namespace Widget
+{
+
+class Label : public Component
 {
 private:
     String _text = "Label";
@@ -17,11 +20,13 @@ public:
         should_repaint();
     }
 
-    Label(Widget *parent, String text);
+    Label(Component *parent, String text);
 
-    Label(Widget *parent, String text, Anchor anchor);
+    Label(Component *parent, String text, Anchor anchor);
 
-    void paint(Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Recti &) override;
 
     Vec2i size() override;
 };
+
+} // namespace Widget

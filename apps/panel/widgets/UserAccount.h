@@ -5,10 +5,10 @@
 namespace panel
 {
 
-class UserAccount : public Label
+class UserAccount : public Widget::Label
 {
 public:
-    UserAccount(Widget *parent);
+    UserAccount(Widget::Component *parent);
 };
 
 } // namespace panel

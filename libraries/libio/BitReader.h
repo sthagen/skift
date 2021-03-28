@@ -28,9 +28,12 @@ public:
             if (TRY(_reader.read(&byte, sizeof(byte))) == 0)
             {
                 _end_of_file = true;
+                return SUCCESS;
             }
-
-            _buffer.put(byte);
+            else
+            {
+                _buffer.put(byte);
+            }
         }
 
         return SUCCESS;
@@ -79,14 +82,21 @@ public:
         return value;
     }
 
-    inline void skip_bits(size_t num_bits)
+    inline Result skip_bits(size_t num_bits)
     {
-        hint(num_bits);
+        if (num_bits == 0)
+        {
+            return SUCCESS;
+        }
+
+        TRY(hint(num_bits));
 
         for (size_t i = 0; i < num_bits; i++)
         {
             grab_bit();
         }
+
+        return SUCCESS;
     }
 
     inline uint8_t grab_bit()
@@ -105,6 +115,11 @@ public:
 
     inline uint32_t grab_bits(size_t num_bits)
     {
+        if (num_bits == 0)
+        {
+            return 0;
+        }
+
         hint(num_bits);
 
         assert_lower_equal(num_bits, 32);
@@ -138,6 +153,11 @@ public:
 
     inline uint32_t peek_bits(size_t offset, size_t num_bits)
     {
+        if (num_bits == 0)
+        {
+            return 0;
+        }
+
         hint(offset + num_bits);
 
         assert_lower_equal(num_bits, 32);
@@ -155,6 +175,11 @@ public:
 
     inline uint32_t grab_bits_reverse(size_t num_bits)
     {
+        if (num_bits == 0)
+        {
+            return 0;
+        }
+
         hint(num_bits);
 
         assert_lower_equal(num_bits, 32);
@@ -172,6 +197,11 @@ public:
 
     inline uint32_t peek_bits_reverse(size_t num_bits)
     {
+        if (num_bits == 0)
+        {
+            return 0;
+        }
+
         hint(num_bits);
 
         assert_lower_equal(num_bits, 32);

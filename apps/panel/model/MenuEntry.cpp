@@ -7,7 +7,7 @@
 namespace panel
 {
 
-MenuEntry::MenuEntry(String id, const json::Value &value)
+MenuEntry::MenuEntry(String id, const Json::Value &value)
 {
     value.with("name", [this](auto &v) {
         name = v.as_string();
@@ -18,18 +18,18 @@ MenuEntry::MenuEntry(String id, const json::Value &value)
     });
 
     value.with("icon", [this](auto &v) {
-        icon = Icon::get(v.as_string());
+        icon = Graphic::Icon::get(v.as_string());
     });
 
     value.with("command", [this](auto &v) {
         command = v.as_string();
     });
 
-    auto bitmap = Bitmap::load_from(IO::format("/Applications/{}/{}.png", id, id));
+    auto bitmap = Graphic::Bitmap::load_from(IO::format("/Applications/{}/{}.png", id, id));
 
     if (!bitmap.success())
     {
-        bitmap = Bitmap::load_from("/Files/missing.png");
+        bitmap = Graphic::Bitmap::load_from("/Files/missing.png");
     }
 
     image = bitmap.value();
@@ -66,7 +66,7 @@ Vector<MenuEntry> MenuEntry::load()
 
         if (manifest_file.exist())
         {
-            entries->emplace_back(entry.name, json::parse_file(path));
+            entries->emplace_back(entry.name, Json::parse_file(path));
         }
     }
 

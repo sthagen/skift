@@ -1,8 +1,11 @@
 #pragma once
 
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-class ScrollBar : public Widget
+namespace Widget
+{
+
+class ScrollBar : public Component
 {
 private:
     Vec2i _mouse_origin;
@@ -57,7 +60,7 @@ public:
         _horizontal = value;
     }
 
-    ScrollBar(Widget *parent);
+    ScrollBar(Component *parent);
 
     void scroll_to(Vec2i mouse_position);
 
@@ -79,7 +82,7 @@ public:
         should_repaint();
     }
 
-    void paint(Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Recti &) override;
 
     void event(Event *event) override;
 
@@ -88,3 +91,5 @@ public:
         return {SIZE, SIZE};
     }
 };
+
+} // namespace Widget

@@ -1,21 +1,28 @@
 #pragma once
 
-#include <libwidget/Widget.h>
+#include <libwidget/Component.h>
 
-class Image : public Widget
+namespace Widget
+{
+
+class Image : public Component
 {
 private:
-    RefPtr<Bitmap> _bitmap;
-    BitmapScaling _scaling = BitmapScaling::FIT;
+    RefPtr<Graphic::Bitmap> _bitmap;
+    Graphic::BitmapScaling _scaling = Graphic::BitmapScaling::FIT;
 
 public:
-    Image(Widget *parent, RefPtr<Bitmap> bitmap);
+    Image(Component *parent, RefPtr<Graphic::Bitmap> bitmap);
 
-    Image(Widget *parent, RefPtr<Bitmap> bitmap, BitmapScaling scaling);
+    Image(Component *parent, RefPtr<Graphic::Bitmap> bitmap, Graphic::BitmapScaling scaling);
 
-    void change_bitmap(RefPtr<Bitmap> bitmap);
+    void change_bitmap(RefPtr<Graphic::Bitmap> bitmap);
 
-    void scaling(BitmapScaling scaling);
+    void scaling(Graphic::BitmapScaling scaling);
 
-    void paint(Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Recti &) override;
+
+    virtual Vec2i size() override;
 };
+
+} // namespace Widget

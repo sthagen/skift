@@ -6,10 +6,10 @@
 namespace task_manager
 {
 
-class TaskModel : public TableModel
+class TaskModel : public Widget::TableModel
 {
 private:
-    json::Value _data;
+    Json::Value _data;
 
 public:
     int rows() override;
@@ -18,7 +18,7 @@ public:
 
     String header(int column) override;
 
-    Variant data(int row, int column) override;
+    Widget::Variant data(int row, int column) override;
 
     void update() override;
 

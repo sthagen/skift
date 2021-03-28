@@ -2,14 +2,17 @@
 #include <libwidget/Event.h>
 #include <libwidget/ScrollBar.h>
 
-ScrollBar::ScrollBar(Widget *parent) : Widget(parent)
+namespace Widget
+{
+
+ScrollBar::ScrollBar(Component *parent) : Component(parent)
 {
     _track = 1024;
     _value = 0;
     _thumb = 512;
 }
 
-void ScrollBar::paint(Painter &painter, const Recti &)
+void ScrollBar::paint(Graphic::Painter &painter, const Recti &)
 {
     if (_thumb >= _track)
     {
@@ -123,3 +126,5 @@ void ScrollBar::event(Event *event)
         }
     }
 }
+
+} // namespace Widget
