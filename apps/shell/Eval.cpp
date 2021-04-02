@@ -8,7 +8,7 @@
 #include <libsystem/io/Stream.h>
 #include <libsystem/process/Launchpad.h>
 #include <libsystem/process/Process.h>
-#include <libtest/AssertTrue.h>
+#include <libutils/Assert.h>
 
 #include "shell/Shell.h"
 
@@ -53,13 +53,14 @@ Result shell_exec(
     int *pid)
 {
     auto executable = find_command_path(command->command);
-    if (!executable)
+
+    if (!executable.present())
     {
         *pid = -1;
         return ERR_NO_SUCH_FILE_OR_DIRECTORY;
     }
 
-    Launchpad *launchpad = launchpad_create(command->command, executable->cstring());
+    Launchpad *launchpad = launchpad_create(command->command, executable.unwrap().cstring());
     launchpad_flags(launchpad, TASK_WAITABLE);
 
     list_foreach(char, arg, command->arguments)
@@ -134,7 +135,7 @@ int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> 
 
         for (int i = 0; i < pipeline->commands->count() - 1; i++)
         {
-            pipes.push_back(IO::Pipe::create().take_value());
+            pipes.push_back(IO::Pipe::create().unwrap());
         }
 
         Vector<int> processes;
@@ -143,7 +144,7 @@ int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> 
         {
             ShellCommand *command = nullptr;
             list_peekat(pipeline->commands, i, (void **)&command);
-            assert_true(command);
+            Assert::is_true(command);
 
             RefPtr<IO::Handle> command_stdin = instream;
             RefPtr<IO::Handle> command_stdout = outstream;

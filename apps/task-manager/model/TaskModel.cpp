@@ -1,4 +1,6 @@
+#include <libio/File.h>
 #include <libsystem/process/Process.h>
+#include <libutils/json/Json.h>
 
 #include "task-manager/model/TaskModel.h"
 
@@ -58,7 +60,7 @@ Widget::Variant TaskModel::data(int row, int column)
     {
     case COLUMN_ID:
     {
-        Widget::Variant value = task.get("id").as_integer();
+        Widget::Variant value = (int)task.get("id").as_integer();
 
         if (task.get("user").is(Json::TRUE))
         {
@@ -89,7 +91,14 @@ Widget::Variant TaskModel::data(int row, int column)
 
 void TaskModel::update()
 {
-    _data = Json::parse_file("/System/processes");
+    IO::File file{"/System/processes", OPEN_READ};
+
+    if (!file.exist())
+    {
+        return;
+    }
+
+    _data = Json::parse(file);
     did_update();
 }
 

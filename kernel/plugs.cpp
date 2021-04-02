@@ -99,9 +99,9 @@ void __plug_logger_unlock()
     interrupts_release();
 }
 
-void __no_return __plug_logger_fatal()
+void __no_return __plug_logger_fatal(const char *message)
 {
-    system_panic("Fatal error occurred (see logs)!");
+    system_panic(message);
 }
 
 /* --- Processes ------------------------------------------------------------ */
@@ -152,7 +152,7 @@ void __plug_handle_open(Handle *handle, const char *raw_path, OpenFlag flags)
 
     if (result_or_handle_index.success())
     {
-        handle->id = result_or_handle_index.value();
+        handle->id = result_or_handle_index.unwrap();
     }
 }
 
@@ -178,7 +178,7 @@ size_t __plug_handle_read(Handle *handle, void *buffer, size_t size)
 
     if (result_or_read.success())
     {
-        return result_or_read.take_value();
+        return result_or_read.unwrap();
     }
     else
     {
@@ -207,7 +207,7 @@ size_t __plug_handle_write(Handle *handle, const void *buffer, size_t size)
 
         if (result_or_write.success())
         {
-            return result_or_write.take_value();
+            return result_or_write.unwrap();
         }
         else
         {
@@ -248,7 +248,7 @@ int __plug_handle_tell(Handle *handle)
 
     if (result_or_offset.success())
     {
-        return result_or_offset.take_value();
+        return result_or_offset.unwrap();
     }
     else
     {

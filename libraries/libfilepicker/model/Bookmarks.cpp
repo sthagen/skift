@@ -45,9 +45,16 @@ bool Bookmarks::has(const Path &path) const
 
 RefPtr<Bookmarks> Bookmarks::load()
 {
-    auto raw_bookmarks = Json::parse_file("/Configs/file-manager/booksmark.json");
-
     auto bookmarks = make<Bookmarks>();
+
+    IO::File bookmarks_file{"/Configs/file-manager/booksmark.json", OPEN_READ};
+
+    if (!bookmarks_file.exist())
+    {
+        return bookmarks;
+    }
+
+    auto raw_bookmarks = Json::parse(bookmarks_file);
 
     if (!raw_bookmarks.is(Json::ARRAY))
     {
@@ -77,6 +84,12 @@ void Bookmarks::save()
     auto data = pretty.finalize();
 
     IO::File file{"/Configs/file-manager/booksmark.json", OPEN_WRITE | OPEN_CREATE};
+
+    if (!file.exist())
+    {
+        return;
+    }
+
     file.write(data.cstring(), data.length());
 }
 

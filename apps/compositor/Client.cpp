@@ -1,7 +1,7 @@
 #include <libsystem/Logger.h>
 #include <libsystem/system/Memory.h>
 #include <libsystem/utils/Hexdump.h>
-#include <libtest/AssertFalse.h>
+#include <libutils/Assert.h>
 
 #include "compositor/Client.h"
 #include "compositor/Cursor.h"
@@ -40,8 +40,8 @@ void Client::handle(const CompositorCreateWindow &create_window)
         create_window.type,
         this,
         create_window.bound,
-        frontbuffer.take_value(),
-        backbuffer.take_value());
+        frontbuffer.unwrap(),
+        backbuffer.unwrap());
 }
 
 void Client::handle(const CompositorDestroyWindow &destroy_window)
@@ -138,7 +138,7 @@ void Client::handle_goodbye()
 
 void Client::handle_request()
 {
-    assert_false(_disconnected);
+    Assert::is_false(_disconnected);
 
     CompositorMessage message = {};
     auto read_result = _connection.read(&message, sizeof(CompositorMessage));
@@ -152,7 +152,7 @@ void Client::handle_request()
         return;
     }
 
-    size_t message_size = read_result.value();
+    size_t message_size = read_result.unwrap();
 
     if (message_size != sizeof(CompositorMessage))
     {

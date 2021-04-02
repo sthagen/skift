@@ -1,6 +1,7 @@
 #include <libio/Directory.h>
 #include <libio/File.h>
 #include <libio/Format.h>
+#include <libutils/json/Json.h>
 
 #include "panel/model/MenuEntry.h"
 
@@ -32,25 +33,23 @@ MenuEntry::MenuEntry(String id, const Json::Value &value)
         bitmap = Graphic::Bitmap::load_from("/Files/missing.png");
     }
 
-    image = bitmap.value();
+    image = bitmap.unwrap();
 }
 
 Vector<MenuEntry> MenuEntry::load()
 {
-    static Optional<Vector<MenuEntry>> entries;
+    static Vector<MenuEntry> entries;
 
-    if (entries)
+    if (entries.count() != 0)
     {
-        return *entries;
+        return entries;
     }
-
-    entries = Vector<MenuEntry>{};
 
     IO::Directory directory{"/Applications"};
 
     if (!directory.exist())
     {
-        return *entries;
+        return entries;
     }
 
     for (auto &entry : directory.entries())
@@ -62,19 +61,19 @@ Vector<MenuEntry> MenuEntry::load()
 
         auto path = IO::format("/Applications/{}/manifest.json", entry.name);
 
-        IO::File manifest_file{path};
+        IO::File manifest_file{path, OPEN_READ};
 
         if (manifest_file.exist())
         {
-            entries->emplace_back(entry.name, Json::parse_file(path));
+            entries.emplace_back(entry.name, Json::parse(manifest_file));
         }
     }
 
-    entries->sort([](auto &a, auto &b) {
+    entries.sort([](auto &a, auto &b) {
         return strcmp(a.name.cstring(), b.name.cstring());
     });
 
-    return *entries;
+    return entries;
 }
 
 } // namespace panel

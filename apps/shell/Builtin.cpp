@@ -1,8 +1,6 @@
 #include <assert.h>
-#include <stdio.h>
 
 #include <libio/Streams.h>
-
 #include <libsystem/process/Process.h>
 #include <libutils/NumberParser.h>
 
@@ -48,9 +46,9 @@ int shell_which(int argc, const char **argv)
     {
         auto executable = find_command_path(argv[i]);
 
-        if (executable)
+        if (executable.present())
         {
-            IO::outln("{}", *executable);
+            IO::outln("{}", executable.unwrap());
         }
         else
         {

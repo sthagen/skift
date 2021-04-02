@@ -1,3 +1,4 @@
+#include <libio/File.h>
 #include <libio/Streams.h>
 #include <libutils/ArgParse.h>
 #include <libutils/json/Json.h>
@@ -13,6 +14,7 @@ int main(int argc, char const *argv[])
 {
     ArgParse args{};
     args.should_abort_on_failure();
+    args.show_help_if_no_option_given();
 
     args.prologue(PROLOGUE);
 
@@ -38,8 +40,7 @@ int main(int argc, char const *argv[])
 
     if (args.argc() == 0)
     {
-        StreamScanner scanner{in_stream};
-        auto root = Json::parse(scanner);
+        auto root = Json::parse(IO::in());
 
         Prettifier pretty{options};
         Json::prettify(pretty, root);
@@ -48,7 +49,14 @@ int main(int argc, char const *argv[])
     else
     {
         args.argv().foreach ([&](auto &path) {
-            auto root = Json::parse_file(path);
+            IO::File file{path, OPEN_READ};
+
+            if (!file.exist())
+            {
+                return Iteration::CONTINUE;
+            }
+
+            auto root = Json::parse(file);
 
             Prettifier pretty{options};
             Json::prettify(pretty, root);

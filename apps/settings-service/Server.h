@@ -26,9 +26,14 @@ public:
         _socket = IO::Socket{"/Session/settings.ipc", OPEN_CREATE};
 
         _notifier = own<Notifier>(_socket, POLL_ACCEPT, [this]() {
-            auto connection = _socket.accept().value();
+            auto connection = _socket.accept();
 
-            auto client = own<Client>(connection);
+            if (!connection.success())
+            {
+                return;
+            }
+
+            auto client = own<Client>(connection.unwrap());
 
             client->on_message = [this](auto &client, auto &message) {
                 handle_client_message(client, message);
@@ -54,24 +59,24 @@ public:
         {
             Message response;
             response.type = Message::SERVER_VALUE;
-            response.path = *message.path;
-            response.payload = _repository.read(*message.path);
+            response.path = message.path;
+            response.payload = _repository.read(message.path.unwrap());
 
             client.send(response);
         }
         else if (message.type == Message::CLIENT_WRITE)
         {
-            _repository.write(*message.path, *message.payload);
+            _repository.write(message.path.unwrap(), message.payload.unwrap());
 
             for (size_t i = 0; i < _clients.count(); i++)
             {
                 if (_clients[i] != &client &&
-                    _clients[i]->is_subscribe(*message.path))
+                    _clients[i]->is_subscribe(message.path.unwrap()))
                 {
                     Message notification;
                     notification.type = Message::SERVER_NOTIFY;
-                    notification.path = *message.path;
-                    notification.payload = _repository.read(*message.path);
+                    notification.path = message.path;
+                    notification.payload = _repository.read(message.path.unwrap());
 
                     _clients[i]->send(notification);
                 }
@@ -84,7 +89,7 @@ public:
         }
         else if (message.type == Message::CLIENT_WATCH)
         {
-            client.subscribe(*message.path);
+            client.subscribe(message.path.unwrap());
 
             Message response;
             response.type = Message::SERVER_ACK;
@@ -93,7 +98,7 @@ public:
         }
         else if (message.type == Message::CLIENT_UNWATCH)
         {
-            client.unsubscribe(*message.path);
+            client.unsubscribe(message.path.unwrap());
 
             Message response;
             response.type = Message::SERVER_ACK;

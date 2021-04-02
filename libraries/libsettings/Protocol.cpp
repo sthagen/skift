@@ -16,19 +16,19 @@ Result Protocol::encode_message(IO::Connection &connection, const Message &messa
 {
     String path_buffer = "";
 
-    if (message.path)
+    if (message.path.present())
     {
         Prettifier pretty;
-        message.path->prettify(pretty);
+        message.path.unwrap().prettify(pretty);
         path_buffer = pretty.finalize();
     }
 
     String payload_buffer = "";
 
-    if (message.payload)
+    if (message.payload.present())
     {
         Prettifier pretty;
-        Json::prettify(pretty, *message.payload);
+        Json::prettify(pretty, message.payload.unwrap());
         payload_buffer = pretty.finalize();
     }
 
