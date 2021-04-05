@@ -1,5 +1,6 @@
 #pragma once
 
+#include <libutils/Array.h>
 #include <libutils/Trans2.h>
 
 #include <libgraphic/Bitmap.h>
@@ -34,9 +35,11 @@ class Painter
 private:
     RefPtr<Bitmap> _bitmap;
     int _state_stack_top = 0;
-    PainterState _state_stack[STATESTACK_SIZE];
+    Array<PainterState, STATESTACK_SIZE> _state_stack;
 
 public:
+    RefPtr<Bitmap> bitmap() const { return _bitmap; }
+
     Painter(RefPtr<Bitmap> bitmap);
 
     /* --- context ---------------------------------------------------------- */
@@ -61,13 +64,9 @@ public:
 
     void blit(Bitmap &bitmap, BitmapScaling scaling, Recti destionation);
 
-    void blit_no_alpha(Bitmap &bitmap, Recti source, Recti destination);
-
     void blit(Icon &icon, IconSize size, Recti destination, Color color);
 
     void blit_rounded(Bitmap &bitmap, Recti source, Recti destination, int radius);
-
-    void blit_rounded_no_alpha(Bitmap &bitmap, Recti source, Recti destination, int radius);
 
     void clear(Color color);
 
@@ -86,8 +85,6 @@ public:
     void draw_rectangle(Recti rectangle, Color color);
 
     void draw_triangle(Vec2i p0, Vec2i p1, Vec2i p2, Color color);
-
-    void draw_path(const Graphic::Path &path, Vec2f pos, Trans2f transform, Color color);
 
     void draw_rectangle_rounded(Recti bound, int radius, int thickness, Color color);
 
@@ -126,10 +123,6 @@ private:
     void blit_fast(Bitmap &bitmap, Recti source, Recti destination);
 
     void blit_scaled(Bitmap &bitmap, Recti source, Recti destination);
-
-    void blit_fast_no_alpha(Bitmap &bitmap, Recti source, Recti destination);
-
-    void blit_scaled_no_alpha(Bitmap &bitmap, Recti source, Recti destination);
 
     void blit_colored(Bitmap &src, Recti source, Recti destination, Color color);
 
