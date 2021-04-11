@@ -1,19 +1,22 @@
 #pragma once
 
+#include <libmath/Vec2.h>
 #include <libutils/Bezier.h>
-#include <libutils/Vec2.h>
 
 #include <math.h>
 #include <string.h>
 
+namespace Math
+{
+
 template <typename Scalar>
-class Trans2
+class Mat3x2
 {
 private:
     Scalar _m[6] = {};
 
 public:
-    static Trans2 identity()
+    static ALWAYS_INLINE Mat3x2 identity()
     {
         return {
             1.0f,
@@ -25,7 +28,7 @@ public:
         };
     }
 
-    static Trans2 translation(Vec2<Scalar> vec)
+    static ALWAYS_INLINE Mat3x2 translation(Vec2<Scalar> vec)
     {
         return {
             1.0f,
@@ -37,9 +40,9 @@ public:
         };
     }
 
-    static Trans2 scale(Scalar s) { return scale({s, s}); }
+    static ALWAYS_INLINE Mat3x2 scale(Scalar s) { return scale({s, s}); }
 
-    static Trans2 scale(Vec2<Scalar> s)
+    static ALWAYS_INLINE Mat3x2 scale(const Vec2<Scalar> &s)
     {
         return {
             s.x(),
@@ -51,7 +54,7 @@ public:
         };
     }
 
-    static Trans2 skewX(Scalar a)
+    static ALWAYS_INLINE Mat3x2 skewX(Scalar a)
     {
         return {
             1.0f,
@@ -63,7 +66,7 @@ public:
         };
     }
 
-    static Trans2 skewY(Scalar a)
+    static ALWAYS_INLINE Mat3x2 skewY(Scalar a)
     {
         return {
             1.0f,
@@ -75,7 +78,7 @@ public:
         };
     }
 
-    static Trans2 rotation(Scalar a)
+    static ALWAYS_INLINE Mat3x2 rotation(Scalar a)
     {
         Scalar cs = cosf(a);
         Scalar sn = sinf(a);
@@ -90,22 +93,22 @@ public:
         };
     }
 
-    Scalar operator[](size_t i) const
+    ALWAYS_INLINE Scalar operator[](size_t i) const
     {
         assert(i < 6);
         return _m[i];
     }
 
-    Trans2()
+    ALWAYS_INLINE Mat3x2()
     {
     }
 
-    Trans2(const Scalar m[6])
+    ALWAYS_INLINE Mat3x2(const Scalar m[6])
     {
         memcpy(_m, m, sizeof(Scalar) * 6);
     }
 
-    Trans2(Scalar m0, Scalar m1, Scalar m2, Scalar m3, Scalar m4, Scalar m5)
+    ALWAYS_INLINE Mat3x2(Scalar m0, Scalar m1, Scalar m2, Scalar m3, Scalar m4, Scalar m5)
         : _m{
               m0,
               m1,
@@ -117,12 +120,12 @@ public:
     {
     }
 
-    Scalar determinant() const
+    ALWAYS_INLINE Scalar determinant() const
     {
         return _m[0] * _m[3] - _m[2] * _m[1];
     }
 
-    Trans2 inverse() const
+    ALWAYS_INLINE Mat3x2 inverse() const
     {
         auto det = determinant();
 
@@ -143,7 +146,7 @@ public:
         };
     }
 
-    Vec2<Scalar> apply(const Vec2<Scalar> v) const
+    ALWAYS_INLINE Vec2<Scalar> apply(const Vec2<Scalar> &v) const
     {
         return {
             v.x() * _m[0] + v.y() * _m[2] + _m[4],
@@ -151,7 +154,7 @@ public:
         };
     }
 
-    Bezier<Scalar> apply(const Bezier<Scalar> b) const
+    ALWAYS_INLINE Bezier<Scalar> apply(const Bezier<Scalar> &b) const
     {
         return {
             apply(b.start()),
@@ -161,7 +164,7 @@ public:
         };
     }
 
-    Vec2<Scalar> apply_no_translation(const Vec2<Scalar> v) const
+    ALWAYS_INLINE Vec2<Scalar> apply_no_translation(const Vec2<Scalar> &v) const
     {
         return {
             v.x() * _m[0] + v.y() * _m[2],
@@ -169,7 +172,7 @@ public:
         };
     }
 
-    Trans2 operator*(const Trans2 other) const
+    ALWAYS_INLINE Mat3x2 operator*(const Mat3x2 &other) const
     {
         return {
             _m[0] * other[0] + _m[1] * other[2],
@@ -182,6 +185,8 @@ public:
     }
 };
 
-using Trans2i = Trans2<int>;
-using Trans2f = Trans2<float>;
-using Trans2d = Trans2<double>;
+using Mat3x2i = Mat3x2<int>;
+using Mat3x2f = Mat3x2<float>;
+using Mat3x2d = Mat3x2<double>;
+
+} // namespace Math

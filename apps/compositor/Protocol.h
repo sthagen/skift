@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libutils/Rect.h>
+#include <libmath/Rect.h>
 #include <libwidget/Cursor.h>
 #include <libwidget/Event.h>
 
@@ -47,7 +47,7 @@ enum WindowType
 
 struct CompositorGreetings
 {
-    Recti screen_bound;
+    Math::Recti screen_bound;
 };
 
 struct CompositorEvent
@@ -62,11 +62,11 @@ struct CompositorCreateWindow
     WindowType type;
 
     int frontbuffer;
-    Vec2i frontbuffer_size;
+    Math::Vec2i frontbuffer_size;
     int backbuffer;
-    Vec2i backbuffer_size;
+    Math::Vec2i backbuffer_size;
 
-    Recti bound;
+    Math::Recti bound;
 };
 
 struct CompositorDestroyWindow
@@ -78,7 +78,7 @@ struct CompositorMoveWindow
 {
     int id;
 
-    Vec2i position;
+    Math::Vec2i position;
 };
 
 struct CompositorFlipWindow
@@ -86,12 +86,12 @@ struct CompositorFlipWindow
     int id;
 
     int frontbuffer;
-    Vec2i frontbuffer_size;
+    Math::Vec2i frontbuffer_size;
     int backbuffer;
-    Vec2i backbuffer_size;
+    Math::Vec2i backbuffer_size;
 
-    Recti dirty;
-    Recti bound;
+    Math::Recti dirty;
+    Math::Recti bound;
 };
 
 struct CompositorEventWindow
@@ -116,19 +116,20 @@ struct CompositorSetResolution
 
 struct CompositorChangedResolution
 {
-    Recti resolution;
+    Math::Recti resolution;
 };
 
 struct CompositorMousePosition
 {
-    Vec2i position;
+    Math::Vec2i position;
 };
 
 struct CompositorMessage
 {
     CompositorMessageType type;
 
-    union {
+    union
+    {
         CompositorGreetings greetings;
         CompositorEvent event;
         CompositorCreateWindow create_window;

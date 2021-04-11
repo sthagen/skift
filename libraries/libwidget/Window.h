@@ -23,7 +23,7 @@ private:
 
     String _title = "Window";
     RefPtr<Graphic::Icon> _icon;
-    Recti _bound{250, 250};
+    Math::Recti _bound{250, 250};
     WindowFlag _flags;
     WindowType _type = WINDOW_TYPE_REGULAR;
 
@@ -38,8 +38,8 @@ private:
     bool _resize_vertical = false;
     bool _resize_horizontal = false;
 
-    Vec2i _resize_begin;
-    Recti _previous_bound;
+    Math::Vec2i _resize_begin;
+    Math::Recti _previous_bound;
 
     CursorState cursor_state = CURSOR_DEFAULT;
 
@@ -49,7 +49,7 @@ private:
     RefPtr<Graphic::Bitmap> backbuffer;
     OwnPtr<Graphic::Painter> backbuffer_painter;
 
-    Vector<Recti> _dirty_rects{};
+    Vector<Math::Recti> _dirty_rects{};
     bool _dirty_layout;
 
     EventHandler _handlers[EventType::__COUNT];
@@ -70,11 +70,11 @@ public:
 
     int frontbuffer_handle() const { return frontbuffer->handle(); }
 
-    Vec2i frontbuffer_size() const { return frontbuffer->size(); }
+    Math::Vec2i frontbuffer_size() const { return frontbuffer->size(); }
 
     int backbuffer_handle() const { return backbuffer->handle(); }
 
-    Vec2i backbuffer_size() const { return backbuffer->size(); }
+    Math::Vec2i backbuffer_size() const { return backbuffer->size(); }
 
     void title(String title) { _title = title; }
 
@@ -125,29 +125,29 @@ public:
 
     /* --- Geometry --------------------------------------------------------- */
 
-    Vec2i position() { return bound_on_screen().position(); }
+    Math::Vec2i position() { return bound_on_screen().position(); }
 
-    void position(Vec2i position) { bound(bound_on_screen().moved(position)); }
+    void position(Math::Vec2i position) { bound(bound_on_screen().moved(position)); }
 
-    Vec2i size() { return bound().size(); }
+    Math::Vec2i size() { return bound().size(); }
 
-    void size(Vec2i size) { bound(bound_on_screen().resized(size)); }
+    void size(Math::Vec2i size) { bound(bound_on_screen().resized(size)); }
 
     void resize_to_content();
 
-    Recti bound() { return _bound.moved({0, 0}); }
+    Math::Recti bound() { return _bound.moved({0, 0}); }
 
-    void bound(Recti bound);
+    void bound(Math::Recti bound);
 
-    Recti bound_on_screen() { return _bound; }
+    Math::Recti bound_on_screen() { return _bound; }
 
     void change_framebuffer_if_needed();
 
-    Border resize_bound_containe(Vec2i position);
+    Math::Border resize_bound_containe(Math::Vec2i position);
 
-    void begin_resize(Vec2i mouse_position);
+    void begin_resize(Math::Vec2i mouse_position);
 
-    void do_resize(Vec2i mouse_position);
+    void do_resize(Math::Vec2i mouse_position);
 
     void end_resize();
 
@@ -161,7 +161,7 @@ public:
 
     void register_widget_by_id(String id, Component *widget);
 
-    Component *child_at(Vec2i position);
+    Component *child_at(Math::Vec2i position);
 
     template <typename WidgetType, typename CallbackType>
     void with_widget(String name, CallbackType callback)
@@ -189,11 +189,11 @@ public:
 
     /* --- Render ----------------------------------------------------------- */
 
-    virtual void repaint(Graphic::Painter &painter, Recti rectangle);
+    virtual void repaint(Graphic::Painter &painter, Math::Recti rectangle);
 
     void repaint_dirty();
 
-    void should_repaint(Recti rectangle);
+    void should_repaint(Math::Recti rectangle);
 
     /* --- Events ----------------------------------------------------------- */
 

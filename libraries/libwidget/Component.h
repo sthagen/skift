@@ -1,8 +1,8 @@
 #pragma once
 
 #include <libgraphic/Font.h>
+#include <libmath/Rect.h>
 #include <libsystem/utils/List.h>
-#include <libutils/Rect.h>
 
 #include <libwidget/Cursor.h>
 #include <libwidget/Event.h>
@@ -34,7 +34,7 @@ struct Layout
 
     int hcell;
     int vcell;
-    Vec2i spacing;
+    Math::Vec2i spacing;
 };
 
 #define STACK()                  \
@@ -42,7 +42,7 @@ struct Layout
         ::Widget::Layout::STACK, \
         0,                       \
         0,                       \
-        Vec2i::zero(),           \
+        Math::Vec2i::zero(),     \
     })
 
 #define GRID(_hcell, _vcell, _hspacing, _vspacing) \
@@ -50,39 +50,39 @@ struct Layout
         ::Widget::Layout::GRID,                    \
         (_hcell),                                  \
         (_vcell),                                  \
-        Vec2i((_hspacing), (_vspacing)),           \
+        Math::Vec2i((_hspacing), (_vspacing)),     \
     })
 
-#define VGRID(_vspacing)         \
-    (::Widget::Layout{           \
-        ::Widget::Layout::VGRID, \
-        0,                       \
-        0,                       \
-        Vec2i(0, (_vspacing)),   \
+#define VGRID(_vspacing)             \
+    (::Widget::Layout{               \
+        ::Widget::Layout::VGRID,     \
+        0,                           \
+        0,                           \
+        Math::Vec2i(0, (_vspacing)), \
     })
 
-#define HGRID(_hspacing)         \
-    (::Widget::Layout{           \
-        ::Widget::Layout::HGRID, \
-        0,                       \
-        0,                       \
-        Vec2i((_hspacing), 0),   \
+#define HGRID(_hspacing)             \
+    (::Widget::Layout{               \
+        ::Widget::Layout::HGRID,     \
+        0,                           \
+        0,                           \
+        Math::Vec2i((_hspacing), 0), \
     })
 
-#define VFLOW(_vspacing)         \
-    (::Widget::Layout{           \
-        ::Widget::Layout::VFLOW, \
-        0,                       \
-        0,                       \
-        Vec2i(0, (_vspacing)),   \
+#define VFLOW(_vspacing)             \
+    (::Widget::Layout{               \
+        ::Widget::Layout::VFLOW,     \
+        0,                           \
+        0,                           \
+        Math::Vec2i(0, (_vspacing)), \
     })
 
-#define HFLOW(_hspacing)         \
-    (::Widget::Layout{           \
-        ::Widget::Layout::HFLOW, \
-        0,                       \
-        0,                       \
-        Vec2i((_hspacing), 0),   \
+#define HFLOW(_hspacing)             \
+    (::Widget::Layout{               \
+        ::Widget::Layout::HFLOW,     \
+        0,                           \
+        0,                           \
+        Math::Vec2i((_hspacing), 0), \
     })
 
 class Component
@@ -91,7 +91,7 @@ private:
     bool _enabled = true;
     int _flags = 0;
 
-    Recti _container;
+    Math::Recti _container;
 
     int _max_height = 0;
     int _max_width = 0;
@@ -100,7 +100,7 @@ private:
 
     Insetsi _outsets{};
     Insetsi _insets{};
-    Vec2i _content_scroll{};
+    Math::Vec2i _content_scroll{};
 
     Optional<Graphic::Color> _colors[__THEME_COLOR_COUNT] = {};
     Layout _layout = {};
@@ -115,8 +115,8 @@ private:
 
     Vector<Component *> _childs = {};
 
-    __noncopyable(Component);
-    __nonmovable(Component);
+    NONCOPYABLE(Component);
+    NONMOVABLE(Component);
 
 public:
     static constexpr auto FILL = (1 << 0);
@@ -198,17 +198,17 @@ public:
 
     virtual ~Component();
 
-    virtual void paint(Graphic::Painter &, const Recti &) {}
+    virtual void paint(Graphic::Painter &, const Math::Recti &) {}
 
     virtual void event(Event *) {}
 
     virtual void do_layout();
 
-    virtual Vec2i size();
+    virtual Math::Vec2i size();
 
     /* --- Metrics ---------------------------------------------------------- */
 
-    Vec2i position_in_window()
+    Math::Vec2i position_in_window()
     {
         if (_parent)
         {
@@ -236,11 +236,11 @@ public:
         should_relayout();
     }
 
-    Recti container() const { return _container; }
+    Math::Recti container() const { return _container; }
 
-    void container(Recti container) { _container = container; }
+    void container(Math::Recti container) { _container = container; }
 
-    Vec2i origin() const
+    Math::Vec2i origin() const
     {
         if (_parent && !(_flags & NOT_AFFECTED_BY_SCROLL))
         {
@@ -258,15 +258,15 @@ public:
         }
     }
 
-    Recti bound() const { return container().shrinked(_outsets).size(); }
+    Math::Recti bound() const { return container().shrinked(_outsets).size(); }
 
-    Recti content() const { return bound().shrinked(_insets); }
+    Math::Recti content() const { return bound().shrinked(_insets); }
 
-    Recti overflow() const { return bound().expended(_outsets); }
+    Math::Recti overflow() const { return bound().expended(_outsets); }
 
-    Vec2i scroll() { return _content_scroll; }
+    Math::Vec2i scroll() { return _content_scroll; }
 
-    void scroll(Vec2i content_scroll)
+    void scroll(Math::Vec2i content_scroll)
     {
         _content_scroll = content_scroll;
         should_repaint();
@@ -288,7 +288,7 @@ public:
 
     /* --- Childs ----------------------------------------------------------- */
 
-    Component *child_at(Vec2i position);
+    Component *child_at(Math::Vec2i position);
 
     void add_child(Component *child);
 
@@ -304,11 +304,11 @@ public:
 
     /* --- Paint ------------------------------------------------------------ */
 
-    void repaint(Graphic::Painter &painter, Recti rectangle);
+    void repaint(Graphic::Painter &painter, Math::Recti rectangle);
 
     void should_repaint();
 
-    void should_repaint(Recti rectangle);
+    void should_repaint(Math::Recti rectangle);
 
     /* --- Layout ----------------------------------------------------------- */
 
@@ -316,7 +316,7 @@ public:
 
     void should_relayout();
 
-    Vec2i compute_size();
+    Math::Vec2i compute_size();
 
     /* --- Events ----------------------------------------------------------- */
 

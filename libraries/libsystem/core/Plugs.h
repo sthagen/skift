@@ -5,7 +5,7 @@
 #include <abi/IOCall.h>
 #include <abi/Launchpad.h>
 #include <abi/System.h>
-#include <skift/Time.h>
+#include <abi/Time.h>
 
 #include <libio/Seek.h>
 #include <libutils/String.h>
@@ -20,7 +20,7 @@ void __plug_logger_lock();
 
 void __plug_logger_unlock();
 
-void __no_return __plug_logger_fatal(const char *message);
+void NO_RETURN __plug_logger_fatal(const char *message);
 
 /* --- File system ---------------------------------------------------------- */
 
@@ -44,7 +44,7 @@ const char *__plug_process_name();
 
 Result __plug_process_launch(Launchpad *launchpad, int *pid);
 
-void __no_return __plug_process_exit(int code);
+void NO_RETURN __plug_process_exit(int code);
 
 Result __plug_process_cancel(int pid);
 

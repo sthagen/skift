@@ -49,7 +49,7 @@ TitleBar::~TitleBar()
 
 void TitleBar::event(Event *event)
 {
-    __unused(event);
+    UNUSED(event);
 
     if (is_mouse_event(event))
     {
@@ -79,7 +79,7 @@ void TitleBar::event(Event *event)
             _is_dragging &&
             event->type == Event::MOUSE_MOVE)
         {
-            Vec2i offset = event->mouse.position_on_screen - event->mouse.old_position_on_screen;
+            Math::Vec2i offset = event->mouse.position_on_screen - event->mouse.old_position_on_screen;
             window()->bound(window()->bound_on_screen().offset(offset));
             event->accepted = true;
         }

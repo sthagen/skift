@@ -12,6 +12,7 @@ class TerminalWidget : public Widget::Component
 private:
     OwnPtr<Terminal::Terminal> _terminal;
     bool _cursor_blink;
+    int _scroll_offset = 0;
 
     IO::Terminal _terminal_device;
 
@@ -25,7 +26,7 @@ public:
 
     void handle_read();
 
-    void paint(Graphic::Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Math::Recti &) override;
 
     void event(Widget::Event *event) override;
 

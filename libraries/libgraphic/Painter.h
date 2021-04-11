@@ -1,12 +1,10 @@
 #pragma once
 
-#include <libutils/Array.h>
-#include <libutils/Trans2.h>
-
 #include <libgraphic/Bitmap.h>
 #include <libgraphic/Font.h>
 #include <libgraphic/Icon.h>
-#include <libgraphic/svg/Path.h>
+#include <libmath/Mat3x2.h>
+#include <libutils/Array.h>
 
 #define STATESTACK_SIZE 32
 
@@ -15,14 +13,14 @@ namespace Graphic
 
 struct PainterState
 {
-    Vec2i origin;
-    Recti clip;
+    Math::Vec2i origin;
+    Math::Recti clip;
 };
 
 struct SourceDestionation
 {
-    Recti source;
-    Recti destination;
+    Math::Recti source;
+    Math::Recti destination;
 
     bool is_empty()
     {
@@ -48,85 +46,85 @@ public:
 
     void pop();
 
-    void clip(Recti rectangle);
+    void clip(Math::Recti rectangle);
 
-    void transform(Vec2i offset);
+    void transform(Math::Vec2i offset);
 
-    Recti apply(Recti rectangle);
+    Math::Recti apply(Math::Recti rectangle);
 
-    SourceDestionation apply(Recti source, Recti destination);
+    SourceDestionation apply(Math::Recti source, Math::Recti destination);
 
     /* --- Drawing ---------------------------------------------------------- */
 
-    void plot(Vec2i position, Color color);
+    void plot(Math::Vec2i position, Color color);
 
-    void blit(Bitmap &bitmap, Recti source, Recti destination);
+    void blit(Bitmap &bitmap, Math::Recti source, Math::Recti destination);
 
-    void blit(Bitmap &bitmap, BitmapScaling scaling, Recti destionation);
+    void blit(Bitmap &bitmap, BitmapScaling scaling, Math::Recti destionation);
 
-    void blit(Icon &icon, IconSize size, Recti destination, Color color);
+    void blit(Icon &icon, IconSize size, Math::Recti destination, Color color);
 
-    void blit_rounded(Bitmap &bitmap, Recti source, Recti destination, int radius);
+    void blit_rounded(Bitmap &bitmap, Math::Recti source, Math::Recti destination, int radius);
 
     void clear(Color color);
 
-    void clear(Recti rectangle, Color color);
+    void clear(Math::Recti rectangle, Color color);
 
-    void fill_rectangle(Recti rectangle, Color color);
+    void fill_rectangle(Math::Recti rectangle, Color color);
 
-    void fill_insets(Recti rectangle, Insetsi insets, Color color);
+    void fill_insets(Math::Recti rectangle, Insetsi insets, Color color);
 
-    void fill_rectangle_rounded(Recti bound, int radius, Color color);
+    void fill_rectangle_rounded(Math::Recti bound, int radius, Color color);
 
-    void fill_checkboard(Recti bound, int cell_size, Color fg_color, Color bg_color);
+    void fill_checkboard(Math::Recti bound, int cell_size, Color fg_color, Color bg_color);
 
-    void draw_line(Vec2i from, Vec2i to, Color color);
+    void draw_line(Math::Vec2i from, Math::Vec2i to, Color color);
 
-    void draw_rectangle(Recti rectangle, Color color);
+    void draw_rectangle(Math::Recti rectangle, Color color);
 
-    void draw_triangle(Vec2i p0, Vec2i p1, Vec2i p2, Color color);
+    void draw_triangle(Math::Vec2i p0, Math::Vec2i p1, Math::Vec2i p2, Color color);
 
-    void draw_rectangle_rounded(Recti bound, int radius, int thickness, Color color);
+    void draw_rectangle_rounded(Math::Recti bound, int radius, int thickness, Color color);
 
-    void draw_glyph(Font &font, const Glyph &glyph, Vec2i position, Color color);
+    void draw_glyph(Font &font, const Glyph &glyph, Math::Vec2i position, Color color);
 
-    void draw_string(Font &font, const char *str, Vec2i position, Color color);
+    void draw_string(Font &font, const char *str, Math::Vec2i position, Color color);
 
-    void draw_string_within(Font &font, const char *str, Recti container, Anchor anchor, Color color);
+    void draw_string_within(Font &font, const char *str, Math::Recti container, Anchor anchor, Color color);
 
     /* --- Effects ---------------------------------------------------------- */
 
-    void blur(Recti rectangle, int radius);
+    void blur(Math::Recti rectangle, int radius);
 
-    void saturation(Recti rectangle, float value);
+    void saturation(Math::Recti rectangle, float value);
 
-    void noise(Recti rectangle, float opacity);
+    void noise(Math::Recti rectangle, float opacity);
 
-    void acrylic(Recti rectangle);
+    void acrylic(Math::Recti rectangle);
 
-    void sepia(Recti rectangle, float value);
+    void sepia(Math::Recti rectangle, float value);
 
-    void tint(Recti rectangle, Color color);
+    void tint(Math::Recti rectangle, Color color);
 
-    Recti clip() const
+    Math::Recti clip() const
     {
         return _state_stack[_state_stack_top].clip;
     }
 
 private:
-    Vec2i origin() const { return _state_stack[_state_stack_top].origin; };
+    Math::Vec2i origin() const { return _state_stack[_state_stack_top].origin; };
 
-    Recti apply_clip(Recti rectangle);
+    Math::Recti apply_clip(Math::Recti rectangle);
 
-    Recti apply_transform(Recti rectangle);
+    Math::Recti apply_transform(Math::Recti rectangle);
 
-    void blit_fast(Bitmap &bitmap, Recti source, Recti destination);
+    void blit_fast(Bitmap &bitmap, Math::Recti source, Math::Recti destination);
 
-    void blit_scaled(Bitmap &bitmap, Recti source, Recti destination);
+    void blit_scaled(Bitmap &bitmap, Math::Recti source, Math::Recti destination);
 
-    void blit_colored(Bitmap &src, Recti source, Recti destination, Color color);
+    void blit_colored(Bitmap &src, Math::Recti source, Math::Recti destination, Color color);
 
-    void draw_circle_helper(Recti bound, Vec2i center, int radius, int thickness, Color color);
+    void draw_circle_helper(Math::Recti bound, Math::Vec2i center, int radius, int thickness, Color color);
 };
 
 } // namespace Graphic

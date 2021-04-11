@@ -2,7 +2,7 @@
 #include <libwidget/Container.h>
 #include <libwidget/TitleBar.h>
 
-#include "demo/DemoWidget.h"
+#include "demo/widgets/DemoWidget.h"
 
 static Demo _demos[] = {
     {"Path", path_draw},
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     Widget::Window *window = new Widget::Window(WINDOW_RESIZABLE);
     window->icon(Graphic::Icon::get("duck"));
     window->title("Demos");
-    window->size(Vec2i(500, 400));
+    window->size(Math::Vec2i(500, 400));
 
     window->root()->layout(VFLOW(0));
 

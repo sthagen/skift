@@ -22,9 +22,9 @@ public:
 
     void scroll_to_cursor();
 
-    void paint(Graphic::Painter &painter, const Recti &rectangle) override;
+    void paint(Graphic::Painter &painter, const Math::Recti &rectangle) override;
 
-    Vec2i size() override;
+    Math::Vec2i size() override;
 
     void event(Event *event) override;
 };

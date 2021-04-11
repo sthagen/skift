@@ -1,13 +1,13 @@
 #pragma once
 
-#include <libutils/Vec2.h>
+#include <libmath/Vec2.h>
 
 namespace Snake
 {
 
 struct Fruit
 {
-    Vec2i position;
+    Math::Vec2i position;
 };
 
 } // namespace Snake

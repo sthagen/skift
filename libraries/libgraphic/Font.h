@@ -44,8 +44,8 @@ public:
 struct Glyph
 {
     Codepoint codepoint;
-    Recti bound;
-    Vec2i origin;
+    Math::Recti bound;
+    Math::Vec2i origin;
     int advance;
 };
 
@@ -77,11 +77,11 @@ public:
 
     const Glyph &glyph(Codepoint codepoint) const;
 
-    Recti mesure(Codepoint codepoint) const;
+    Math::Recti mesure(Codepoint codepoint) const;
 
-    Recti mesure(const char *string) const;
+    Math::Recti mesure(const char *string) const;
 
-    Recti mesure_with_fulllineheight(const char *string);
+    Math::Recti mesure_with_fulllineheight(const char *string);
 };
 
 } // namespace Graphic

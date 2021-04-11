@@ -2,8 +2,9 @@
 
 #include <libsystem/unicode/UTF8Decoder.h>
 #include <libterminal/Attributes.h>
-#include <libterminal/Cell.h>
+#include <libterminal/Buffer.h>
 #include <libterminal/Cursor.h>
+#include <libterminal/Surface.h>
 
 namespace Terminal
 {
@@ -24,9 +25,8 @@ struct Parameter
 struct Terminal
 {
 private:
-    int _height;
-    int _width;
-    Cell *_buffer;
+    Surface _surface;
+
     UTF8Decoder _decoder;
 
     State _state = State::WAIT_ESC;
@@ -40,35 +40,21 @@ private:
     Parameter _parameters[MAX_PARAMETERS];
 
 public:
-    int width() { return _width; }
+    int width() { return _surface.width(); }
 
-    int height() { return _height; }
+    int height() { return _surface.height(); }
 
-    const Cursor &cursor() { return _cursor; }
+    Surface &surface() { return _surface; }
+
+    Cursor &cursor() { return _cursor; }
 
     Terminal(int width, int height);
 
-    ~Terminal();
-
-    void clear(int fromx, int fromy, int tox, int toy);
-
-    void clear_all();
-
-    void clear_line(int line);
-
     void resize(int width, int height);
-
-    Cell cell_at(int x, int y);
-
-    void cell_undirty(int x, int y);
-
-    void set_cell(int x, int y, Cell cell);
 
     void cursor_move(int offx, int offy);
 
     void cursor_set(int x, int y);
-
-    void scroll(int how_many_line);
 
     void new_line();
 

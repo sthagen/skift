@@ -29,14 +29,14 @@ public:
         });
 
         _neko_observer = _neko.observe([this](auto &) {
-            position(_neko.position() - Vec2i{Neko::SIZE / 2, Neko::SIZE});
+            position(_neko.position() - Math::Vec2i{Neko::SIZE / 2, Neko::SIZE});
             should_repaint(bound());
         });
 
         _update_timer->start();
     }
 
-    void repaint(Graphic::Painter &painter, Recti rectangle)
+    void repaint(Graphic::Painter &painter, Math::Recti rectangle)
     {
         painter.clear(rectangle, Graphic::Colors::TRANSPARENT);
         _neko.paint(painter);

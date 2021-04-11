@@ -8,7 +8,7 @@ namespace Widget
 class ScrollBar : public Component
 {
 private:
-    Vec2i _mouse_origin;
+    Math::Vec2i _mouse_origin;
 
     int _track = 0;
     int _thumb = 0;
@@ -19,21 +19,21 @@ private:
 
     bool _horizontal = false;
 
-    Recti track_bound()
+    Math::Recti track_bound()
     {
         return bound().shrinked(Insetsi(4, 4, 4));
     }
 
-    Recti thumb_bound()
+    Math::Recti thumb_bound()
     {
-        Recti track = track_bound();
+        Math::Recti track = track_bound();
 
         if (_horizontal)
         {
             int thumb_width = MIN(track.width() * (_thumb / (float)_track), track.width());
             int thump_position = track.width() * (_value / (float)_track);
 
-            return Recti(
+            return Math::Recti(
                 track.x() + thump_position,
                 track.y(),
                 thumb_width,
@@ -44,7 +44,7 @@ private:
             int thumb_height = MIN(track.height() * (_thumb / (float)_track), track.height());
             int thump_position = track.height() * (_value / (float)_track);
 
-            return Recti(
+            return Math::Recti(
                 track.x(),
                 track.y() + thump_position,
                 track.width(),
@@ -62,7 +62,7 @@ public:
 
     ScrollBar(Component *parent);
 
-    void scroll_to(Vec2i mouse_position);
+    void scroll_to(Math::Vec2i mouse_position);
 
     int value() { return _value; }
 
@@ -82,11 +82,11 @@ public:
         should_repaint();
     }
 
-    void paint(Graphic::Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Math::Recti &) override;
 
     void event(Event *event) override;
 
-    virtual Vec2i size() override
+    virtual Math::Vec2i size() override
     {
         return {SIZE, SIZE};
     }

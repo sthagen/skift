@@ -17,9 +17,9 @@ public:
 
     IconPanel(Component *parent, RefPtr<Graphic::Icon> icon);
 
-    void paint(Graphic::Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Math::Recti &) override;
 
-    Vec2i size() override;
+    Math::Vec2i size() override;
 };
 
 } // namespace Widget

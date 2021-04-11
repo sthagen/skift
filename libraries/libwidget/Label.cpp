@@ -5,7 +5,6 @@
 namespace Widget
 {
 
-
 Label::Label(Component *parent, String text)
     : Label(parent, text, Anchor::LEFT)
 {
@@ -18,7 +17,7 @@ Label::Label(Component *parent, String text, Anchor anchor)
     _anchor = anchor;
 }
 
-void Label::paint(Graphic::Painter &painter, const Recti &)
+void Label::paint(Graphic::Painter &painter, const Math::Recti &)
 {
     painter.draw_string_within(
         *font(),
@@ -28,7 +27,7 @@ void Label::paint(Graphic::Painter &painter, const Recti &)
         color(THEME_FOREGROUND));
 }
 
-Vec2i Label::size()
+Math::Vec2i Label::size()
 {
     return {font()->mesure_with_fulllineheight(_text.cstring()).size()};
 }

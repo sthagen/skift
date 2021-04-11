@@ -3,9 +3,9 @@
 namespace Widget
 {
 
-Recti Slider::track_bound()
+Math::Recti Slider::track_bound()
 {
-    return Recti{
+    return Math::Recti{
         (bound().width() - THUMP_SIZE),
         bound().height(),
     }
@@ -13,13 +13,13 @@ Recti Slider::track_bound()
         .centered_within(bound());
 }
 
-Recti Slider::value_bound()
+Math::Recti Slider::value_bound()
 {
     return track_bound()
         .take_left(track_bound().width() * _value);
 }
 
-Recti Slider::thumb_bound()
+Math::Recti Slider::thumb_bound()
 {
     int posx = value_bound().right() - THUMP_SIZE / 2;
 
@@ -31,9 +31,9 @@ Recti Slider::thumb_bound()
     };
 }
 
-void Slider::slide_to(Vec2i position)
+void Slider::slide_to(Math::Vec2i position)
 {
-    Vec2i pos = position - bound().position();
+    Math::Vec2i pos = position - bound().position();
     _value = pos.x() / (double)bound().width();
     _value = clamp(_value, 0, 1);
 
@@ -69,7 +69,7 @@ void Slider::event(Event *event)
     }
 }
 
-void Slider::paint(Graphic::Painter &painter, const Recti &)
+void Slider::paint(Graphic::Painter &painter, const Math::Recti &)
 {
     if (window()->focused())
     {

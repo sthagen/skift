@@ -1,7 +1,7 @@
 #include <libsystem/eventloop/Timer.h>
 #include <libwidget/Application.h>
 
-#include "demo/DemoWidget.h"
+#include "demo/widgets/DemoWidget.h"
 
 void demo_widget_on_timer_tick(DemoWidget *widget)
 {
@@ -21,13 +21,13 @@ DemoWidget::DemoWidget(Component *parent)
     _timer->start();
 }
 
-void DemoWidget::paint(Graphic::Painter &painter, const Recti &)
+void DemoWidget::paint(Graphic::Painter &painter, const Math::Recti &)
 {
     if (_demo)
     {
         _demo->callback(painter, bound(), _time);
     }
 
-    painter.draw_string(*font(), _demo->name, Vec2i(9, 17), Graphic::Colors::BLACK);
-    painter.draw_string(*font(), _demo->name, Vec2i(8, 16), Graphic::Colors::WHITE);
+    painter.draw_string(*font(), _demo->name, Math::Vec2i(9, 17), Graphic::Colors::BLACK);
+    painter.draw_string(*font(), _demo->name, Math::Vec2i(8, 16), Graphic::Colors::WHITE);
 }

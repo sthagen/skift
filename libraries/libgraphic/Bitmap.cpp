@@ -29,7 +29,7 @@ ResultOr<RefPtr<Bitmap>> Bitmap::create_shared(int width, int height)
     return bitmap;
 }
 
-ResultOr<RefPtr<Bitmap>> Bitmap::create_shared_from_handle(int handle, Vec2i width_and_height)
+ResultOr<RefPtr<Bitmap>> Bitmap::create_shared_from_handle(int handle, Math::Vec2i width_and_height)
 {
     Color *pixels = nullptr;
     size_t size = 0;
@@ -105,7 +105,7 @@ RefPtr<Bitmap> Bitmap::load_from_or_placeholder(String path)
 
 Result Bitmap::save_to(String path)
 {
-    __unused(path);
+    UNUSED(path);
     return Result::ERR_NOT_IMPLEMENTED;
 }
 

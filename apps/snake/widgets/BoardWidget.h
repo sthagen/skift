@@ -29,10 +29,10 @@ struct BoardWidget : public Widget::Component
         _timer->start();
     }
 
-    void paint(Graphic::Painter &painter, const Recti &) override
+    void paint(Graphic::Painter &painter, const Math::Recti &) override
     {
-        auto cell = [](Vec2i p) {
-            return Recti{p * CELL_SIZE, {CELL_SIZE}};
+        auto cell = [](Math::Vec2i p) {
+            return Math::Recti{p * CELL_SIZE, {CELL_SIZE}};
         };
 
         for (int y = 0; y < board->height(); y++)
@@ -94,7 +94,7 @@ struct BoardWidget : public Widget::Component
         }
     }
 
-    Vec2i size() override
+    Math::Vec2i size() override
     {
         return {
             board->width() * CELL_SIZE,

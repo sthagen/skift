@@ -2,12 +2,14 @@
 
 #include <math.h>
 
+#include <libmath/Insets.h>
+#include <libmath/Vec2.h>
 #include <libutils/Anchor.h>
-#include <libutils/Enum.h>
-#include <libutils/Insets.h>
-#include <libutils/Vec2.h>
 
 #include <libsystem/math/MinMax.h>
+
+namespace Math
+{
 
 enum Border : int
 {
@@ -19,7 +21,7 @@ enum Border : int
 };
 
 template <typename Scalar>
-struct __packed Rect
+struct PACKED Rect
 {
 private:
     Scalar _x;
@@ -541,3 +543,5 @@ public:
 using Recti = Rect<int>;
 using Rectf = Rect<float>;
 using Rectd = Rect<double>;
+
+} // namespace Math

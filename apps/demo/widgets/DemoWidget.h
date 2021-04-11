@@ -2,7 +2,7 @@
 
 #include <libwidget/Component.h>
 
-#include "demo/Demos.h"
+#include "demo/demos/Demos.h"
 
 class DemoWidget : public Widget::Component
 {
@@ -24,5 +24,5 @@ public:
 
     void tick() { _time += 1.0 / 60; }
 
-    void paint(Graphic::Painter &, const Recti &) override;
+    void paint(Graphic::Painter &, const Math::Recti &) override;
 };
