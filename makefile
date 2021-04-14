@@ -2,7 +2,7 @@
 .DEFAULT_GOAL := all
 
 export PATH := $(shell toolchain/use-it.sh):$(PATH)
-export PATH := $(shell toolbox/use-it.sh):$(PATH)
+export PATH := $(shell meta/utils/use-it.sh):$(PATH)
 export LC_ALL=C
 
 ifeq (, $(shell which convert))
@@ -11,22 +11,23 @@ endif
 
 DIRECTORY_GUARD=@mkdir -p $(@D)
 
-include configs/defaults.mk
+include meta/configs/defaults.mk
 
 BUILD_SYSTEM?=skift
-BUILD_DISTRO?=$(CONFIG_LOADER)-$(CONFIG_ARCH)
+BUILD_DISTRO?=$(BUILD_SYSTEM)-$(CONFIG_ARCH)-$(CONFIG_LOADER)
+BUILD_TARGET?=$(BUILD_SYSTEM)-$(CONFIG_ARCH)-$(CONFIG)
 
-BUILD_TARGET=$(CONFIG)-$(CONFIG_ARCH)-$(BUILD_SYSTEM)
 BUILD_GITREF=$(shell git rev-parse --abbrev-ref HEAD || echo unknown)@$(shell git rev-parse --short HEAD || echo unknown)
 BUILD_UNAME=$(shell uname -s -o -m -r)
-DISKS_DIRECTORY=$(shell pwd)/disks
+DISKS_DIRECTORY=$(CONFIG_BUILD_DIRECTORY)/disks
 
-SYSROOT=$(CONFIG_BUILD_DIRECTORY)/sysroot
-BOOTROOT=$(CONFIG_BUILD_DIRECTORY)/bootroot-$(CONFIG_LOADER)-$(CONFIG_ARCH)
-BOOTDISK=$(DISKS_DIRECTORY)/bootdisk-$(CONFIG_LOADER)-$(CONFIG_ARCH).img
+BUILDROOT=$(CONFIG_BUILD_DIRECTORY)/$(BUILD_TARGET)
+SYSROOT=$(BUILDROOT)/sysroot
+BOOTROOT=$(DISKS_DIRECTORY)/$(BUILD_DISTRO)-$(CONFIG)
+BOOTDISK=$(DISKS_DIRECTORY)/$(BUILD_DISTRO)-$(CONFIG).img
 BOOTDISK_GZIP=$(BOOTDISK).gz
 
-RAMDISK=$(CONFIG_BUILD_DIRECTORY)/ramdisk.tar
+RAMDISK=$(BUILDROOT)/ramdisk.tar
 
 BUILD_DIRECTORY_LIBS=$(SYSROOT)/System/Libraries
 BUILD_DIRECTORY_INCLUDE=$(SYSROOT)/System/Includes
@@ -44,9 +45,11 @@ CXX_WARNINGS := \
 
 BUILD_INCLUDE:= \
 	-I. \
-	-Iapps \
-	-Ilibraries \
-	-Ilibraries/libc
+	-Ikernel \
+	-Iuserspace/ \
+	-Iuserspace/apps \
+	-Iuserspace/libraries \
+	-Iuserspace/libraries/libc
 
 BUILD_DEFINES:= \
 	-D__BUILD_ARCH__=\""$(CONFIG_ARCH)"\" \
@@ -62,6 +65,7 @@ CC:=i686-pc-skift-gcc
 CFLAGS= \
 	-std=gnu11 \
 	-MD \
+	--sysroot=$(SYSROOT) \
 	$(CONFIG_OPTIMISATIONS) \
 	$(BUILD_WARNING) \
 	$(BUILD_INCLUDE) \
@@ -72,6 +76,7 @@ CXX:=i686-pc-skift-g++
 CXXFLAGS:= \
 	-std=c++20 \
 	-MD \
+	--sysroot=$(SYSROOT) \
 	$(CONFIG_OPTIMISATIONS) \
 	$(BUILD_WARNING) \
 	$(CXX_WARNINGS) \
@@ -80,7 +85,8 @@ CXXFLAGS:= \
 	$(BUILD_CONFIGS)
 
 LD:=i686-pc-skift-ld
-LDFLAGS:=
+LDFLAGS:= \
+	--sysroot=$(SYSROOT)
 
 AR:=i686-pc-skift-ar
 ARFLAGS:=rcs
@@ -90,15 +96,20 @@ ASFLAGS=-f elf32
 
 STRIP:=i686-pc-skift-strip
 
-include archs/.build.mk
+
+include sysroot/Files/Icons/.build.mk
+
+include kernel/archs/.build.mk
+include kernel/kernel/.build.mk
+
+include userspace/archs/.build.mk
+include userspace/libraries/.build.mk
+include userspace/apps/.build.mk
+include userspace/tests/.build.mk
+include userspace/utilities/.build.mk
 
 include thirdparty/.build.mk
-include kernel/.build.mk
-include libraries/.build.mk
-include apps/.build.mk
-include icons/.build.mk
-include distros/.build.mk
-include tests/.build.mk
+include meta/distros/.build.mk
 
 # --- Ramdisk -------------------------------------------- #
 
@@ -149,7 +160,7 @@ all: $(BOOTDISK)
 distro: $(BOOTDISK_GZIP)
 
 .PHONY: run
-include vms/$(CONFIG_VMACHINE).mk
+include meta/vms/$(CONFIG_VMACHINE).mk
 
 .PHONY: sync
 sync:
@@ -158,6 +169,10 @@ sync:
 
 .PHONY: clean
 clean:
+	rm -rf $(BUILDROOT)
+
+.PHONY: clean-all
+clean-all:
 	rm -rf $(CONFIG_BUILD_DIRECTORY)
 
 clean-fs:
