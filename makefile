@@ -5,10 +5,6 @@ export PATH := $(shell toolchain/use-it.sh):$(PATH)
 export PATH := $(shell meta/utils/use-it.sh):$(PATH)
 export LC_ALL=C
 
-ifeq (, $(shell which convert))
-$(error "No ImageMagick in PATH, consider installing it")
-endif
-
 DIRECTORY_GUARD=@mkdir -p $(@D)
 
 include meta/configs/defaults.mk
@@ -61,6 +57,7 @@ BUILD_DEFINES:= \
 	-D__BUILD_VERSION__=\""$(CONFIG_VERSION)"\"
 
 # --- Configs -------------------------------------------- #
+
 CC:=i686-pc-skift-gcc
 CFLAGS= \
 	-std=gnu11 \
@@ -84,21 +81,7 @@ CXXFLAGS:= \
 	$(BUILD_DEFINES) \
 	$(BUILD_CONFIGS)
 
-LD:=i686-pc-skift-ld
-LDFLAGS:= \
-	--sysroot=$(SYSROOT)
-
-AR:=i686-pc-skift-ar
-ARFLAGS:=rcs
-
-AS=nasm
-ASFLAGS=-f elf32
-
-STRIP:=i686-pc-skift-strip
-
-
-include sysroot/Files/Icons/.build.mk
-
+include meta/toolchains/$(CONFIG_ARCH)-$(CONGIG_TOOLCHAIN).mk
 include kernel/archs/.build.mk
 include kernel/kernel/.build.mk
 
