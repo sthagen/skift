@@ -8,7 +8,7 @@
 namespace Widget
 {
 
-class Table : public Component
+class Table : public Element
 {
 private:
     static constexpr int TABLE_ROW_HEIGHT = 32;
@@ -18,7 +18,7 @@ private:
 
     int _selected = -1;
     int _scroll_offset = 0;
-    ScrollBar *_scrollbar;
+    RefPtr<ScrollBar> _scrollbar;
 
     String _empty_message{"No data to display"};
 
@@ -72,9 +72,9 @@ public:
         should_relayout();
     }
 
-    Table(Component *parent);
+    Table();
 
-    Table(Component *parent, RefPtr<TableModel> model);
+    Table(RefPtr<TableModel> model);
 
     void paint(Graphic::Painter &painter, const Math::Recti &dirty) override;
 
@@ -82,5 +82,7 @@ public:
 
     void do_layout() override;
 };
+
+static inline RefPtr<Table> table(RefPtr<TableModel> model) { return make<Table>(model); }
 
 } // namespace Widget

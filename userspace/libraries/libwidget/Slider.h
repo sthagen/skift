@@ -2,13 +2,13 @@
 
 #include <libgraphic/Painter.h>
 #include <libutils/Callback.h>
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 #include <libwidget/Window.h>
 
 namespace Widget
 {
 
-class Slider : public Component
+class Slider : public Element
 {
 private:
     static constexpr auto TRACK_HEIGHT = 4;
@@ -28,11 +28,13 @@ public:
 
     void value(double value) { _value = value; }
 
-    Slider(Component *parent);
+    Slider();
 
     void event(Event *event) override;
 
     void paint(Graphic::Painter &painter, const Math::Recti &) override;
 };
+
+static inline RefPtr<Slider> slider() { return make<Slider>(); }
 
 } // namespace Widget

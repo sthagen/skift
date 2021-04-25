@@ -1,5 +1,5 @@
 #include <libgraphic/Painter.h>
-#include <libsystem/Logger.h>
+#include <libio/Streams.h>
 #include <libsystem/process/Launchpad.h>
 #include <libutils/Assert.h>
 #include <libwidget/Event.h>
@@ -11,7 +11,7 @@
 
 #define TERMINAL_IO_BUFFER_SIZE 4096
 
-TerminalWidget::TerminalWidget(Component *parent) : Component(parent)
+TerminalWidget::TerminalWidget()
 {
     _terminal = own<Terminal::Terminal>(80, 24);
 
@@ -220,7 +220,7 @@ void TerminalWidget::do_layout()
         _terminal->resize(width, height);
 
         IOCallTerminalSizeArgs args = {width, height};
-        _terminal_device.server.handle()->call(IOCALL_TERMINAL_SET_SIZE, &args);
+        _terminal_device.server.call(IOCALL_TERMINAL_SET_SIZE, &args);
     }
 }
 
@@ -231,7 +231,7 @@ void TerminalWidget::handle_read()
 
     if (!read_result.success())
     {
-        logger_error("Terminal: read from server failed: %s", read_result.description());
+        IO::logln("Terminal: read from server failed: %s", read_result.description());
         return;
     }
 

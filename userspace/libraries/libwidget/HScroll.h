@@ -6,21 +6,28 @@
 namespace Widget
 {
 
-class HScroll : public Component
+class HScroll : public Element
 {
 private:
-    Container *_host = nullptr;
-    ScrollBar *_scrollbar = nullptr;
+    RefPtr<Element> _host = nullptr;
+    RefPtr<ScrollBar> _scrollbar = nullptr;
 
 public:
-    Container *host() { return _host; }
+    RefPtr<Element> host() { return _host; }
 
-    HScroll(Component *parent) : Component(parent)
+    HScroll(RefPtr<Element> content = nullptr)
     {
-        _host = new Container(this);
+        if (content != nullptr)
+        {
+            _host = add(content);
+        }
+        else
+        {
+            _host = add<Element>();
+        }
 
-        _scrollbar = new ScrollBar(this);
-        _scrollbar->flags(Component::NOT_AFFECTED_BY_SCROLL);
+        _scrollbar = add<ScrollBar>();
+        _scrollbar->flags(Element::NOT_AFFECTED_BY_SCROLL);
 
         _scrollbar->on(Event::VALUE_CHANGE, [this](auto) {
             scroll({_scrollbar->value(), scroll().y()});
@@ -51,5 +58,7 @@ public:
         return {0, _host->size().y()};
     }
 };
+
+static inline RefPtr<HScroll> hscroll(RefPtr<Element> content = nullptr) { return make<HScroll>(content); }
 
 } // namespace Widget

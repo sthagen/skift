@@ -16,7 +16,6 @@ namespace panel
 PanelWindow::PanelWindow()
     : Widget::Window(WINDOW_BORDERLESS | WINDOW_ALWAYS_FOCUSED | WINDOW_ACRYLIC | WINDOW_NO_ROUNDED_CORNERS)
 {
-    title("Panel");
     type(WINDOW_TYPE_PANEL);
     opacity(0.85);
 
@@ -26,38 +25,38 @@ PanelWindow::PanelWindow()
 
     root()->layout(VFLOW(0));
 
-    auto container = new Widget::Container(root());
-    container->flags(Widget::Component::FILL);
+    auto container = root()->add<Widget::Container>();
+    container->flags(Widget::Element::FILL);
     container->layout(HFLOW(8));
     container->insets(Insetsi(4));
 
-    new Widget::Separator(root());
-    (new Widget::Separator(root()))->color(Widget::THEME_BORDER, Graphic::Colors::BLACK.with_alpha(0.25));
+    root()->add<Widget::Separator>();
+    root()->add<Widget::Separator>()->color(Widget::THEME_BORDER, Graphic::Colors::BLACK.with_alpha(0.25));
 
-    auto menu = new Widget::Button(container, Widget::Button::TEXT, Graphic::Icon::get("menu"), "Applications");
+    auto menu = container->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("menu"), "Applications");
     menu->on(Widget::Event::ACTION, [this](auto) {
         _menu->show();
     });
 
-    new Widget::Spacer(container);
+    container->add<Widget::Spacer>();
 
-    auto date_and_time = new DateAndTime(container);
+    auto date_and_time = container->add<DateAndTime>();
 
     date_and_time->on(Widget::Event::ACTION, [this](auto) {
         _datetime->show();
     });
 
-    new Widget::Spacer(container);
+    container->add<Widget::Spacer>();
 
-    new UserAccount(container);
+    container->add<UserAccount>();
 
-    auto ressource_monitor = new RessourceMonitor(container);
+    auto ressource_monitor = container->add<RessourceMonitor>();
 
     ressource_monitor->on(Widget::Event::ACTION, [](auto) {
         process_run("task-manager", nullptr, 0);
     });
 
-    auto dots = new Widget::Button(container, Widget::Button::TEXT, Graphic::Icon::get("dots"));
+    auto dots = container->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("dots"));
 
     dots->on(Widget::Event::ACTION, [this](auto) {
         _quicksetting->show();

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 #include "paint/PaintDocument.h"
 #include "paint/PaintTool.h"
 
-class PaintCanvas : public Widget::Component
+class PaintCanvas : public Widget::Element
 {
 private:
     RefPtr<PaintDocument> _document;
@@ -19,7 +19,7 @@ public:
         return _document->bound().centered_within(bound());
     }
 
-    PaintCanvas(Widget::Component *parent, RefPtr<PaintDocument> document);
+    PaintCanvas(RefPtr<PaintDocument> document);
 
     void paint(Graphic::Painter &painter, const Math::Recti &dirty) override;
 

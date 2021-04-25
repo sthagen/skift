@@ -66,7 +66,6 @@ Window::Window(WindowFlag flags)
     static int window_handle_counter = 0;
     _handle = window_handle_counter++;
 
-    _icon = Graphic::Icon::get("application");
     _flags = flags;
 
     frontbuffer = Graphic::Bitmap::create_shared(250, 250).unwrap();
@@ -75,10 +74,10 @@ Window::Window(WindowFlag flags)
     backbuffer = Graphic::Bitmap::create_shared(250, 250).unwrap();
     backbuffer_painter = own<Graphic::Painter>(backbuffer);
 
-    _root = new Container(nullptr);
+    _root = make<Container>();
     _root->window(this);
 
-    _keyboard_focus = _root;
+    _keyboard_focus = _root.naked();
 
     _repaint_invoker = own<Async::Invoker>([this]() { repaint_dirty(); });
     _relayout_invoker = own<Async::Invoker>([this]() { relayout(); });
@@ -95,8 +94,6 @@ Window::~Window()
     }
 
     Application::remove_window(this);
-
-    delete _root;
 }
 
 void Window::repaint(Graphic::Painter &painter, Math::Recti rectangle)
@@ -330,9 +327,9 @@ void Window::end_resize()
     _is_resizing = false;
 }
 
-Component *Window::child_at(Math::Vec2i position)
+Element *Window::child_at(Math::Vec2i position)
 {
-    return root()->child_at(position);
+    return root()->at(position);
 }
 
 void Window::on(EventType event, EventHandler handler)
@@ -438,7 +435,7 @@ void Window::handle_lost_focus(Event *event)
 
         if (_mouse_focus)
         {
-            Component *old_focus = _mouse_focus;
+            Element *old_focus = _mouse_focus;
             _mouse_focus = nullptr;
 
             Event e = *event;
@@ -610,7 +607,7 @@ void Window::handle_mouse_button_release(Event *event)
 {
     if (_mouse_focus)
     {
-        Component *old_focus = _mouse_focus;
+        Element *old_focus = _mouse_focus;
         _mouse_focus = nullptr;
 
         old_focus->dispatch_event(event);
@@ -673,17 +670,17 @@ void Window::cursor(CursorState state)
     }
 }
 
-void Window::focus_widget(Component *widget)
+void Window::focus_widget(Element *widget)
 {
     _keyboard_focus = widget;
 }
 
-bool Window::has_keyboard_focus(Component *widget)
+bool Window::has_keyboard_focus(Element *widget)
 {
     return _keyboard_focus == widget;
 }
 
-void Window::widget_removed(Component *widget)
+void Window::widget_removed(Element *widget)
 {
     if (_keyboard_focus == widget)
     {
@@ -699,13 +696,6 @@ void Window::widget_removed(Component *widget)
     {
         _mouse_focus = nullptr;
     }
-
-    _widget_by_id.remove_value(widget);
-}
-
-void Window::register_widget_by_id(String id, Component *widget)
-{
-    _widget_by_id[id] = widget;
 }
 
 Graphic::Color Window::color(ThemeColorRole role)

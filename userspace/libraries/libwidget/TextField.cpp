@@ -4,8 +4,8 @@
 namespace Widget
 {
 
-TextField::TextField(Component *parent, RefPtr<TextModel> model)
-    : Component(parent), _model(model)
+TextField::TextField(RefPtr<TextModel> model)
+    : _model(model)
 {
     _model_observer = _model->observe([this](auto &) {
         _cursor.clamp_within(*_model);
@@ -76,6 +76,11 @@ void TextField::scroll_to_cursor()
 Math::Vec2i TextField::size()
 {
     return _model->line(0).bound(*font()).size();
+}
+
+String TextField::text()
+{
+    return _model->string();
 }
 
 void TextField::event(Event *event)

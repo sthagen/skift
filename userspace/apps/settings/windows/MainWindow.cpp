@@ -10,23 +10,23 @@ namespace Settings
 
 MainWindow::MainWindow() : Window(WINDOW_RESIZABLE)
 {
-    title("Settings");
-    icon(Graphic::Icon::get("cog"));
     size({700, 500});
 
     root()->layout(VFLOW(0));
 
-    new Widget::TitleBar(root());
+    root()->add<Widget::TitleBar>(
+        Graphic::Icon::get("cog"),
+        "Settings");
 
-    auto navigation_bar = new Widget::Panel(root());
+    auto navigation_bar = root()->add<Widget::Panel>();
     navigation_bar->layout(HFLOW(4));
     navigation_bar->insets(4);
 
-    new Widget::Button(navigation_bar, Widget::Button::TEXT, Graphic::Icon::get("arrow-left"));
-    new Widget::Button(navigation_bar, Widget::Button::TEXT, Graphic::Icon::get("arrow-right"));
-    new Widget::Button(navigation_bar, Widget::Button::TEXT, Graphic::Icon::get("home"));
+    navigation_bar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("arrow-left"));
+    navigation_bar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("arrow-right"));
+    navigation_bar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("home"));
 
-    new HomePage(root());
+    root()->add<HomePage>();
 }
 
 } // namespace Settings

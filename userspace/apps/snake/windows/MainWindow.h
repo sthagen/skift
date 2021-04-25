@@ -3,6 +3,7 @@
 #include <libwidget/TitleBar.h>
 #include <libwidget/Window.h>
 
+#include "libgraphic/Icon.h"
 #include "snake/widgets/BoardWidget.h"
 
 namespace Snake
@@ -15,11 +16,13 @@ public:
     MainWindow()
         : Window{WINDOW_NONE}
     {
-        title("Snake");
-
         root()->layout(VFLOW(0));
-        new Widget::TitleBar(root());
-        auto board = new BoardWidget(root());
+
+        root()->add<Widget::TitleBar>(
+            Graphic::Icon::get("snake"),
+            "Snake");
+
+        auto board = root()->add<BoardWidget>();
         board->outsets({32});
         board->focus();
 

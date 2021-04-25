@@ -1,14 +1,14 @@
 #pragma once
 
 #include <libgraphic/Painter.h>
-#include <libwidget/Component.h>
 #include <libwidget/Container.h>
+#include <libwidget/Element.h>
 #include <libwidget/Label.h>
 
 namespace Widget
 {
 
-class Switch : public Component
+class Switch : public Element
 {
 private:
     bool _state;
@@ -28,8 +28,9 @@ public:
         should_repaint();
     }
 
-    Switch(Component *parent) : Component(parent)
+    Switch(bool state = false)
     {
+        _state = state;
         pin_width(WIDTH);
         pin_height(HEIGHT);
     }
@@ -71,5 +72,7 @@ public:
         }
     }
 };
+
+static inline RefPtr<Switch> toggle(bool state = false) { return make<Switch>(state); }
 
 } // namespace Widget

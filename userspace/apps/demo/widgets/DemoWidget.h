@@ -1,10 +1,10 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 #include "demo/demos/Demos.h"
 
-class DemoWidget : public Widget::Component
+class DemoWidget : public Widget::Element
 {
 private:
     double _time{};
@@ -20,7 +20,7 @@ public:
         should_repaint();
     }
 
-    DemoWidget(Component *parent);
+    DemoWidget();
 
     void tick() { _time += 1.0 / 60; }
 

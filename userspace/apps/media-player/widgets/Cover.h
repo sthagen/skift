@@ -1,19 +1,19 @@
 #pragma once
 
 #include <libgraphic/Bitmap.h>
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 namespace MediaPlayer
 {
 
-class Cover : public Widget::Component
+class Cover : public Widget::Element
 {
 private:
     RefPtr<Graphic::Bitmap> _cover;
     RefPtr<Graphic::Bitmap> _backdrop;
 
 public:
-    Cover(Widget::Component *parent, RefPtr<Graphic::Bitmap> bitmap);
+    Cover(RefPtr<Graphic::Bitmap> bitmap);
 
     void paint(Graphic::Painter &painter, const Math::Recti &) override;
 };

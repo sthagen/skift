@@ -5,8 +5,9 @@
 namespace Widget
 {
 
-ScrollBar::ScrollBar(Component *parent) : Component(parent)
+ScrollBar::ScrollBar(bool horizontal)
 {
+    _horizontal = horizontal;
     _track = 1024;
     _value = 0;
     _thumb = 512;

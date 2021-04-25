@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 #include <libfilepicker/model/Bookmarks.h>
 #include <libfilepicker/model/Navigation.h>
@@ -8,7 +8,7 @@
 namespace FilePicker
 {
 
-struct Breadcrumb : public Widget::Component
+struct Breadcrumb : public Widget::Element
 {
 private:
     RefPtr<Navigation> _navigation;
@@ -23,7 +23,7 @@ private:
     RefPtr<Graphic::Icon> _icon_bookmark_outline;
 
 public:
-    Breadcrumb(Widget::Component *parent, RefPtr<Navigation> navigation, RefPtr<Bookmarks> bookmarks);
+    Breadcrumb(RefPtr<Navigation> navigation, RefPtr<Bookmarks> bookmarks);
 
     void render();
 };

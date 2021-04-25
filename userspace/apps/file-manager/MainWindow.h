@@ -5,7 +5,7 @@
 #include <libwidget/Window.h>
 
 #include <libfilepicker/model/Navigation.h>
-#include <libfilepicker/widgets/DirectoryBrowser.h>
+#include <libfilepicker/widgets/FileBrowser.h>
 #include <libfilepicker/widgets/JumpList.h>
 #include <libfilepicker/widgets/ToolBar.h>
 
@@ -17,26 +17,26 @@ public:
     MainWindow(RefPtr<FilePicker::Navigation> navigation, RefPtr<FilePicker::Bookmarks> bookmarks)
         : Widget::Window(WINDOW_RESIZABLE)
     {
-        icon(Graphic::Icon::get("folder"));
-        title("File Manager");
         size(Math::Vec2i(700, 500));
 
         root()->layout(VFLOW(0));
 
-        new Widget::TitleBar(root());
+        root()->add<Widget::TitleBar>(
+            Graphic::Icon::get("folder"),
+            "File Manager");
 
-        new FilePicker::ToolBar(root(), navigation, bookmarks);
+        root()->add<FilePicker::ToolBar>(navigation, bookmarks);
 
-        auto bookmarks_and_browser = new Widget::Container(root());
+        auto bookmarks_and_browser = root()->add<Widget::Container>();
 
-        bookmarks_and_browser->flags(Widget::Component::FILL);
+        bookmarks_and_browser->flags(Widget::Element::FILL);
         bookmarks_and_browser->layout(HFLOW(1));
 
-        auto jump_list = new FilePicker::JumpList(bookmarks_and_browser, navigation, bookmarks);
+        auto jump_list = bookmarks_and_browser->add<FilePicker::JumpList>(navigation, bookmarks);
 
         jump_list->min_width(192);
 
-        auto browser = new FilePicker::DirectoryBrowser(bookmarks_and_browser, navigation);
+        auto browser = bookmarks_and_browser->add<FilePicker::FileBrowser>(navigation);
 
         browser->on_element_selected = [&](String &path) {
             auto l = launchpad_create("open", "/System/Utilities/open");

@@ -8,35 +8,8 @@
 namespace Widget
 {
 
-TitleBar::TitleBar(Component *parent) : Component(parent)
-{
-    layout(HFLOW(4));
-    insets(4);
-
-    new Button(
-        this,
-        Button::TEXT,
-        window()->icon(),
-        window()->title());
-
-    new Spacer(this);
-
-    if (window()->flags() & WINDOW_RESIZABLE)
-    {
-        Component *button_maximize = new Button(this, Button::TEXT, Graphic::Icon::get("plus"));
-        button_maximize->on(Event::ACTION, [this](auto) {
-            window()->toggle_maximise();
-        });
-    }
-
-    Component *close_button = new Button(this, Button::TEXT, Graphic::Icon::get("close"));
-
-    close_button->on(Event::ACTION, [this](auto) {
-        window()->hide();
-    });
-}
-
-TitleBar::~TitleBar()
+TitleBar::TitleBar(RefPtr<Graphic::Icon> icon, String title)
+    : _icon{icon}, _title{title}
 {
 }
 
@@ -77,6 +50,30 @@ void TitleBar::event(Event *event)
             event->accepted = true;
         }
     }
+}
+
+void TitleBar::build()
+{
+    layout(HFLOW(4));
+    insets(4);
+
+    add<Button>(Button::TEXT, _icon, _title);
+
+    add<Spacer>();
+
+    if (window()->flags() & WINDOW_RESIZABLE)
+    {
+        auto button_maximize = add<Button>(Button::TEXT, Graphic::Icon::get("plus"));
+        button_maximize->on(Event::ACTION, [this](auto) {
+            window()->toggle_maximise();
+        });
+    }
+
+    auto close_button = add<Button>(Button::TEXT, Graphic::Icon::get("close"));
+
+    close_button->on(Event::ACTION, [this](auto) {
+        window()->hide();
+    });
 }
 
 } // namespace Widget

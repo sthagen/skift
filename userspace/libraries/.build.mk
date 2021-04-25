@@ -32,8 +32,14 @@ $(1)_HEADERS = \
 	$$(wildcard userspace/libraries/lib$($(1)_NAME)/*.h) \
 	$$(wildcard userspace/libraries/lib$($(1)_NAME)/*/*.h)
 
+$(1)_MODULEMAP=$$(BUILDROOT)/userspace/libraries/$($(1)_NAME).modulemap
+
+$(1)_DEPENDENCIES=$$(BUILDROOT)/userspace/libraries/$($(1)_NAME).deps
+
 TARGETS += $$($(1)_ARCHIVE)
 OBJECTS += $$($(1)_OBJECTS)
+MODULEMAPS += $$($(1)_MODULEMAP)
+DEPENDENCIES += $$($(1)_DEPENDENCIES)
 
 # Special case for libc to copy the headers to the right location without the libc prefix.
 ifneq ($(1), C)
@@ -61,6 +67,16 @@ $(BUILDROOT)/userspace/libraries/lib$($(1)_NAME)/%.s.o: userspace/libraries/lib$
 	$$(DIRECTORY_GUARD)
 	@echo [LIB$(1)] [AS] $$<
 	@$(AS) $(ASFLAGS) $$^ -o $$@
+
+$$($(1)_MODULEMAP): $$(filter %.module.cpp, $$($(1)_SOURCES)) $$($(1)_HEADERS)
+	$$(DIRECTORY_GUARD)
+	@echo [$(1)] [GENERATE-MODULEMAP] $$@
+	@generate-modulemap.py userspace/libraries/ $$(BUILDROOT)/userspace/libraries/ $$^ > $$@
+
+$$($(1)_DEPENDENCIES): $$($(1)_SOURCES) $$($(1)_HEADERS) $(CXX_MODULE_MAPPER)
+	$$(DIRECTORY_GUARD)
+	@echo [$(1)] [GENERATE-DEPENDENCIES] $$@
+	@generate-dependencies.py userspace/libraries/ $$(BUILDROOT)/userspace/libraries/ $$^ > $$@
 
 endef
 

@@ -35,10 +35,9 @@ private:
     Window *_window = nullptr;
 
 public:
-    void title(String title)
-    {
-        _title = title;
-    }
+    String title() { return _title; }
+
+    void title(String title) { _title = title; }
 
     void buttons(int buttons) { _buttons = buttons; }
 
@@ -57,7 +56,6 @@ public:
         _window = new Window(WINDOW_NONE);
 
         _window->type(WINDOW_TYPE_POPOVER);
-        _window->title(_title);
 
         _window->on(Event::WINDOW_CLOSING, [&](auto) {
             close(DialogResult::CLOSE);
@@ -84,12 +82,15 @@ public:
 
     virtual void render(Window *) {}
 
-    void create_buttons(Component *parent)
+    virtual void on_button(DialogButton) {}
+
+    void create_buttons(RefPtr<Element> parent)
     {
         if (_buttons & DialogButton::YES)
         {
-            auto button = new Button(parent, Button::OUTLINE, "Yes");
+            auto button = parent->add<Button>(Button::OUTLINE, "Yes");
             button->on(Event::ACTION, [&](auto) {
+                on_button(DialogButton::YES);
                 close(DialogResult::YES);
                 _window->hide();
             });
@@ -97,8 +98,9 @@ public:
 
         if (_buttons & DialogButton::NO)
         {
-            auto button = new Button(parent, Button::OUTLINE, "No");
+            auto button = parent->add<Button>(Button::OUTLINE, "No");
             button->on(Event::ACTION, [&](auto) {
+                on_button(DialogButton::NO);
                 close(DialogResult::NO);
                 _window->hide();
             });
@@ -106,8 +108,9 @@ public:
 
         if (_buttons & DialogButton::OK)
         {
-            auto button = new Button(parent, Button::OUTLINE, "Ok");
+            auto button = parent->add<Button>(Button::OUTLINE, "Ok");
             button->on(Event::ACTION, [&](auto) {
+                on_button(DialogButton::OK);
                 close(DialogResult::OK);
                 _window->hide();
             });
@@ -115,8 +118,9 @@ public:
 
         if (_buttons & DialogButton::CANCEL)
         {
-            auto button = new Button(parent, Button::OUTLINE, "Cancel");
+            auto button = parent->add<Button>(Button::OUTLINE, "Cancel");
             button->on(Event::ACTION, [&](auto) {
+                on_button(DialogButton::CANCEL);
                 close(DialogResult::CANCEL);
                 _window->hide();
             });

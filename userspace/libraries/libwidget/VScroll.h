@@ -1,27 +1,34 @@
 #pragma once
 
-#include <libwidget/Component.h>
 #include <libwidget/Container.h>
+#include <libwidget/Element.h>
 #include <libwidget/ScrollBar.h>
 
 namespace Widget
 {
 
-class VScroll : public Component
+class VScroll : public Element
 {
 private:
-    Container *_host = nullptr;
-    ScrollBar *_scrollbar = nullptr;
+    RefPtr<Element> _host = nullptr;
+    RefPtr<ScrollBar> _scrollbar = nullptr;
 
 public:
-    Container *host() { return _host; }
+    RefPtr<Element> host() { return _host; }
 
-    VScroll(Component *parent) : Component(parent)
+    VScroll(RefPtr<Element> content = nullptr)
     {
-        _host = new Container(this);
+        if (content != nullptr)
+        {
+            _host = add(content);
+        }
+        else
+        {
+            _host = add<Element>();
+        }
 
-        _scrollbar = new ScrollBar(this);
-        _scrollbar->flags(Component::NOT_AFFECTED_BY_SCROLL);
+        _scrollbar = add<ScrollBar>();
+        _scrollbar->flags(Element::NOT_AFFECTED_BY_SCROLL);
 
         _scrollbar->on(Event::VALUE_CHANGE, [this](auto) {
             scroll({scroll().x(), _scrollbar->value()});
@@ -56,5 +63,7 @@ public:
         return {_host->size().x(), 0};
     }
 };
+
+static inline RefPtr<VScroll> vscroll(RefPtr<Element> content = nullptr) { return make<VScroll>(content); }
 
 } // namespace Widget

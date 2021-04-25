@@ -5,8 +5,8 @@
 #include <libgraphic/Painter.h>
 #include <libutils/HashMap.h>
 #include <libutils/Vector.h>
-#include <libwidget/Component.h>
 #include <libwidget/Cursor.h>
+#include <libwidget/Element.h>
 #include <libwidget/Event.h>
 
 #include "compositor/Protocol.h"
@@ -21,8 +21,6 @@ class Window
 private:
     int _handle = -1;
 
-    String _title = "Window";
-    RefPtr<Graphic::Icon> _icon;
     Math::Recti _bound{250, 250};
     WindowFlag _flags;
     WindowType _type = WINDOW_TYPE_REGULAR;
@@ -54,13 +52,11 @@ private:
 
     EventHandler _handlers[EventType::__COUNT];
 
-    Component *_root;
+    RefPtr<Element> _root;
 
-    Component *_keyboard_focus = nullptr;
-    Component *_mouse_focus = nullptr;
-    Component *_mouse_over = nullptr;
-
-    HashMap<String, Component *> _widget_by_id{};
+    Element *_keyboard_focus = nullptr;
+    Element *_mouse_focus = nullptr;
+    Element *_mouse_over = nullptr;
 
     OwnPtr<Async::Invoker> _repaint_invoker;
     OwnPtr<Async::Invoker> _relayout_invoker;
@@ -76,21 +72,7 @@ public:
 
     Math::Vec2i backbuffer_size() const { return backbuffer->size(); }
 
-    void title(String title) { _title = title; }
-
-    String title() { return _title; }
-
     WindowFlag flags() { return _flags; }
-
-    void icon(RefPtr<Graphic::Icon> icon)
-    {
-        if (icon)
-        {
-            _icon = icon;
-        }
-    }
-
-    RefPtr<Graphic::Icon> icon() { return _icon; }
 
     void opacity(float value) { _opacity = value; }
 
@@ -153,33 +135,17 @@ public:
 
     /* --- Childs ----------------------------------------------------------- */
 
-    Component *root() { return _root; }
+    RefPtr<Element> root() { return _root; }
 
-    void focus_widget(Component *widget);
+    void focus_widget(Element *widget);
 
-    void widget_removed(Component *widget);
+    void widget_removed(Element *widget);
 
-    void register_widget_by_id(String id, Component *widget);
-
-    Component *child_at(Math::Vec2i position);
-
-    template <typename WidgetType, typename CallbackType>
-    void with_widget(String name, CallbackType callback)
-    {
-        if (_widget_by_id.has_key(name))
-        {
-            auto widget = dynamic_cast<WidgetType *>(_widget_by_id[name]);
-
-            if (widget)
-            {
-                callback(widget);
-            }
-        }
-    }
+    Element *child_at(Math::Vec2i position);
 
     /* --- Focus ------------------------------------------------------------ */
 
-    bool has_keyboard_focus(Component *widget);
+    bool has_keyboard_focus(Element *widget);
 
     /* --- Layout ----------------------------------------------------------- */
 
@@ -225,5 +191,26 @@ public:
 
     void handle_keyboard_key_release(Event *event);
 };
+
+static inline Window *window(WindowFlag flags, Math::Vec2i size, RefPtr<Element> root)
+{
+    auto window = new Window(flags);
+    window->size(size);
+    window->root()->add(root);
+    return window;
+}
+
+static inline Window *window(WindowFlag flags, RefPtr<Element> root)
+{
+    auto window = new Window(flags);
+    window->root()->add(root);
+    window->resize_to_content();
+    return window;
+}
+
+static inline Window *window(RefPtr<Element> root)
+{
+    return window(WINDOW_NONE, root);
+}
 
 } // namespace Widget

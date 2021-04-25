@@ -30,20 +30,18 @@ DialogResult MessageBox::create_and_show(String title, String message, RefPtr<Gr
 
 void MessageBox::render(Window *window)
 {
-    window->icon(_icon);
-
     window->size(Math::Vec2i(300, 200));
 
     window->root()->layout(VFLOW(0));
     window->root()->insets(Insetsi(8));
 
-    auto message_label = new Label(window->root(), _message, Anchor::CENTER);
-    message_label->flags(Component::FILL);
+    auto message_label = window->root()->add<Label>(_message, Anchor::CENTER);
+    message_label->flags(Element::FILL);
 
-    auto container = new Container(window->root());
+    auto container = window->root()->add<Container>();
     container->layout(HFLOW(4));
 
-    new Spacer(container);
+    container->add<Spacer>();
 
     create_buttons(container);
 }

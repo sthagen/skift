@@ -11,23 +11,23 @@ namespace task_manager
 
 MainWinow::MainWinow() : Window(WINDOW_RESIZABLE)
 {
-    icon(Graphic::Icon::get("memory"));
-    title("Task Manager");
     size(Math::Vec2i(700, 500));
 
     root()->layout(VFLOW(0));
 
-    new Widget::TitleBar(root());
+    root()->add<Widget::TitleBar>(
+        Graphic::Icon::get("memory"),
+        "Task Manager");
 
     /// --- Toolbar --- ///
-    auto toolbar = new Widget::Panel(root());
+    auto toolbar = root()->add<Widget::Panel>();
 
     toolbar->layout(HFLOW(4));
     toolbar->insets(Insetsi(4, 4));
 
-    new Widget::Button(toolbar, Widget::Button::FILLED, Graphic::Icon::get("plus"), "New task");
+    toolbar->add<Widget::Button>(Widget::Button::FILLED, Graphic::Icon::get("plus"), "New task");
 
-    auto cancel_task_button = new Widget::Button(toolbar, Widget::Button::TEXT, Graphic::Icon::get("close"), "Cancel task");
+    auto cancel_task_button = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("close"), "Cancel task");
     cancel_task_button->on(Widget::Event::ACTION, [&](auto) {
         auto result = Widget::MessageBox::create_and_show(
             "Cancel task",
@@ -44,8 +44,8 @@ MainWinow::MainWinow() : Window(WINDOW_RESIZABLE)
     /// --- Table view --- //
     _table_model = make<TaskModel>();
 
-    _table = new Widget::Table(root(), _table_model);
-    _table->flags(Widget::Component::FILL);
+    _table = root()->add<Widget::Table>(_table_model);
+    _table->flags(Widget::Element::FILL);
 
     _table_timer = own<Async::Timer>(1000, [&]() {
         _table_model->update();
@@ -54,15 +54,15 @@ MainWinow::MainWinow() : Window(WINDOW_RESIZABLE)
     _table_timer->start();
 
     /// --- Graphs --- ///
-    auto graphs_container = new Widget::Panel(root());
+    auto graphs_container = root()->add<Widget::Panel>();
     graphs_container->layout(HFLOW(0));
     graphs_container->min_height(128);
 
-    _cpu_graph = new CPUGraph(graphs_container, _table_model);
+    _cpu_graph = graphs_container->add<CPUGraph>(_table_model);
 
-    new Widget::Separator(graphs_container);
+    graphs_container->add<Widget::Separator>();
 
-    _ram_graph = new RAMGraph(graphs_container, _table_model);
+    _ram_graph = graphs_container->add<RAMGraph>(_table_model);
 }
 
 } // namespace task_manager

@@ -39,9 +39,12 @@ CXX_WARNINGS := \
 	-Wnon-virtual-dtor \
 	-Woverloaded-virtual
 
+CXX_MODULE_MAPPER:=$(BUILDROOT)/global.modulemap
+
 BUILD_INCLUDE:= \
 	-I. \
 	-Ikernel \
+	-Ikernel/modules \
 	-Iuserspace/ \
 	-Iuserspace/apps \
 	-Iuserspace/libraries \
@@ -68,9 +71,10 @@ CFLAGS= \
 	$(BUILD_DEFINES) \
 	$(BUILD_CONFIGS)
 
-CXX:=i686-pc-skift-g++
 CXXFLAGS:= \
 	-std=c++20 \
+	-fmodules-ts \
+	-fmodule-mapper=$(CXX_MODULE_MAPPER) \
 	-MD \
 	--sysroot=$(SYSROOT) \
 	$(CONFIG_OPTIMISATIONS) \
@@ -82,6 +86,7 @@ CXXFLAGS:= \
 
 include meta/toolchains/$(CONFIG_ARCH)-$(CONFIG_TOOLCHAIN).mk
 include kernel/archs/.build.mk
+include kernel/modules/.build.mk
 include kernel/kernel/.build.mk
 
 include userspace/archs/.build.mk
@@ -160,7 +165,5 @@ clean-all:
 clean-fs:
 	rm -rf $(SYSROOT)
 
-.PHONY: install-headers
-install-headers: $(HEADERS)
-
--include $(OBJECTS:.o=.d)
+-include $(wildcard meta/make/*.mk)
+-include $(DEPENDENCIES) $(OBJECTS:.o=.d)

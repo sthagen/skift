@@ -1,11 +1,11 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 namespace Widget
 {
 
-class ScrollBar : public Component
+class ScrollBar : public Element
 {
 private:
     Math::Vec2i _mouse_origin;
@@ -60,7 +60,7 @@ public:
         _horizontal = value;
     }
 
-    ScrollBar(Component *parent);
+    ScrollBar(bool horizontal = false);
 
     void scroll_to(Math::Vec2i mouse_position);
 
@@ -91,5 +91,7 @@ public:
         return {SIZE, SIZE};
     }
 };
+
+static inline RefPtr<ScrollBar> scrollbar(bool horizontal) { return make<ScrollBar>(horizontal); }
 
 } // namespace Widget

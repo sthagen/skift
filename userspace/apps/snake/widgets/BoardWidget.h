@@ -2,22 +2,22 @@
 
 #include <libasync/Timer.h>
 #include <libgraphic/Painter.h>
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 #include "snake/model/Board.h"
 
 namespace Snake
 {
 
-struct BoardWidget : public Widget::Component
+struct BoardWidget : public Widget::Element
 {
     static constexpr auto CELL_SIZE = 32;
 
     RefPtr<Board> board;
     OwnPtr<Async::Timer> _timer;
 
-    BoardWidget(Component *parent)
-        : Component(parent)
+    BoardWidget()
+
     {
         board = make<Board>(15, 15);
 

@@ -1,16 +1,18 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 namespace Widget
 {
 
-struct Spacer : public Component
+struct Spacer : public Element
 {
-    Spacer(Component *parent) : Component(parent)
+    Spacer()
     {
-        flags(Component::FILL | Component::NO_MOUSE_HIT);
+        flags(Element::FILL | Element::NO_MOUSE_HIT);
     }
 };
+
+static inline RefPtr<Spacer> spacer() { return make<Spacer>(); }
 
 } // namespace Widget

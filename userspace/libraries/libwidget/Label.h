@@ -1,12 +1,12 @@
 #pragma once
 
 #include <libutils/String.h>
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 
 namespace Widget
 {
 
-class Label : public Component
+class Label : public Element
 {
 private:
     String _text = "Label";
@@ -20,13 +20,15 @@ public:
         should_repaint();
     }
 
-    Label(Component *parent, String text);
+    Label(String text);
 
-    Label(Component *parent, String text, Anchor anchor);
+    Label(String text, Anchor anchor);
 
     void paint(Graphic::Painter &, const Math::Recti &) override;
 
     Math::Vec2i size() override;
 };
+
+static inline RefPtr<Label> label(String text, Anchor anchor = Anchor::LEFT) { return make<Label>(text, anchor); }
 
 } // namespace Widget

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 #include <libwidget/model/TextModel.h>
 
 namespace Widget
 {
 
-class TextField : public Component
+class TextField : public Element
 {
 private:
     RefPtr<TextModel> _model;
@@ -16,7 +16,7 @@ private:
     int _hscroll_offset = 0;
 
 public:
-    TextField(Component *parent, RefPtr<TextModel> model);
+    TextField(RefPtr<TextModel> model);
 
     ~TextField() override;
 
@@ -27,6 +27,10 @@ public:
     Math::Vec2i size() override;
 
     void event(Event *event) override;
+
+    String text();
 };
+
+static inline RefPtr<TextField> textfield(RefPtr<TextModel> model) { return make<TextField>(model); }
 
 } // namespace Widget

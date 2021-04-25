@@ -1,20 +1,20 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Element.h>
 #include <libwidget/ScrollBar.h>
 #include <libwidget/model/TextModel.h>
 
 namespace Widget
 {
 
-class TextEditor : public Component
+class TextEditor : public Element
 {
 private:
     RefPtr<TextModel> _model;
     TextCursor _cursor{};
 
-    ScrollBar *_vscrollbar;
-    ScrollBar *_hscrollbar;
+    RefPtr<ScrollBar> _vscrollbar;
+    RefPtr<ScrollBar> _hscrollbar;
 
     int _vscroll_offset = 0;
     int _hscroll_offset = 0;
@@ -33,7 +33,7 @@ private:
 
     Math::Recti view_bound()
     {
-        auto bound = Component::bound();
+        auto bound = Element::bound();
 
         if (document_bound().height() > minimum_view_bound().height())
         {
@@ -57,7 +57,7 @@ private:
 
     Math::Recti vscrollbar_bound()
     {
-        auto bound = Component::bound().take_right(ScrollBar::SIZE);
+        auto bound = Element::bound().take_right(ScrollBar::SIZE);
 
         if (document_bound().width() > minimum_view_bound().width())
         {
@@ -69,7 +69,7 @@ private:
 
     Math::Recti hscrollbar_bound()
     {
-        auto bound = Component::bound().take_bottom(ScrollBar::SIZE);
+        auto bound = Element::bound().take_bottom(ScrollBar::SIZE);
 
         if (document_bound().height() > minimum_view_bound().height())
         {
@@ -94,9 +94,11 @@ public:
         should_repaint();
     }
 
-    TextEditor(Component *parent, RefPtr<TextModel> model);
+    TextEditor(RefPtr<TextModel> model);
 
     ~TextEditor();
+
+    void update_model(RefPtr<TextModel> model);
 
     void paint(Graphic::Painter &, const Math::Recti &) override;
 
@@ -104,5 +106,7 @@ public:
 
     void do_layout() override;
 };
+
+static inline RefPtr<TextEditor> texteditor(RefPtr<TextModel> model) { return make<TextEditor>(model); }
 
 } // namespace Widget
