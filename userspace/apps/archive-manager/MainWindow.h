@@ -2,7 +2,7 @@
 
 #include <libfile/Archive.h>
 #include <libwidget/Container.h>
-#include <libwidget/Panel.h>
+
 #include <libwidget/TitleBar.h>
 #include <libwidget/Window.h>
 
@@ -63,13 +63,13 @@ public:
         {
             browser->layout(VFLOW(0));
 
-            auto toolbar = browser->add<Widget::Panel>();
+            auto toolbar = browser->add(Widget::panel());
             toolbar->layout(HFLOW(4));
             toolbar->insets(Insetsi(4, 4));
 
             toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("archive-arrow-up"), "Extract All");
 
-            toolbar->add<Widget::Separator>();
+            toolbar->add(Widget::separator());
 
             auto load_button = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("folder-open"));
             load_button->on(Widget::Event::ACTION, [&](auto) {

@@ -1,8 +1,7 @@
 #include <libgraphic/Painter.h>
 
 #include <libwidget/Button.h>
-#include <libwidget/IconPanel.h>
-#include <libwidget/Spacer.h>
+#include <libwidget/Elements.h>
 #include <libwidget/Window.h>
 
 #include <libfilepicker/widgets/Breadcrumb.h>
@@ -49,7 +48,7 @@ void Breadcrumb::render()
 
     for (size_t i = 0; i < path.length(); i++)
     {
-        add<Widget::IconPanel>(_icon_expand);
+        add(Widget::icon(_icon_expand));
 
         auto button = add<Widget::Button>(Widget::Button::TEXT, path[i]);
         button->min_width(0);
@@ -59,7 +58,7 @@ void Breadcrumb::render()
         });
     }
 
-    add<Widget::Spacer>();
+    add(Widget::spacer());
 
     if (_bookmarks)
     {

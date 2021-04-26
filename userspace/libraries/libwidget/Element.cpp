@@ -496,7 +496,11 @@ Element *Element::at(Math::Vec2i position)
 
 RefPtr<Element> Element::add(RefPtr<Element> child)
 {
-    Assert::not_null(child);
+    if (child == nullptr)
+    {
+        return nullptr;
+    }
+
     Assert::equal(child->_parent, nullptr);
 
     _childs.push_back(child);
@@ -525,7 +529,12 @@ void Element::del(RefPtr<Element> child)
 void Element::mount(Element &parent)
 {
     _parent = &parent;
-    _window = parent.window();
+    mount(*parent.window());
+}
+
+void Element::mount(Window &window)
+{
+    _window = &window;
 
     for (auto &child : _childs)
     {
@@ -585,7 +594,7 @@ void Element::repaint(Graphic::Painter &painter, Math::Recti rectangle)
     painter.transform(origin());
     painter.clip(bound());
 
-    if (Application::show_wireframe())
+    if (Application::the()->show_wireframe())
     {
         painter.fill_insets(bound(), _insets, Graphic::Colors::MAGENTA.with_alpha(0.25));
     }
@@ -604,7 +613,7 @@ void Element::repaint(Graphic::Painter &painter, Math::Recti rectangle)
         }
     }
 
-    if (Application::show_wireframe())
+    if (Application::the()->show_wireframe())
     {
         painter.draw_rectangle(bound(), Graphic::Colors::CYAN.with_alpha(0.25));
     }

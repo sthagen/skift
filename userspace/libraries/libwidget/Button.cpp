@@ -1,7 +1,6 @@
 #include <libgraphic/Painter.h>
 #include <libwidget/Button.h>
-#include <libwidget/IconPanel.h>
-#include <libwidget/Image.h>
+#include <libwidget/Elements.h>
 #include <libwidget/Label.h>
 
 namespace Widget
@@ -91,7 +90,7 @@ Button::Button(Style style, RefPtr<Graphic::Icon> icon) : Button{style}
     min_height(36);
     flags(Element::GREEDY | Element::SQUARE);
 
-    auto icon_panel = add<IconPanel>(icon);
+    auto icon_panel = add(Widget::icon(icon));
 
     if (style == FILLED)
     {
@@ -117,7 +116,7 @@ Button::Button(Style style, RefPtr<Graphic::Icon> icon, String text) : Button{st
     insets(Insetsi(0, 0, 12, 16));
     min_width(64);
 
-    auto icon_panel = add<IconPanel>(icon);
+    auto icon_panel = add(Widget::icon(icon));
     icon_panel->insets(Insetsi(0, 0, 0, 8));
 
     auto label = add<Label>(text);
@@ -134,7 +133,7 @@ Button::Button(Style style, RefPtr<Graphic::Bitmap> image, String text) : Button
     insets(Insetsi(4, 4, 12, 16));
     min_width(64);
 
-    auto image_panel = add<Image>(image, Graphic::BitmapScaling::FIT);
+    auto image_panel = add(Widget::image(image));
     image_panel->outsets(Insetsi(0, 0, 0, 8));
     image_panel->min_width(36);
     image_panel->min_height(36);

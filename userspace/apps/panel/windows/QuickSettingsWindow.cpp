@@ -1,7 +1,8 @@
-#include <libwidget/Panel.h>
-#include <libwidget/Screen.h>
-#include <libwidget/Spacer.h>
 #include <skift/Environment.h>
+
+#include <libwidget/Container.h>
+#include <libwidget/Elements.h>
+#include <libwidget/Screen.h>
 
 #include "panel/widgets/SettingToggle.h"
 #include "panel/windows/PanelWindow.h"
@@ -43,7 +44,7 @@ QuickSettingsWindow::QuickSettingsWindow()
 
     account_container->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("account"), environment().get("POSIX").get("LOGNAME").as_string());
 
-    account_container->add<Widget::Spacer>();
+    account_container->add(Widget::spacer());
 
     auto folder_button = account_container->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("folder"));
 

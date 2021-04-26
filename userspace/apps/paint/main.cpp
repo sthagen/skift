@@ -3,8 +3,8 @@
 #include <libwidget/Application.h>
 #include <libwidget/Button.h>
 #include <libwidget/Container.h>
-#include <libwidget/Panel.h>
-#include <libwidget/Separator.h>
+#include <libwidget/Elements.h>
+
 #include <libwidget/TitleBar.h>
 
 #include "paint/PaintCanvas.h"
@@ -53,8 +53,8 @@ private:
     RefPtr<Widget::Element> _insert_rectangle;
     RefPtr<Widget::Element> _insert_circle;
 
-    RefPtr<Widget::Panel> _primary_color;
-    RefPtr<Widget::Panel> _secondary_color;
+    RefPtr<Widget::Element> _primary_color;
+    RefPtr<Widget::Element> _secondary_color;
 
     /// --- Canvas --- ///
     RefPtr<PaintCanvas> _canvas;
@@ -86,7 +86,7 @@ public:
 
     void create_toolbar(RefPtr<Widget::Element> parent)
     {
-        auto toolbar = parent->add<Widget::Panel>();
+        auto toolbar = parent->add(Widget::panel());
 
         toolbar->layout(HFLOW(4));
         toolbar->insets(Insetsi(4, 4));
@@ -95,7 +95,7 @@ public:
         _save_document = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("content-save"));
         _new_document = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("image-plus"));
 
-        toolbar->add<Widget::Separator>();
+        toolbar->add(Widget::separator());
 
         _pencil = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("pencil"));
         _pencil->on(Widget::Event::ACTION, [this](auto) {
@@ -127,7 +127,7 @@ public:
             update_toolbar();
         });
 
-        toolbar->add<Widget::Separator>();
+        toolbar->add(Widget::separator());
 
         // TODO:
         _insert_text = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("format-text-variant"));
@@ -135,14 +135,13 @@ public:
         _insert_rectangle = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("rectangle-outline"));
         _insert_circle = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("circle-outline"));
 
-        toolbar->add<Widget::Separator>();
+        toolbar->add(Widget::separator());
 
         auto primary_color_container = toolbar->add<Widget::Container>();
         primary_color_container->insets(Insetsi(4));
         primary_color_container->flags(Widget::Element::SQUARE);
 
-        _primary_color = primary_color_container->add<Widget::Panel>();
-        _primary_color->border_radius(4);
+        _primary_color = primary_color_container->add(Widget::panel(4));
         _primary_color->color(Widget::THEME_MIDDLEGROUND, _document->primary_color());
         _primary_color->flags(Widget::Element::FILL);
 
@@ -150,15 +149,14 @@ public:
         secondary_color_container->insets(Insetsi(4));
         secondary_color_container->flags(Widget::Element::SQUARE);
 
-        _secondary_color = secondary_color_container->add<Widget::Panel>();
-        _secondary_color->border_radius(4);
+        _secondary_color = secondary_color_container->add(Widget::panel(4));
         _secondary_color->color(Widget::THEME_MIDDLEGROUND, _document->secondary_color());
         _secondary_color->flags(Widget::Element::FILL);
     }
 
     void create_color_palette(RefPtr<Widget::Element> parent)
     {
-        auto palette = parent->add<Widget::Panel>();
+        auto palette = parent->add(Widget::panel());
 
         palette->layout(HFLOW(4));
         palette->insets(Insetsi(4, 4));
@@ -171,8 +169,7 @@ public:
         {
             Graphic::Color color = _color_palette[i];
 
-            auto color_widget = palette->add<Widget::Panel>();
-            color_widget->border_radius(4);
+            auto color_widget = palette->add(Widget::panel(4));
             color_widget->min_width(30);
             color_widget->color(Widget::THEME_MIDDLEGROUND, color);
 
@@ -198,10 +195,8 @@ public:
     }
 };
 
-int main(int argc, char **argv)
+int main(int, char **)
 {
-    Widget::Application::initialize(argc, argv);
-
     auto bitmap = Graphic::Bitmap::create_shared(400, 400).unwrap();
     bitmap->clear(Graphic::Colors::BLACKTRANSPARENT);
 
@@ -210,5 +205,5 @@ int main(int argc, char **argv)
     auto window = new PaintWindow(document);
     window->show();
 
-    return Widget::Application::run();
+    return Widget::Application::the()->run();
 }

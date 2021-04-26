@@ -2,15 +2,12 @@
 #include <libwidget/Application.h>
 #include <libwidget/Container.h>
 #include <libwidget/Label.h>
-#include <libwidget/Panel.h>
-#include <libwidget/Switch.h>
+
 #include <libwidget/TextField.h>
 #include <libwidget/TitleBar.h>
 
-int main(int argc, char **argv)
+int main(int, char **)
 {
-    Widget::Application::initialize(argc, argv);
-
     auto acrylic_window = own<Widget::Window>(WINDOW_ACRYLIC);
     acrylic_window->root()->layout(VFLOW(0));
     acrylic_window->root()->add<Widget::TitleBar>(Graphic::Icon::get("widgets"), "Acrylic!");
@@ -28,7 +25,7 @@ int main(int argc, char **argv)
     {
         panel_hflow->layout(HFLOW(8));
 
-        auto p1 = panel_hflow->add<Widget::Panel>();
+        auto p1 = panel_hflow->add(Widget::panel());
         p1->flags(Widget::Element::FILL);
 
         auto button = panel_hflow->add<Widget::Button>(Widget::Button::TEXT, "Hello, world!");
@@ -38,7 +35,7 @@ int main(int argc, char **argv)
         p2->layout(STACK());
         p2->flags(Widget::Element::FILL);
 
-        auto p3 = panel_hflow->add<Widget::Panel>();
+        auto p3 = panel_hflow->add(Widget::panel());
         p3->flags(Widget::Element::FILL);
     }
 
@@ -63,7 +60,7 @@ int main(int argc, char **argv)
         panel_grid->layout(GRID(3, 3, 4, 4));
         panel_grid->flags(Widget::Element::FILL);
 
-        panel_grid->add<Widget::Panel>();
+        panel_grid->add(Widget::panel());
         panel_grid->add<Widget::TextField>(Widget::TextModel::empty());
         auto text_field = panel_grid->add<Widget::TextField>(Widget::TextModel::empty());
         text_field->focus();
@@ -81,12 +78,12 @@ int main(int argc, char **argv)
             picker.show();
         });
 
-        panel_grid->add<Widget::Panel>();
-        panel_grid->add<Widget::Panel>();
-        panel_grid->add<Widget::Panel>();
+        panel_grid->add(Widget::panel());
+        panel_grid->add(Widget::panel());
+        panel_grid->add(Widget::panel());
     }
 
     window->show();
 
-    return Widget::Application::run();
+    return Widget::Application::the()->run();
 }

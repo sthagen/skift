@@ -2,7 +2,6 @@
 
 #include <libsystem/system/Memory.h>
 #include <libwidget/Application.h>
-#include <libwidget/Container.h>
 #include <libwidget/Event.h>
 #include <libwidget/Screen.h>
 #include <libwidget/Theme.h>
@@ -50,7 +49,7 @@ void Window::bound(Math::Recti new_bound)
     }
     else if (!have_same_position)
     {
-        Application::move_window(this, _bound.position());
+        Application::the()->move_window(this, _bound.position());
     }
 
     if (!have_same_size)
@@ -74,15 +73,19 @@ Window::Window(WindowFlag flags)
     backbuffer = Graphic::Bitmap::create_shared(250, 250).unwrap();
     backbuffer_painter = own<Graphic::Painter>(backbuffer);
 
-    _root = make<Container>();
-    _root->window(this);
+    _root = build();
+    if (_root == nullptr)
+    {
+        _root = make<Element>();
+    }
+    _root->mount(*this);
 
     _keyboard_focus = _root.naked();
 
     _repaint_invoker = own<Async::Invoker>([this]() { repaint_dirty(); });
     _relayout_invoker = own<Async::Invoker>([this]() { relayout(); });
 
-    Application::add_window(this);
+    Application::the()->add_window(this);
     position({96, 72});
 }
 
@@ -93,7 +96,7 @@ Window::~Window()
         hide();
     }
 
-    Application::remove_window(this);
+    Application::the()->remove_window(this);
 }
 
 void Window::repaint(Graphic::Painter &painter, Math::Recti rectangle)
@@ -157,7 +160,7 @@ void Window::repaint_dirty()
     swap(frontbuffer, backbuffer);
     swap(frontbuffer_painter, backbuffer_painter);
 
-    Application::flip_window(this, repaited_regions);
+    Application::the()->flip_window(this, repaited_regions);
 }
 
 void Window::relayout()
@@ -237,7 +240,7 @@ void Window::show()
     swap(frontbuffer, backbuffer);
     swap(frontbuffer_painter, backbuffer_painter);
 
-    Application::show_window(this);
+    Application::the()->show_window(this);
 }
 
 void Window::hide()
@@ -251,7 +254,7 @@ void Window::hide()
     _repaint_invoker->cancel();
 
     _visible = false;
-    Application::hide_window(this);
+    Application::the()->hide_window(this);
 }
 
 Math::Border Window::resize_bound_containe(Math::Vec2i position)
@@ -665,7 +668,7 @@ void Window::cursor(CursorState state)
 
     if (cursor_state != state)
     {
-        Application::window_change_cursor(this, state);
+        Application::the()->window_change_cursor(this, state);
         cursor_state = state;
     }
 }

@@ -1,5 +1,5 @@
 #include "libgraphic/Icon.h"
-#include <libwidget/Spacer.h>
+#include <libwidget/Elements.h>
 #include <libwidget/TitleBar.h>
 
 #include <libfilepicker/dialogs/FilePicker.h>
@@ -15,10 +15,6 @@ Dialog::Dialog(DialogFlags flags) : _flags(flags)
     _navigation = make<Navigation>();
     _navigation->go_home_dont_record_history();
     buttons(Widget::DialogButton::OK | Widget::DialogButton::CANCEL);
-}
-
-Dialog::~Dialog()
-{
 }
 
 String Dialog::get_title()
@@ -68,7 +64,7 @@ void Dialog::render(Widget::Window *window)
         _browser = file_browser;
     }
 
-    auto action_container = window->root()->add<Widget::Panel>();
+    auto action_container = window->root()->add(Widget::panel());
 
     action_container->layout(HFLOW(4));
 
@@ -81,7 +77,7 @@ void Dialog::render(Widget::Window *window)
 
     action_container->insets(Insetsi(4, 4));
 
-    action_container->add<Widget::Spacer>();
+    action_container->add(Widget::spacer());
 
     create_buttons(action_container);
 }

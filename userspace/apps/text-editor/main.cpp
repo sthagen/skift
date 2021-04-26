@@ -3,7 +3,7 @@
 #include <libio/Streams.h>
 #include <libwidget/Application.h>
 #include <libwidget/Button.h>
-#include <libwidget/Panel.h>
+
 #include <libwidget/TextEditor.h>
 #include <libwidget/TitleBar.h>
 
@@ -66,7 +66,7 @@ public:
 
     void create_toolbar(RefPtr<Widget::Element> parent)
     {
-        auto toolbar = parent->add<Widget::Panel>();
+        auto toolbar = parent->add(Widget::panel());
 
         toolbar->layout(HFLOW(4));
         toolbar->insets(Insetsi(4, 4));
@@ -93,11 +93,9 @@ public:
 
 int main(int argc, char **argv)
 {
-    Widget::Application::initialize(argc, argv);
-
     const char *path = argc > 1 ? argv[1] : "";
     auto window = new TextWindow(path);
     window->show();
 
-    return Widget::Application::run();
+    return Widget::Application::the()->run();
 }
