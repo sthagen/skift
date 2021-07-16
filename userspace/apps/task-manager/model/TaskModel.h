@@ -3,10 +3,10 @@
 #include <libjson/Json.h>
 #include <libwidget/model/TableModel.h>
 
-namespace task_manager
+namespace TaskManager
 {
 
-class TaskModel : public Widget::TableModel
+struct TaskModel : public Widget::TableModel
 {
 private:
     Json::Value _data;
@@ -26,7 +26,7 @@ public:
 
     String cpu_greedy();
 
-    Result kill_task(int row);
+    HjResult kill_task(int row);
 };
 
-}; // namespace task_manager
+} // namespace TaskManager

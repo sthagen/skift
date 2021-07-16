@@ -1,21 +1,22 @@
 #pragma once
 
-#include <libwidget/VScroll.h>
+#include <libwidget/Components.h>
 
-namespace panel
+namespace Panel
 {
 
-class ApplicationListing : public Widget::VScroll
+struct ApplicationListingComponent :
+    public Widget::Component
 {
 private:
     String _filter;
 
 public:
-    ApplicationListing();
+    ApplicationListingComponent(String filter);
 
-    void filter(const String &filter);
-
-    void render();
+    RefPtr<Widget::Element> build();
 };
 
-} // namespace panel
+WIDGET_BUILDER(ApplicationListingComponent, application_listing);
+
+} // namespace Panel

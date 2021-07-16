@@ -9,7 +9,7 @@ namespace Math
 {
 
 template <typename Scalar>
-class Vec3
+struct Vec3
 {
 private:
     Scalar _x;
@@ -151,13 +151,12 @@ public:
     {
         return x() * other.x() + y() * other.y() + z() * other.z();
     }
-};
 
-template <typename T>
-ResultOr<size_t> format(IO::Writer &writer, const IO::Formating &, const Math::Vec3<T> &vec)
-{
-    return IO::format(writer, "({}, {}, {})", vec.x(), vec.y(), vec.z());
-}
+    String string() const
+    {
+        return IO::format("({}, {}, {})", x(), y(), z());
+    }
+};
 
 using Vec3i = Vec3<int>;
 using Vec3f = Vec3<float>;

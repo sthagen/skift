@@ -1,14 +1,14 @@
 #pragma once
 
-#include "kernel/node/Node.h"
+#include "system/node/Node.h"
 
-class FsProcessInfo : public FsNode
+struct FsProcessInfo : public FsNode
 {
 private:
 public:
     FsProcessInfo();
 
-    Result open(FsHandle &handle) override;
+    HjResult open(FsHandle &handle) override;
 
     void close(FsHandle &handle) override;
 

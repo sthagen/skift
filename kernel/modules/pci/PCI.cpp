@@ -1,19 +1,19 @@
 
-#include <libsystem/Logger.h>
+#include "system/Streams.h"
 #include <libutils/Vector.h>
 #include <string.h>
 
 #include "archs/x86_32/x86_32.h"
 #include "pci/PCI.h"
 
-Iteration pci_scan_bus(IterationCallback<PCIAddress> &callback, int bus);
+Iteration pci_scan_bus(IterFunc<PCIAddress> &callback, int bus);
 
-Iteration pci_scan_hit(IterationCallback<PCIAddress> &callback, PCIAddress &address)
+Iteration pci_scan_hit(IterFunc<PCIAddress> &callback, PCIAddress &address)
 {
     return callback(address);
 }
 
-Iteration pci_scan_func(IterationCallback<PCIAddress> &callback, PCIAddress &address)
+Iteration pci_scan_func(IterFunc<PCIAddress> &callback, PCIAddress &address)
 {
     if (pci_scan_hit(callback, address) == Iteration::STOP)
     {
@@ -30,7 +30,7 @@ Iteration pci_scan_func(IterationCallback<PCIAddress> &callback, PCIAddress &add
     }
 }
 
-Iteration pci_scan_slot(IterationCallback<PCIAddress> &callback, int bus, int slot)
+Iteration pci_scan_slot(IterFunc<PCIAddress> &callback, int bus, int slot)
 {
     PCIAddress address{bus, slot, 0};
 
@@ -63,7 +63,7 @@ Iteration pci_scan_slot(IterationCallback<PCIAddress> &callback, int bus, int sl
     return Iteration::CONTINUE;
 }
 
-Iteration pci_scan_bus(IterationCallback<PCIAddress> &callback, int bus)
+Iteration pci_scan_bus(IterFunc<PCIAddress> &callback, int bus)
 {
     for (int slot = 0; slot < 32; ++slot)
     {
@@ -76,7 +76,7 @@ Iteration pci_scan_bus(IterationCallback<PCIAddress> &callback, int bus)
     return Iteration::CONTINUE;
 }
 
-Iteration pci_scan(IterationCallback<PCIAddress> callback)
+Iteration pci_scan(IterFunc<PCIAddress> callback)
 {
     PCIAddress address{};
 
@@ -117,7 +117,7 @@ void pci_initialize_isa_bridge()
     pci_scan([&](PCIAddress address) {
         if (is_isa_bridge(address))
         {
-            logger_info("Found isa bridge on PCI:%02x:%02x.%x", address.bus(), address.slot(), address.func());
+            Kernel::logln("Found isa bridge on PCI:{02x}:{02x}.{x}", address.bus(), address.slot(), address.func());
             _isa_bridge_address = address;
             _has_isa_bridge = true;
 
@@ -151,28 +151,28 @@ int pci_get_interrupt(PCIAddress address)
         uint32_t irq_pin = address.read8(PCI_INTERRUPT_PIN);
         if (irq_pin == 0)
         {
-            logger_warn("PCI device does not specify an interrupt line!");
+            Kernel::logln("PCI device does not specify an interrupt line!");
             return address.read8(PCI_INTERRUPT_LINE);
         }
 
         int pirq = (irq_pin + address.slot() - 2) % 4;
         int int_line = address.read8(PCI_INTERRUPT_LINE);
 
-        logger_info("Slot is %d, irq pin is %d, so pirq is %d and that maps to %d? int_line=%d",
-                    address.slot(), irq_pin, pirq, _isa_remaps[pirq], int_line);
+        Kernel::logln("Slot is {}, irq pin is {}, so pirq is {} and that maps to {}? int_line={}",
+                      address.slot(), irq_pin, pirq, _isa_remaps[pirq], int_line);
 
         for (int i = 0; i < 4; ++i)
         {
-            logger_info("  irq[%d] = %d", i, _isa_remaps[i]);
+            Kernel::logln("  irq[{}] = {}", i, _isa_remaps[i]);
         }
 
         if (_isa_remaps[pirq] >= 0x80)
         {
-            logger_info("Not mapped, remapping?");
+            Kernel::logln("Not mapped, remapping?");
 
             if (int_line == 0xFF)
             {
-                logger_warn("Just going in blind here.");
+                Kernel::logln("Just going in blind here.");
                 int_line = 10;
                 address.write8(PCI_INTERRUPT_LINE, 1);
             }

@@ -1,85 +1,88 @@
 #include <libsystem/BuildInfo.h>
 #include <libwidget/Application.h>
-#include <libwidget/Button.h>
+#include <libwidget/Components.h>
 #include <libwidget/Elements.h>
-#include <libwidget/Label.h>
-#include <libwidget/TextEditor.h>
-#include <libwidget/TitleBar.h>
-
 #include <libwidget/Layouts.h>
+#include <libwidget/Views.h>
 
-static auto logo_based_on_color_scheme()
+using namespace Widget;
+using namespace Graphic;
+
+namespace About
 {
-    auto path = Widget::theme_is_dark() ? "/Applications/about/logo-white.png"
-                                        : "/Applications/about/logo-black.png";
 
-    return Graphic::Bitmap::load_from_or_placeholder(path);
+static auto logo()
+{
+    auto logo_path = theme_is_dark()
+                         ? "/Applications/about/logo-white.png"
+                         : "/Applications/about/logo-black.png";
+
+    auto logo_image = Bitmap::load_from_or_placeholder(logo_path);
+
+    return spacing({32, 64}, image(logo_image, BitmapScaling::CENTER));
 }
 
-void show_license()
+static auto license()
 {
-    using namespace Widget;
+    return outline_button("License", [] {
+        auto editor = texteditor(TextModel::open("/Files/license.md"));
+        editor->font(Font::get("mono").unwrap());
+        editor->focus();
 
-    auto texteditor = Widget::texteditor(Widget::TextModel::open("/Files/license.md"));
-    texteditor->readonly(true);
-    texteditor->font(Graphic::Font::get("mono").unwrap());
-    texteditor->focus();
+        auto license_window = window(
+            vflow({
+                titlebar(Icon::get("information"), "License"),
+                fill(editor),
+            }));
 
-    // clang-format off
-
-    auto license_window = window(
-        vflow(0, {
-            titlebar(Graphic::Icon::get("information"), "License"),
-            fill(texteditor),
-        })
-    );
-
-    license_window->show();
-
-    // clang-format on
+        license_window->show();
+    });
 }
 
-int main(int, char **)
+struct Application : public Widget::Application
 {
-    using namespace Widget;
+    OwnPtr<Window> build() override
+    {
+        // clang-format off
 
-    // clang-format off
+        return window(
+            vflow(4, {
+                titlebar(Icon::get("information"), "About"),
 
-    auto win = window(
-        vflow(4, {
-            titlebar(Graphic::Icon::get("information"), "About"),
-
-            spacing(6,
-                vflow(4,{
-                    spacing(
-                        {32, 64},
-                        image(logo_based_on_color_scheme(), Graphic::BitmapScaling::CENTER)
-                    ),
-                    label("The skift operating system.", Anchor::CENTER),
-                    label(__BUILD_VERSION__, Anchor::CENTER),
-                    label(__BUILD_GITREF__ "/" __BUILD_CONFIG__, Anchor::CENTER),
-                    label("Copyright © 2018-2021", Anchor::CENTER),
-                    label("N. Van Bossuyt & contributors.", Anchor::CENTER),
-                })
-            ),
-
-            spacing(6,
-                hflow(4,{
-                    button(Button::OUTLINE, "License",  [] {
-                        show_license();
-                    }),
-                    spacer(),
-                    button(Button::FILLED, "Ok", [] {
-                        Application::the()->exit(PROCESS_SUCCESS);
+                spacing(6,
+                    vflow(4,{
+                        logo(),
+                        label("The skift operating system.", Math::Anchor::CENTER),
+                        label(__BUILD_VERSION__, Math::Anchor::CENTER),
+                        label(__BUILD_GITREF__ "/" __BUILD_CONFIG__, Math::Anchor::CENTER),
+                        label("Copyright © 2018-2021", Math::Anchor::CENTER),
+                        label("N. Van Bossuyt & contributors.", Math::Anchor::CENTER),
                     })
-                })
-            )
-        })
-    );
+                ),
 
-    // clang-format on
+                spacing(6,
+                    hflow(4,{
+                        license(),
+                        spacer(),
+                        filled_button("Ok", [this] {
+                            exit(PROCESS_SUCCESS);
+                        })
+                    })
+                )
+            })
+        );
 
-    win->show();
+        // clang-format on
+    }
+};
 
-    return Application::the()->run();
+} // namespace About
+
+int main(int argc, char const *argv[])
+{
+    UNUSED(argc);
+    UNUSED(argv);
+
+    About::Application app;
+    return app.run();
 }

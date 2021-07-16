@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libwidget/TextField.h>
+#include <libwidget/Components.h>
 #include <libwidget/dialog/Dialog.h>
 
 #include <libfilepicker/model/Navigation.h>
@@ -17,11 +17,11 @@ enum DialogFlags
     DIALOG_FLAGS_MULTIPLE = 8
 };
 
-class Dialog : public ::Widget::Dialog
+struct Dialog : public ::Widget::Dialog
 {
 private:
     RefPtr<Navigation> _navigation = nullptr;
-    Optional<String> _selected_file{};
+    Optional<String> _selected_file = NONE;
     RefPtr<Browser> _browser;
     DialogFlags _flags;
     RefPtr<Widget::TextField> _text_field;

@@ -1,36 +1,18 @@
-#include <libsystem/Logger.h>
-
 #include <libgraphic/Painter.h>
 #include <libgraphic/rast/Rasterizer.h>
 
 namespace Graphic
 {
 
-Rasterizer::Rasterizer(RefPtr<Bitmap> bitmap) : _bitmap{bitmap}
+Rasterizer::Rasterizer(Bitmap &bitmap, TransformStack &stack)
+    : _bitmap{bitmap}, _stack{stack}
 {
-    _scanline.resize(_bitmap->width());
+    _scanline.resize(_bitmap.width());
 }
 
 void Rasterizer::clear()
 {
     _edges.clear();
-}
-
-void Rasterizer::set_clip(Math::Recti c)
-{
-    _clip = c;
-}
-
-Math::Recti Rasterizer::get_clip()
-{
-    Math::Recti c = _bitmap->bound().clipped_with(_edges.bound());
-
-    if (_clip.present())
-    {
-        c = c.clipped_with(_clip.unwrap());
-    }
-
-    return c;
 }
 
 void Rasterizer::flatten(const Path &path, const Math::Mat3x2f &transform)
@@ -40,7 +22,10 @@ void Rasterizer::flatten(const Path &path, const Math::Mat3x2f &transform)
         for (size_t i = 0; i < subpath.length(); i++)
         {
             auto curve = subpath.curves(i);
+
+            curve = Math::Mat3x2f::translation(_stack.origin()).apply(curve);
             curve = transform.apply(curve);
+
             _edges.append(curve);
         }
 
@@ -51,6 +36,15 @@ void Rasterizer::flatten(const Path &path, const Math::Mat3x2f &transform)
             _edges.append(transform.apply(subpath.curves(0).start()));
             _edges.end();
         }
+    }
+}
+
+void Rasterizer::flatten(const EdgeList &edges, const Math::Mat3x2f &transform)
+{
+    for (auto &edge : edges.edges())
+    {
+        _edges.append(transform.apply(edge.start()));
+        _edges.append(transform.apply(edge.end()));
     }
 }
 
@@ -98,7 +92,7 @@ void Rasterizer::rasterize(Paint &paint)
         }
     };
 
-    auto bound = get_clip();
+    auto bound = _stack.clip();
 
     for (int y = bound.top(); y < bound.bottom(); y++)
     {
@@ -124,16 +118,23 @@ void Rasterizer::rasterize(Paint &paint)
 
             if (alpha >= 0.003f)
             {
-                _bitmap->blend_pixel_no_check({i, y}, color.with_alpha(color.alphaf() * alpha));
+                _bitmap.blend_pixel_no_check({i, y}, color.with_alpha(color.alphaf() * alpha));
             }
         }
     }
 }
 
-void FLATTEN Rasterizer::fill(Path &path, const Math::Mat3x2f &transform, Paint paint)
+void FLATTEN Rasterizer::fill(const Path &path, const Math::Mat3x2f &transform, Paint paint)
 {
     clear();
-    flatten(path, transform);
+    flatten(path, transform * Math::Mat3x2f::translation(_stack.origin()));
+    rasterize(paint);
+}
+
+void FLATTEN Rasterizer::fill(const EdgeList &edges, const Math::Mat3x2f &transform, Paint paint)
+{
+    clear();
+    flatten(edges, transform * Math::Mat3x2f::translation(_stack.origin()));
     rasterize(paint);
 }
 

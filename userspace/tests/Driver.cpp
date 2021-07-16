@@ -1,5 +1,4 @@
 #include <libio/Streams.h>
-#include <libsystem/Logger.h>
 #include <libutils/Vector.h>
 
 #include "tests/Driver.h"
@@ -78,7 +77,12 @@ int run_all_testes()
         IO::err("test: {}: \e[1m{}\e[m... ", test.location.file(), test.name);
 
         int child_pid = -1;
-        hj_process_clone(&child_pid, TASK_WAITABLE);
+        if (hj_process_clone(&child_pid, TASK_WAITABLE) != SUCCESS)
+        {
+            IO::errln("\e[1;33mclone failled\e[m");
+            failed++;
+            continue;
+        }
 
         if (child_pid == 0)
         {
@@ -124,11 +128,11 @@ int run_all_testes()
 
     if (failed == 0)
     {
-        IO::errln("\e[90m// {}\e[m", _good_messages[end_tick % AERAY_LENGTH(_good_messages)]);
+        IO::errln("\e[90m// {}\e[m", _good_messages[end_tick % ARRAY_LENGTH(_good_messages)]);
     }
     else
     {
-        IO::errln("\e[90m// {}\e[m", _bad_messages[end_tick % AERAY_LENGTH(_bad_messages)]);
+        IO::errln("\e[90m// {}\e[m", _bad_messages[end_tick % ARRAY_LENGTH(_bad_messages)]);
     }
 
     IO::errln("");

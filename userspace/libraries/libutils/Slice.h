@@ -1,12 +1,12 @@
 #pragma once
 
-#include <libsystem/Common.h>
+#include <libutils/Prelude.h>
 
-#include <libutils/Move.h>
 #include <libutils/RefPtr.h>
 #include <libutils/SliceStorage.h>
+#include <libutils/Std.h>
 
-class Slice :
+struct Slice :
     public RawStorage
 {
 private:

@@ -1,17 +1,17 @@
 #pragma once
 
-#include <libutils/Random.h>
+#include <libmath/Random.h>
 
 #include "neko/model/Behavior.h"
 
 namespace neko
 {
 
-class Idle :
+struct Idle :
     public Behavior
 {
 private:
-    Random _random;
+    Math::Random _random;
     int _timer;
 
 public:

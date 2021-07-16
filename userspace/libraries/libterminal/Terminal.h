@@ -1,15 +1,15 @@
 #pragma once
 
-#include <libsystem/unicode/UTF8Decoder.h>
 #include <libterminal/Attributes.h>
 #include <libterminal/Buffer.h>
 #include <libterminal/Cursor.h>
 #include <libterminal/Surface.h>
+#include <libtext/UTF8Decoder.h>
 
 namespace Terminal
 {
 
-enum class State
+enum struct State
 {
     WAIT_ESC,
     EXPECT_BRACKET,
@@ -27,7 +27,7 @@ struct Terminal
 private:
     Surface _surface;
 
-    UTF8Decoder _decoder;
+    Text::UTF8Decoder _decoder;
 
     State _state = State::WAIT_ESC;
     Cursor _saved_cursor;
@@ -60,11 +60,11 @@ public:
 
     void backspace();
 
-    void append(Codepoint codepoint);
+    void append(Text::Rune rune);
 
-    void do_ansi(Codepoint codepoint);
+    void do_ansi(Text::Rune rune);
 
-    void write(Codepoint codepoint);
+    void write(Text::Rune rune);
 
     void write(char c);
 

@@ -1,6 +1,5 @@
 #include <libgraphic/Painter.h>
 
-#include <libwidget/Button.h>
 #include <libwidget/Elements.h>
 #include <libwidget/Window.h>
 
@@ -13,8 +12,6 @@ Breadcrumb::Breadcrumb(RefPtr<Navigation> navigation, RefPtr<Bookmarks> bookmark
     : _navigation(navigation),
       _bookmarks(bookmarks)
 {
-    layout(HFLOW(0));
-
     _icon_computer = Graphic::Icon::get("laptop");
     _icon_expand = Graphic::Icon::get("chevron-right");
     _icon_bookmark = Graphic::Icon::get("bookmark");
@@ -40,7 +37,7 @@ void Breadcrumb::render()
 
     auto &path = _navigation->current();
 
-    auto computer_button = add<Widget::Button>(Widget::Button::TEXT, _icon_computer);
+    auto computer_button = add(Widget::basic_button(_icon_computer));
 
     computer_button->on(Widget::Event::ACTION, [this](auto) {
         _navigation->navigate("/");
@@ -50,12 +47,11 @@ void Breadcrumb::render()
     {
         add(Widget::icon(_icon_expand));
 
-        auto button = add<Widget::Button>(Widget::Button::TEXT, path[i]);
-        button->min_width(0);
-
-        button->on(Widget::Event::ACTION, [this, i](auto) {
+        auto button = add(Widget::basic_button(path[i], [this, i] {
             _navigation->navigate(_navigation->current().parent(i), Navigation::BACKWARD);
-        });
+        }));
+
+        button->min_width(0);
     }
 
     add(Widget::spacer());
@@ -64,25 +60,21 @@ void Breadcrumb::render()
     {
         if (_bookmarks->has(_navigation->current()))
         {
-            auto remove_bookmark = add<Widget::Button>(Widget::Button::TEXT, _icon_bookmark);
-
-            remove_bookmark->on(Widget::Event::ACTION, [this](auto) {
+            add(Widget::basic_button(_icon_bookmark, [this] {
                 _bookmarks->remove(_navigation->current());
-            });
+            }));
         }
         else
         {
-            auto add_bookmark = add<Widget::Button>(Widget::Button::TEXT, _icon_bookmark_outline);
-
-            add_bookmark->on(Widget::Event::ACTION, [this](auto) {
+            add(Widget::basic_button(_icon_bookmark_outline, [this] {
                 Bookmark bookmark{
                     _navigation->current().basename(),
                     Graphic::Icon::get("folder"),
                     _navigation->current(),
                 };
 
-                _bookmarks->add(move(bookmark));
-            });
+                _bookmarks->add(std::move(bookmark));
+            }));
         }
     }
 }

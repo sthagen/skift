@@ -5,7 +5,7 @@
 namespace Widget
 {
 
-class PanelElement : public Element
+struct PanelElement : public Element
 {
 private:
     int _border_radius = 0;
@@ -18,24 +18,18 @@ public:
     void paint(Graphic::Painter &painter, const Math::Recti &) override;
 };
 
-static inline RefPtr<PanelElement> panel()
-{
-    return make<PanelElement>();
-}
+WIDGET_BUILDER(PanelElement, panel);
 
-static inline RefPtr<PanelElement> panel(int radius)
-{
-    return make<PanelElement>(radius);
-}
-
-static inline RefPtr<PanelElement> panel(RefPtr<Element> child)
+template <typename TElement>
+static inline RefPtr<PanelElement> panel(RefPtr<TElement> child)
 {
     auto panel = make<PanelElement>();
     panel->add(child);
     return panel;
 }
 
-static inline RefPtr<PanelElement> panel(int radius, RefPtr<Element> child)
+template <typename TElement>
+static inline RefPtr<PanelElement> panel(int radius, RefPtr<TElement> child)
 {
     auto panel = make<PanelElement>(radius);
     panel->add(child);

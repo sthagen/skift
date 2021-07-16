@@ -9,7 +9,7 @@ TEST(xml_all_svg_test)
 {
     IO::Directory icon_dir{"/Files/Icons"};
 
-    Assert::is_true(icon_dir.exist());
+    Assert::truth(icon_dir.exist());
 
     for (const auto &entry : icon_dir.entries())
     {
@@ -21,10 +21,10 @@ TEST(xml_all_svg_test)
 
         IO::logln("Parsing {}", path);
 
-        IO::File file(path, OPEN_READ);
-        Assert::is_true(file.exist());
+        IO::File file(path, HJ_OPEN_READ);
+        Assert::truth(file.exist());
 
         auto result = Xml::parse(file);
-        Assert::equal(result.result(), Result::SUCCESS);
+        Assert::equal(result.result(), HjResult::SUCCESS);
     }
 }

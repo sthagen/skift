@@ -7,7 +7,7 @@
 namespace Terminal
 {
 
-class Buffer
+struct Buffer
 {
 private:
     int _width;
@@ -42,7 +42,7 @@ public:
         {
             Cell old_cell = _buffer[y * _width + x];
 
-            if (old_cell.codepoint != cell.codepoint ||
+            if (old_cell.rune != cell.rune ||
                 old_cell.attributes != cell.attributes)
             {
                 _buffer[y * _width + x] = cell;

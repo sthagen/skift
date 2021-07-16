@@ -6,7 +6,7 @@
 namespace IO
 {
 
-class Socket :
+struct Socket :
     public RawHandle
 {
 private:
@@ -19,8 +19,8 @@ public:
     {
     }
 
-    Socket(String path, OpenFlag flags)
-        : _handle{make<Handle>(path, flags | OPEN_SOCKET)}
+    Socket(String path, HjOpenFlag flags)
+        : _handle{make<Handle>(path, flags | HJ_OPEN_SOCKET)}
     {
     }
 

@@ -5,7 +5,7 @@
 namespace Settings
 {
 
-class Setting
+struct Setting
 {
 private:
     NONCOPYABLE(Setting);
@@ -16,7 +16,7 @@ private:
     OwnPtr<Watcher> _watcher;
     Settings::Path _path;
     WatcherCallback _callback;
-    Optional<Json::Value> _value;
+    Optional<Json::Value> _value = NONE;
 
 public:
     Setting(const char *path, WatcherCallback callback)

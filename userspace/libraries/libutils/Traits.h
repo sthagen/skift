@@ -1,55 +1,58 @@
 #pragma once
 
-#include <libsystem/Common.h>
+#include <libutils/Prelude.h>
 
-template <bool B, class T = void>
+namespace Utils
+{
+
+template <bool B, typename T = void>
 struct EnableIf
 {
 };
 
-template <class T>
+template <typename T>
 struct EnableIf<true, T>
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct AddConst
 {
     using Type = const T;
 };
 
-template <class T>
+template <typename T>
 struct RemoveConst
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemoveConst<const T>
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemoveVolatile
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemoveVolatile<volatile T>
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemoveConstVolatile
 {
     typedef typename RemoveVolatile<typename RemoveConst<T>::Type>::Type Type;
 };
 
-template <class T, T v>
+template <typename T, T v>
 struct Constant
 {
     using ValueType = T;
@@ -65,191 +68,191 @@ using FalseType = Constant<bool, false>;
 
 using TrueType = Constant<bool, true>;
 
-template <class T>
+template <typename T>
 struct IsLvalueReference : FalseType
 {
 };
 
-template <class T>
+template <typename T>
 struct IsLvalueReference<T &> : TrueType
 {
 };
 
-template <class T>
+template <typename T>
 struct __IsPointer : FalseType
 {
 };
 
-template <class T>
+template <typename T>
 struct __IsPointer<T *> : TrueType
 {
 };
 
-template <class T>
+template <typename T>
 struct IsPointer : __IsPointer<typename RemoveConstVolatile<T>::Type>
 {
 };
 
-template <class>
+template <typename>
 struct IsFunction : FalseType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...)> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...)> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) const> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) const> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) volatile> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) volatile> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) const volatile> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) const volatile> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) const &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) const &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) volatile &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) volatile &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) const volatile &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) const volatile &> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) &&> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) &&> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) const &&> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) const &&> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) volatile &&> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) volatile &&> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args...) const volatile &&> : TrueType
 {
 };
 
-template <class Ret, class... Args>
+template <typename Ret, typename... Args>
 struct IsFunction<Ret(Args..., ...) const volatile &&> : TrueType
 {
 };
 
-template <class T>
+template <typename T>
 struct IsRvalueReference : FalseType
 {
 };
 
-template <class T>
+template <typename T>
 struct IsRvalueReference<T &&> : TrueType
 {
 };
 
-template <class T>
+template <typename T>
 struct RemovePointer
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemovePointer<T *>
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemovePointer<T *const>
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemovePointer<T *volatile>
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemovePointer<T *const volatile>
 {
     using Type = T;
@@ -265,13 +268,13 @@ struct IsSame<T, T> : TrueType
 {
 };
 
-template <bool condition, class TrueType, class FalseType>
+template <bool condition, typename TrueType, typename FalseType>
 struct Conditional
 {
     typedef TrueType Type;
 };
 
-template <class TrueType, class FalseType>
+template <typename TrueType, typename FalseType>
 struct Conditional<false, TrueType, FalseType>
 {
     typedef FalseType Type;
@@ -283,13 +286,13 @@ struct RemoveReference
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemoveReference<T &>
 {
     using Type = T;
 };
 
-template <class T>
+template <typename T>
 struct RemoveReference<T &&>
 {
     using Type = T;
@@ -425,22 +428,22 @@ struct MakeSigned<unsigned long long>
     typedef long long Type;
 };
 
-template <class T>
+template <typename T>
 struct IsVoid : IsSame<void, typename RemoveConstVolatile<T>::Type>
 {
 };
 
-template <class T>
+template <typename T>
 struct IsConst : FalseType
 {
 };
 
-template <class T>
+template <typename T>
 struct IsConst<const T> : TrueType
 {
 };
 
-template <class T>
+template <typename T>
 struct IsConst<const T *> : TrueType
 {
 };
@@ -550,3 +553,5 @@ struct Max<arg1, arg2, others...>
 {
     static constexpr size_t value = arg1 >= arg2 ? Max<arg1, others...>::value : Max<arg2, others...>::value;
 };
+
+} // namespace Utils

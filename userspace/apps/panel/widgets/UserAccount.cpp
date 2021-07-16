@@ -2,12 +2,17 @@
 
 #include "panel/widgets/UserAccount.h"
 
-namespace panel
+using namespace Widget;
+
+namespace Panel
 {
 
-UserAccount::UserAccount()
-    : Widget::Label(environment().get("POSIX").get("LOGNAME").as_string())
+RefPtr<Element> UserAccountComponent::build()
 {
+    return label(environment()
+                     .get("POSIX")
+                     .get("LOGNAME")
+                     .as_string());
 }
 
-} // namespace panel
+} // namespace Panel

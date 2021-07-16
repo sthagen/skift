@@ -1,15 +1,18 @@
-#include <libsystem/Logger.h>
+#include "system/Streams.h"
 
-#include "kernel/interrupts/Dispatcher.h"
-#include "kernel/interrupts/Interupts.h"
-#include "kernel/scheduling/Scheduler.h"
-#include "kernel/system/System.h"
-#include "kernel/tasking/Syscalls.h"
+#include "system/interrupts/Dispatcher.h"
+#include "system/interrupts/Interupts.h"
+#include "system/scheduling/Scheduler.h"
+#include "system/system/System.h"
+#include "system/tasking/Syscalls.h"
 
 #include "archs/x86/PIC.h"
 
 #include "archs/x86_64/Interrupts.h"
 #include "archs/x86_64/x86_64.h"
+
+namespace Arch::x86_64
+{
 
 static const char *_exception_messages[32] = {
     "Division by zero",
@@ -54,26 +57,26 @@ extern "C" uint64_t interrupts_handler(uintptr_t rsp)
     {
         if (stackframe->cs == 0x1B)
         {
-            logger_error("Task %s(%d) triggered an exception: '%s' %x.%x (IP=%08x CR2=%08x)",
-                         scheduler_running()->name,
-                         scheduler_running_id(),
-                         _exception_messages[stackframe->intno],
-                         stackframe->intno,
-                         stackframe->err,
-                         stackframe->rip,
-                         CR2());
+            Kernel::logln("Task {}({}) triggered an exception: '{}' {x}.{x} (IP={08x} CR2={08x})",
+                          scheduler_running()->name,
+                          scheduler_running_id(),
+                          _exception_messages[stackframe->intno],
+                          stackframe->intno,
+                          stackframe->err,
+                          stackframe->rip,
+                          x86::CR2());
 
             task_dump(scheduler_running());
-            arch_dump_stack_frame(stackframe);
+            Arch::dump_stack_frame(stackframe);
 
-            sti();
+            x86::sti();
             scheduler_running()->cancel(-1);
         }
         else
         {
             system_panic_with_context(
                 stackframe,
-                "CPU EXCEPTION: '%s' (INT:%d ERR:%x) !",
+                "CPU EXCEPTION: '{}' (INT:{} ERR:{x}) !",
                 _exception_messages[stackframe->intno],
                 stackframe->intno,
                 stackframe->err);
@@ -107,7 +110,7 @@ extern "C" uint64_t interrupts_handler(uintptr_t rsp)
     }
     else if (stackframe->intno == 128)
     {
-        sti();
+        x86::sti();
 
         stackframe->rax = task_do_syscall(
             (Syscall)stackframe->rax,
@@ -117,10 +120,12 @@ extern "C" uint64_t interrupts_handler(uintptr_t rsp)
             stackframe->rsi,
             stackframe->rdi);
 
-        cli();
+        x86::cli();
     }
 
     pic_ack(stackframe->intno);
 
     return rsp;
 }
+
+} // namespace Arch::x86_64

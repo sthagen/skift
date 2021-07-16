@@ -1,20 +1,19 @@
-#include <string.h>
-
+#include <abi/Result.h>
 #include <libjson/Json.h>
 #include <libmath/MinMax.h>
-#include <libsystem/Result.h>
+#include <string.h>
 
 #include "devfs/DevicesInfo.h"
-#include "kernel/devices/Devices.h"
-#include "kernel/interrupts/Interupts.h"
-#include "kernel/node/Handle.h"
-#include "kernel/scheduling/Scheduler.h"
+#include "system/devices/Devices.h"
+#include "system/interrupts/Interupts.h"
+#include "system/node/Handle.h"
+#include "system/scheduling/Scheduler.h"
 
-FsDeviceInfo::FsDeviceInfo() : FsNode(FILE_TYPE_DEVICE)
+FsDeviceInfo::FsDeviceInfo() : FsNode(HJ_FILE_TYPE_DEVICE)
 {
 }
 
-Result FsDeviceInfo::open(FsHandle &handle)
+HjResult FsDeviceInfo::open(FsHandle &handle)
 {
     Json::Value::Array root{};
 
@@ -40,10 +39,8 @@ Result FsDeviceInfo::open(FsHandle &handle)
         return Iteration::CONTINUE;
     });
 
-    Prettifier pretty{};
-    Json::prettify(pretty, root);
-
-    handle.attached = pretty.finalize().storage().give_ref();
+    auto str = Json::stringify(root);
+    handle.attached = str.storage().give_ref();
     handle.attached_size = reinterpret_cast<StringStorage *>(handle.attached)->size();
 
     return SUCCESS;

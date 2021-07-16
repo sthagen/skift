@@ -1,10 +1,9 @@
 #pragma once
 
-#include <libsystem/utils/Hexdump.h>
 #include <libutils/Vector.h>
 
-#include "kernel/memory/MMIO.h"
 #include "pci/PCIDevice.h"
+#include "system/memory/MMIO.h"
 
 #define E1000_REG_CONTROL 0x0000
 #define E1000_REG_STATUS 0x0008
@@ -103,7 +102,7 @@ struct PACKED E1000TXDescriptor
     uint16_t special;
 };
 
-class E1000 : public PCIDevice
+struct E1000 : public PCIDevice
 {
 private:
     RefPtr<MMIORange> _mmio_range = {};
@@ -157,5 +156,5 @@ public:
 
     ResultOr<size_t> write(size64_t offset, const void *buffer, size_t size) override;
 
-    Result call(IOCall request, void *args) override;
+    HjResult call(IOCall request, void *args) override;
 };

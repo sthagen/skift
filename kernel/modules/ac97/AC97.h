@@ -3,8 +3,8 @@
 #include <libutils/RingBuffer.h>
 #include <libutils/Vector.h>
 
-#include "kernel/memory/MMIO.h"
 #include "pci/PCIDevice.h"
+#include "system/memory/MMIO.h"
 
 #define SND_KNOB_MASTER 0
 #define SND_KNOB_VENDOR 1024
@@ -68,7 +68,7 @@ struct PACKED AC97BufferDescriptor
     uint32_t cl;
 };
 
-class AC97 : public PCIDevice
+struct AC97 : public PCIDevice
 {
 private:
     uint16_t _status;
@@ -110,5 +110,5 @@ public:
 
     ResultOr<size_t> write(size64_t offset, const void *buffer, size_t size) override;
 
-    Result call(IOCall request, void *args) override;
+    HjResult call(IOCall request, void *args) override;
 };

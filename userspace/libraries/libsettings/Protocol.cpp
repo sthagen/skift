@@ -12,24 +12,23 @@ struct MessageHeader
     size_t payload_length;
 };
 
-Result Protocol::encode_message(IO::Connection &connection, const Message &message)
+HjResult Protocol::encode_message(IO::Connection &connection, const Message &message)
 {
     String path_buffer = "";
 
     if (message.path.present())
     {
-        Prettifier pretty;
+        IO::MemoryWriter memory;
+        IO::Prettier pretty{memory};
         message.path.unwrap().prettify(pretty);
-        path_buffer = pretty.finalize();
+        path_buffer = memory.string();
     }
 
     String payload_buffer = "";
 
     if (message.payload.present())
     {
-        Prettifier pretty;
-        Json::prettify(pretty, message.payload.unwrap());
-        payload_buffer = pretty.finalize();
+        payload_buffer = Json::stringify(message.payload.unwrap());
     }
 
     MessageHeader header;

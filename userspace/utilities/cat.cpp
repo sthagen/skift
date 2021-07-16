@@ -1,14 +1,14 @@
 
+#include <abi/Result.h>
 #include <libio/Copy.h>
 #include <libio/File.h>
 #include <libio/Streams.h>
-#include <libsystem/Result.h>
-#include <libutils/ArgParse.h>
+#include <libshell/ArgParse.h>
 #include <libutils/Array.h>
 
 static bool option_linenumbers = false;
 
-Result cat(IO::Reader &reader)
+HjResult cat(IO::Reader &reader)
 {
     if (option_linenumbers)
     {
@@ -22,7 +22,7 @@ Result cat(IO::Reader &reader)
             line++;
         }
 
-        return Result::SUCCESS;
+        return HjResult::SUCCESS;
     }
     else
     {
@@ -32,7 +32,7 @@ Result cat(IO::Reader &reader)
 
 int main(int argc, char const *argv[])
 {
-    ArgParse args;
+    Shell::ArgParse args;
     args.should_abort_on_failure();
 
     args.prologue("Concatenate FILE(s) to standard output.");
@@ -42,12 +42,12 @@ int main(int argc, char const *argv[])
     args.option(option_linenumbers, 'n', "number", "Number all output lines");
 
     auto parse_result = args.eval(argc, argv);
-    if (parse_result != ArgParseResult::SHOULD_CONTINUE)
+    if (parse_result != Shell::ArgParseResult::SHOULD_CONTINUE)
     {
-        return parse_result == ArgParseResult::SHOULD_FINISH ? PROCESS_SUCCESS : PROCESS_FAILURE;
+        return parse_result == Shell::ArgParseResult::SHOULD_FINISH ? PROCESS_SUCCESS : PROCESS_FAILURE;
     }
 
-    Result result;
+    HjResult result;
     if (args.argc() == 0)
     {
         result = cat(IO::in());
@@ -61,9 +61,9 @@ int main(int argc, char const *argv[])
     int process_result = PROCESS_SUCCESS;
     for (auto filepath : args.argv())
     {
-        IO::File file(filepath, OPEN_READ);
+        IO::File file(filepath, HJ_OPEN_READ);
 
-        if (file.result() != Result::SUCCESS)
+        if (file.result() != HjResult::SUCCESS)
         {
             IO::errln("{}: {}: {}", argv[0], filepath, get_result_description(file.result()));
             process_result = PROCESS_FAILURE;

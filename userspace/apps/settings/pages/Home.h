@@ -1,11 +1,11 @@
 #pragma once
 
-#include <libwidget/Component.h>
+#include <libwidget/Components.h>
 
 namespace Settings
 {
 
-class HomePage : public Widget::Component
+struct HomePage : public Widget::Component
 {
 public:
     HomePage();

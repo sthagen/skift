@@ -160,7 +160,7 @@ void Inflate::build_fixed_huffman_alphabet()
     build_huffman_alphabet(_fixed_dist_alphabet, _fixed_dist_code_bit_lengths);
 }
 
-Result Inflate::build_dynamic_huffman_alphabet(IO::BitReader &input)
+HjResult Inflate::build_dynamic_huffman_alphabet(IO::BitReader &input)
 {
     Vector<unsigned int> code_length_of_code_length_order = {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
     Vector<unsigned int> code_length_of_code_length = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -172,7 +172,7 @@ Result Inflate::build_dynamic_huffman_alphabet(IO::BitReader &input)
     // See: https://github.com/madler/zlib/issues/82
     if (hlit > 286 || hdist > 30)
     {
-        return Result::ERR_INVALID_DATA;
+        return ERR_INVALID_DATA;
     }
 
     for (unsigned int i = 0; i < hclen; i++)
@@ -236,10 +236,10 @@ Result Inflate::build_dynamic_huffman_alphabet(IO::BitReader &input)
 
     build_huffman_alphabet(_lit_len_alphabet, _lit_len_code_bit_length);
     build_huffman_alphabet(_dist_alphabet, _dist_code_bit_length);
-    return Result::SUCCESS;
+    return HjResult::SUCCESS;
 }
 
-FLATTEN Result Inflate::read_blocks(IO::Reader &reader, IO::Writer &uncompressed)
+FLATTEN HjResult Inflate::read_blocks(IO::Reader &reader, IO::Writer &uncompressed)
 {
     // We use this as our sliding window. We should write directly into "uncompressed in the future"
     // And limit the amount of data we keep in our sliding window (Dequeue would be nice)
@@ -292,7 +292,7 @@ FLATTEN Result Inflate::read_blocks(IO::Reader &reader, IO::Writer &uncompressed
                 if (decoded_symbol <= 255)
                 {
                     // Literal symbol
-                    IO::write<uint8_t>(dest_writer, decoded_symbol);
+                    IO::write(dest_writer, decoded_symbol);
                 }
                 else if (decoded_symbol >= 257 && decoded_symbol <= 285)
                 {
@@ -309,7 +309,7 @@ FLATTEN Result Inflate::read_blocks(IO::Reader &reader, IO::Writer &uncompressed
                     {
                         size_t offset = TRY(dest_writer.length()) - total_dist;
                         uint8_t val = dest_writer.buffer()[offset];
-                        IO::write<uint8_t>(dest_writer, val);
+                        IO::write(dest_writer, val);
                     }
                 }
                 else if (decoded_symbol == 256)
@@ -320,14 +320,14 @@ FLATTEN Result Inflate::read_blocks(IO::Reader &reader, IO::Writer &uncompressed
                 else
                 {
                     IO::logln("Invalid decoded symbol: {}", decoded_symbol);
-                    return Result::ERR_INVALID_DATA;
+                    return ERR_INVALID_DATA;
                 }
             }
         }
         else
         {
             IO::logln("Invalid block type: {}", btype);
-            return Result::ERR_INVALID_DATA;
+            return ERR_INVALID_DATA;
         }
     } while (!bfinal);
 

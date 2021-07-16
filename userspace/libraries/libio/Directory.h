@@ -6,22 +6,22 @@
 namespace IO
 {
 
-class Directory :
+struct Directory :
     public RawHandle
 {
 public:
     struct Entry
     {
         String name;
-        FileState stat;
+        HjStat stat;
     };
 
 private:
     RefPtr<Handle> _handle;
-    Optional<IO::Path> _path;
+    Optional<IO::Path> _path = NONE;
     Vector<Entry> _entries;
 
-    Result read_entries();
+    HjResult read_entries();
 
 public:
     const Optional<IO::Path> &path() { return _path; }

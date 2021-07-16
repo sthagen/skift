@@ -15,23 +15,23 @@ struct Bundle
     {
         Bundle bundle;
 
-        IO::File file{path, OPEN_READ};
+        IO::File file{path, HJ_OPEN_READ};
 
         if (!file.exist())
         {
-            return {};
+            return NONE;
         }
 
         auto value = Json::parse(file);
 
         if (!value.is(Json::OBJECT))
         {
-            return {};
+            return NONE;
         }
 
         auto obj = value.as_object();
 
-        obj.foreach ([&](auto &key, auto &value) {
+        obj.foreach([&](auto &key, auto &value) {
             bundle.keys[key] = value;
             return Iteration::CONTINUE;
         });
@@ -50,7 +50,7 @@ struct Bundle
         {
             Json::Value::Object obj;
 
-            keys.foreach ([&](auto &key, auto &value) {
+            keys.foreach([&](auto &key, auto &value) {
                 obj[key] = value;
 
                 return Iteration::CONTINUE;

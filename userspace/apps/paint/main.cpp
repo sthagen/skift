@@ -1,11 +1,8 @@
 #include <assert.h>
 
 #include <libwidget/Application.h>
-#include <libwidget/Button.h>
-#include <libwidget/Container.h>
+#include <libwidget/Components.h>
 #include <libwidget/Elements.h>
-
-#include <libwidget/TitleBar.h>
 
 #include "paint/PaintCanvas.h"
 #include "paint/PaintDocument.h"
@@ -38,6 +35,7 @@ private:
     RefPtr<PaintDocument> _document;
 
     /// --- Toolbar --- ///
+
     RefPtr<Widget::Element> _open_document;
     RefPtr<Widget::Element> _save_document;
     RefPtr<Widget::Element> _new_document;
@@ -57,6 +55,7 @@ private:
     RefPtr<Widget::Element> _secondary_color;
 
     /// --- Canvas --- ///
+
     RefPtr<PaintCanvas> _canvas;
 
 public:
@@ -66,11 +65,7 @@ public:
 
         _document = document;
 
-        root()->layout(VFLOW(0));
-
-        root()->add<Widget::TitleBar>(
-            Graphic::Icon::get("brush"),
-            "Paint");
+        root()->add(Widget::titlebar(Graphic::Icon::get("brush"), "Paint"));
 
         create_toolbar(root());
 
@@ -88,65 +83,55 @@ public:
     {
         auto toolbar = parent->add(Widget::panel());
 
-        toolbar->layout(HFLOW(4));
-        toolbar->insets(Insetsi(4, 4));
-
-        _open_document = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("folder-open"));
-        _save_document = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("content-save"));
-        _new_document = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("image-plus"));
+        _open_document = toolbar->add(Widget::basic_button(Graphic::Icon::get("folder-open")));
+        _save_document = toolbar->add(Widget::basic_button(Graphic::Icon::get("content-save")));
+        _new_document = toolbar->add(Widget::basic_button(Graphic::Icon::get("image-plus")));
 
         toolbar->add(Widget::separator());
 
-        _pencil = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("pencil"));
-        _pencil->on(Widget::Event::ACTION, [this](auto) {
+        _pencil = toolbar->add(Widget::basic_button(Graphic::Icon::get("pencil"), [this] {
             _canvas->tool(own<PencilTool>());
             update_toolbar();
-        });
+        }));
 
-        _brush = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("brush"));
-        _brush->on(Widget::Event::ACTION, [this](auto) {
+        _brush = toolbar->add(Widget::basic_button(Graphic::Icon::get("brush"), [this] {
             _canvas->tool(own<BrushTool>());
             update_toolbar();
-        });
+        }));
 
-        _eraser = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("eraser"));
-        _eraser->on(Widget::Event::ACTION, [this](auto) {
+        _eraser = toolbar->add(Widget::basic_button(Graphic::Icon::get("eraser"), [this] {
             _canvas->tool(own<EraserTool>());
             update_toolbar();
-        });
+        }));
 
-        _fill = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("format-color-fill"));
-        _fill->on(Widget::Event::ACTION, [this](auto) {
+        _fill = toolbar->add(Widget::basic_button(Graphic::Icon::get("format-color-fill"), [this] {
             _canvas->tool(own<FillTool>());
             update_toolbar();
-        });
+        }));
 
-        _picker = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("eyedropper"));
-        _picker->on(Widget::Event::ACTION, [this](auto) {
+        _picker = toolbar->add(Widget::basic_button(Graphic::Icon::get("eyedropper"), [this] {
             _canvas->tool(own<PickerTool>());
             update_toolbar();
-        });
+        }));
 
         toolbar->add(Widget::separator());
 
         // TODO:
-        _insert_text = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("format-text-variant"));
-        _insert_line = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("vector-line"));
-        _insert_rectangle = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("rectangle-outline"));
-        _insert_circle = toolbar->add<Widget::Button>(Widget::Button::TEXT, Graphic::Icon::get("circle-outline"));
+        _insert_text = toolbar->add(Widget::basic_button(Graphic::Icon::get("format-text-variant")));
+        _insert_line = toolbar->add(Widget::basic_button(Graphic::Icon::get("vector-line")));
+        _insert_rectangle = toolbar->add(Widget::basic_button(Graphic::Icon::get("rectangle-outline")));
+        _insert_circle = toolbar->add(Widget::basic_button(Graphic::Icon::get("circle-outline")));
 
         toolbar->add(Widget::separator());
 
-        auto primary_color_container = toolbar->add<Widget::Container>();
-        primary_color_container->insets(Insetsi(4));
+        auto primary_color_container = toolbar->add<Widget::Element>();
         primary_color_container->flags(Widget::Element::SQUARE);
 
         _primary_color = primary_color_container->add(Widget::panel(4));
         _primary_color->color(Widget::THEME_MIDDLEGROUND, _document->primary_color());
         _primary_color->flags(Widget::Element::FILL);
 
-        auto secondary_color_container = toolbar->add<Widget::Container>();
-        secondary_color_container->insets(Insetsi(4));
+        auto secondary_color_container = toolbar->add<Widget::Element>();
         secondary_color_container->flags(Widget::Element::SQUARE);
 
         _secondary_color = secondary_color_container->add(Widget::panel(4));
@@ -158,14 +143,10 @@ public:
     {
         auto palette = parent->add(Widget::panel());
 
-        palette->layout(HFLOW(4));
-        palette->insets(Insetsi(4, 4));
         palette->max_height(38);
         palette->min_height(38);
 
-        palette->layout(HFLOW(4));
-
-        for (size_t i = 0; i < AERAY_LENGTH(_color_palette); i++)
+        for (size_t i = 0; i < ARRAY_LENGTH(_color_palette); i++)
         {
             Graphic::Color color = _color_palette[i];
 
@@ -205,5 +186,5 @@ int main(int, char **)
     auto window = new PaintWindow(document);
     window->show();
 
-    return Widget::Application::the()->run();
+    return Widget::Application::the().run();
 }

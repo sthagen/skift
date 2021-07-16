@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libmath/Rect.h>
-#include <libutils/Scanner.h>
 #include <libutils/Vector.h>
 
 #include <libgraphic/svg/SubPath.h>
@@ -9,7 +8,7 @@
 namespace Graphic
 {
 
-class Path
+struct Path
 {
 private:
     Vector<SubPath> _subpaths;
@@ -38,7 +37,7 @@ private:
 public:
     static Path parse(const char *str);
 
-    static Path parse(Scanner &scan);
+    static Path parse(IO::Scanner &scan);
 
     const Vector<SubPath> &subpaths() const
     {
@@ -57,7 +56,7 @@ public:
         }
 
         SubPath subpath{point};
-        _subpaths.push_back(move(subpath));
+        _subpaths.push_back(std::move(subpath));
         _subpath_ended = false;
     }
 

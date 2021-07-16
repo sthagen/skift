@@ -1,3 +1,4 @@
+#include <abi/Paths.h>
 #include <abi/Syscalls.h>
 #include <skift/Environment.h>
 
@@ -6,13 +7,13 @@
 #include <libsystem/io/Filesystem.h>
 #include <libsystem/process/Process.h>
 
-void start_service(const char *command, const char *socket)
+void start_service(const char *command, const char *socket_path)
 {
     IO::logln("Starting '{}'...", command);
     int compositor_pid = -1;
     process_run(command, &compositor_pid, TASK_WAITABLE);
 
-    while (!filesystem_exist(socket, FILE_TYPE_SOCKET))
+    while (!filesystem_exist(socket_path, HJ_FILE_TYPE_SOCKET))
     {
         process_sleep(100);
     }
@@ -60,7 +61,7 @@ void start_headless()
 int main(int, const char *[])
 {
     IO::logln("Loading environement variables...");
-    IO::File file{"/Configs/environment.json", OPEN_READ};
+    IO::File file{"/Configs/environment.json", HJ_OPEN_READ};
 
     if (file.exist())
     {
@@ -76,7 +77,7 @@ int main(int, const char *[])
         IO::logln("Running in testing mode...");
         start_test();
     }
-    else if (filesystem_exist(FRAMEBUFFER_DEVICE_PATH, FILE_TYPE_DEVICE))
+    else if (filesystem_exist(FRAMEBUFFER_DEVICE_PATH, HJ_FILE_TYPE_DEVICE))
     {
         IO::logln("Running in graphical mode...");
         start_desktop();
@@ -87,7 +88,7 @@ int main(int, const char *[])
         start_headless();
     }
 
-    stream_format(err_stream, "\n\n\t\e[1;34mGoodbye!\e[m - n°1\n\n");
+    IO::err("\n\n\t\e[1;34mGoodbye!\e[m - n°1\n\n");
 
     return PROCESS_SUCCESS;
 }

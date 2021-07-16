@@ -1,14 +1,14 @@
 #pragma once
 
-#include "kernel/node/Node.h"
+#include "system/node/Node.h"
 
-class FsDeviceInfo : public FsNode
+struct FsDeviceInfo : public FsNode
 {
 private:
 public:
     FsDeviceInfo();
 
-    Result open(FsHandle &handle) override;
+    HjResult open(FsHandle &handle) override;
 
     void close(FsHandle &handle) override;
 

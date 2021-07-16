@@ -1,7 +1,10 @@
 #pragma once
 
-#include <libsystem/Common.h>
-#include <libsystem/Logger.h>
+#include "system/Streams.h"
+#include <libutils/Prelude.h>
+
+namespace Arch::x86_64
+{
 
 #define GDT_ENTRY_COUNT 5
 
@@ -64,24 +67,6 @@ struct PACKED GDTEntry64
     {
     }
 
-    GDTEntry64(TSS64 *tss, uint8_t access, uint8_t flags)
-        : GDTEntry64((uintptr_t)tss, ((uintptr_t)tss) + sizeof(TSS64), access, flags)
-    {
-    }
-
-    void dump(int i)
-    {
-        logger_trace("GDT[%d] = limit0_15=%04x base0_15=%04x base16_23=%02x granularity=%02x limit16_19=%02x flags=%08b base24_31=%02x",
-                     i,
-                     limit0_15,
-                     base0_15,
-                     base16_23,
-                     granularity,
-                     limit16_19,
-                     flags,
-                     base24_31);
-    }
-
     constexpr GDTEntry64(uint8_t flags, uint8_t granularity)
         : GDTEntry64(0, 0, granularity, flags)
     {
@@ -133,3 +118,5 @@ extern "C" void gdt_flush(uint64_t);
 extern "C" void tss_flush(uint64_t);
 
 void set_kernel_stack(uint64_t stack);
+
+} // namespace Arch::x86_64

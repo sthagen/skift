@@ -1,7 +1,7 @@
 #pragma once
 
 #include <libutils/Assert.h>
-#include <libutils/Move.h>
+#include <libutils/Std.h>
 #include <libutils/Traits.h>
 
 namespace Utils
@@ -15,7 +15,7 @@ struct Dispatch<>
 {
     static void func(int, auto, auto &)
     {
-        Assert::not_reached();
+        Assert::unreachable();
     }
 };
 
@@ -55,7 +55,7 @@ struct VariantOperations
     inline static void move(int index, void *source, void *destination)
     {
         resolve<Ts...>(index, source, [&]<typename T>(T &t) {
-            new (destination) T(::move(t));
+            new (destination) T(::std::move(t));
         });
     }
 
@@ -138,8 +138,8 @@ public:
     {
         if (this != &other)
         {
-            swap(_index, other._index);
-            swap(_storage, other._storage);
+            std::swap(_index, other._index);
+            std::swap(_storage, other._storage);
         }
 
         return *this;
@@ -154,9 +154,8 @@ public:
     template <typename T, typename... Args>
     void set(Args &&...args)
     {
-        // First we destroy the current contents
         Operations::destroy(_index, &_storage);
-        new (&_storage) T(forward<Args>(args)...);
+        new (&_storage) T(std::forward<Args>(args)...);
         _index = IndexOf<T, Ts...>();
     }
 
@@ -183,13 +182,13 @@ public:
     }
 };
 
-template <class... Ts>
+template <typename... Ts>
 struct Visitor : Ts...
 {
     using Ts::operator()...;
 };
 
-template <class... Ts>
+template <typename... Ts>
 Visitor(Ts...) -> Visitor<Ts...>;
 
 } // namespace Utils

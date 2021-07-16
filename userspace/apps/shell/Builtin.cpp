@@ -2,7 +2,6 @@
 
 #include <libio/Streams.h>
 #include <libsystem/process/Process.h>
-#include <libutils/NumberParser.h>
 
 #include "shell/Shell.h"
 
@@ -15,7 +14,7 @@ int shell_builtin_cd(int argc, const char **argv)
         new_directory = argv[1];
     }
 
-    Result result = process_set_directory(new_directory);
+    HjResult result = process_set_directory(new_directory);
 
     if (result != SUCCESS)
     {
@@ -30,7 +29,7 @@ int shell_builtin_exit(int argc, const char **argv)
 {
     if (argc == 2)
     {
-        process_exit(parse_int_inline(PARSER_DECIMAL, argv[1], -1));
+        process_exit(atoi(argv[1]));
     }
     else
     {

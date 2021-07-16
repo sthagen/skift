@@ -39,8 +39,6 @@ CXX_WARNINGS := \
 	-Wnon-virtual-dtor \
 	-Woverloaded-virtual
 
-CXX_MODULE_MAPPER:=$(BUILDROOT)/global.modulemap
-
 BUILD_INCLUDE:= \
 	-I. \
 	-Ikernel \
@@ -73,8 +71,6 @@ CFLAGS= \
 
 CXXFLAGS:= \
 	-std=c++20 \
-	-fmodules-ts \
-	-fmodule-mapper=$(CXX_MODULE_MAPPER) \
 	-MD \
 	--sysroot=$(SYSROOT) \
 	$(CONFIG_OPTIMISATIONS) \
@@ -85,17 +81,11 @@ CXXFLAGS:= \
 	$(BUILD_CONFIGS)
 
 include meta/toolchains/$(CONFIG_ARCH)-$(CONFIG_TOOLCHAIN).mk
-include kernel/archs/.build.mk
-include kernel/modules/.build.mk
-include kernel/kernel/.build.mk
 
-include userspace/archs/.build.mk
-include userspace/libraries/.build.mk
-include userspace/apps/.build.mk
-include userspace/tests/.build.mk
-include userspace/utilities/.build.mk
-
+include kernel/.build.mk
+include userspace/.build.mk
 include thirdparty/.build.mk
+
 include meta/distros/.build.mk
 
 # --- Ramdisk -------------------------------------------- #
@@ -166,4 +156,4 @@ clean-fs:
 	rm -rf $(SYSROOT)
 
 -include $(wildcard meta/make/*.mk)
--include $(DEPENDENCIES) $(OBJECTS:.o=.d)
+-include $(OBJECTS:.o=.d)

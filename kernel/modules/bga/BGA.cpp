@@ -1,11 +1,11 @@
+#include "system/Streams.h"
 #include <libmath/MinMax.h>
-#include <libsystem/Logger.h>
 
 #include "bga/BGA.h"
-#include "kernel/graphics/EarlyConsole.h"
-#include "kernel/graphics/Graphics.h"
-#include "kernel/handover/Handover.h"
-#include "kernel/interrupts/Interupts.h"
+#include "system/graphics/EarlyConsole.h"
+#include "system/graphics/Graphics.h"
+#include "system/handover/Handover.h"
+#include "system/interrupts/Interupts.h"
 
 void BGA::write_register(uint16_t address, uint16_t data)
 {
@@ -19,11 +19,11 @@ uint16_t BGA::read_register(uint16_t address)
     return in16(BGA_DATA);
 }
 
-Result BGA::set_resolution(int width, int height)
+HjResult BGA::set_resolution(int width, int height)
 {
     if (width * height * sizeof(uint32_t) > _framebuffer->size())
     {
-        logger_warn("Not enoughs VRAM for setting the resolution to %dx%d.", width, height);
+        Kernel::logln("Not enoughs VRAM for setting the resolution to {}x{}.", width, height);
 
         return ERR_OUT_OF_MEMORY;
     }
@@ -59,7 +59,7 @@ Result BGA::set_resolution(int width, int height)
             _width * 4,
             4);
 
-        logger_info("Resolution set to %dx%d.", width, height);
+        Kernel::logln("Resolution set to {}x{}.", width, height);
 
         return SUCCESS;
     }
@@ -86,7 +86,7 @@ ResultOr<size_t> BGA::write(size64_t offset, const void *buffer, size_t size)
     return _framebuffer->write(offset, buffer, size);
 }
 
-Result BGA::call(IOCall request, void *args)
+HjResult BGA::call(IOCall request, void *args)
 {
     if (request == IOCALL_DISPLAY_GET_MODE)
     {

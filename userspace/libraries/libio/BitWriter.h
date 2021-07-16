@@ -1,11 +1,16 @@
 #pragma once
 #include <libio/Write.h>
-#include <libsystem/Common.h>
+#include <libutils/Prelude.h>
 
 namespace IO
 {
-class BitWriter
+struct BitWriter
 {
+private:
+    uint_fast32_t _bit_buffer;
+    uint8_t _bit_count;
+    Writer &_writer;
+
 public:
     BitWriter(Writer &writer) : _writer(writer)
     {
@@ -48,10 +53,5 @@ public:
             _bit_buffer >>= 8;
         }
     }
-
-private:
-    uint_fast32_t _bit_buffer;
-    uint8_t _bit_count;
-    Writer &_writer;
 };
 } // namespace IO

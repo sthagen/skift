@@ -1,6 +1,6 @@
 #include <libio/Directory.h>
 #include <libio/Streams.h>
-#include <libutils/ArgParse.h>
+#include <libshell/ArgParse.h>
 
 static bool option_all = false;
 static bool option_list = false;
@@ -16,7 +16,7 @@ const char *file_type_name[] = {
 
 void ls_print_entry(IO::Directory::Entry &entry)
 {
-    FileState stat = entry.stat;
+    HjStat stat = entry.stat;
 
     if (option_list)
     {
@@ -25,7 +25,7 @@ void ls_print_entry(IO::Directory::Entry &entry)
 
     if (option_all || entry.name[0] != '.')
     {
-        IO::format(IO::out(), (stat.type == FILE_TYPE_DIRECTORY && option_color) ? "\e[1;34m{}\e[0m/ " : "{}  ", entry.name);
+        IO::format(IO::out(), (stat.type == HJ_FILE_TYPE_DIRECTORY && option_color) ? "\e[1;34m{}\e[0m/ " : "{}  ", entry.name);
     }
 
     if (option_list)
@@ -34,7 +34,7 @@ void ls_print_entry(IO::Directory::Entry &entry)
     }
 }
 
-Result ls(String target_path, bool with_prefix)
+HjResult ls(String target_path, bool with_prefix)
 {
     IO::Directory directory{target_path};
 
@@ -63,7 +63,7 @@ Result ls(String target_path, bool with_prefix)
 
 int main(int argc, const char *argv[])
 {
-    ArgParse args;
+    Shell::ArgParse args;
 
     args.usage("");
     args.usage("FILES...");
@@ -78,9 +78,11 @@ int main(int argc, const char *argv[])
     args.prologue("Options can be combined.");
 
     auto parse_result = args.eval(argc, argv);
-    if (parse_result != ArgParseResult::SHOULD_CONTINUE)
+    if (parse_result != Shell::ArgParseResult::SHOULD_CONTINUE)
     {
-        return parse_result == ArgParseResult::SHOULD_FINISH ? PROCESS_SUCCESS : PROCESS_FAILURE;
+        return parse_result == Shell::ArgParseResult::SHOULD_FINISH
+                   ? PROCESS_SUCCESS
+                   : PROCESS_FAILURE;
     }
 
     if (args.argc() == 0)
@@ -88,7 +90,7 @@ int main(int argc, const char *argv[])
         return ls(".", false);
     }
 
-    Result result;
+    HjResult result;
     int exit_code = PROCESS_SUCCESS;
 
     for (auto file : args.argv())

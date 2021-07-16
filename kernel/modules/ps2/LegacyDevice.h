@@ -1,10 +1,10 @@
 #pragma once
 
-#include "kernel/devices/Driver.h"
+#include "system/devices/Driver.h"
 
 #include "ps2/Legacy.h"
 
-class LegacyDevice : public Device
+struct LegacyDevice : public Device
 {
 private:
 public:
@@ -42,9 +42,6 @@ public:
         case LEGACY_MOUSE:
             return 12;
 
-        case LEGACY_SPEAKER:
-            return -1;
-
         default:
             break;
         }
@@ -54,7 +51,7 @@ public:
 };
 
 template <typename LegacyDeviceType>
-class LegacyDeviceMatcher : public DeviceMatcher
+struct LegacyDeviceMatcher : public DeviceMatcher
 {
 private:
     LegacyAddress _address;

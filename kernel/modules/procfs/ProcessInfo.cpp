@@ -1,16 +1,16 @@
+#include <abi/Result.h>
 #include <string.h>
 
 #include <libjson/Json.h>
 #include <libmath/MinMax.h>
-#include <libsystem/Result.h>
 
-#include "kernel/interrupts/Interupts.h"
-#include "kernel/node/Handle.h"
-#include "kernel/scheduling/Scheduler.h"
-#include "kernel/tasking/Task-Memory.h"
 #include "procfs/ProcessInfo.h"
+#include "system/interrupts/Interupts.h"
+#include "system/node/Handle.h"
+#include "system/scheduling/Scheduler.h"
+#include "system/tasking/Task-Memory.h"
 
-FsProcessInfo::FsProcessInfo() : FsNode(FILE_TYPE_DEVICE)
+FsProcessInfo::FsProcessInfo() : FsNode(HJ_FILE_TYPE_DEVICE)
 {
 }
 
@@ -30,21 +30,19 @@ static Iteration serialize_task(Json::Value::Array *list, Task *task)
     task_object["ram"] = (int64_t)task_memory_usage(task);
     task_object["user"] = (task->_flags & TASK_USER) == TASK_USER;
 
-    list->push_back(move(task_object));
+    list->push_back(std::move(task_object));
 
     return Iteration::CONTINUE;
 }
 
-Result FsProcessInfo::open(FsHandle &handle)
+HjResult FsProcessInfo::open(FsHandle &handle)
 {
     Json::Value::Array list{};
 
     task_iterate(&list, (TaskIterateCallback)serialize_task);
 
-    Prettifier pretty{};
-    Json::prettify(pretty, list);
-
-    handle.attached = pretty.finalize().storage().give_ref();
+    auto str = Json::stringify(list);
+    handle.attached = str.storage().give_ref();
     handle.attached_size = reinterpret_cast<StringStorage *>(handle.attached)->size();
 
     return SUCCESS;

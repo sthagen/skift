@@ -1,7 +1,8 @@
 #pragma once
 
 #include <libsystem/process/Launchpad.h>
-#include <libwidget/Table.h>
+
+#include <libwidget/Views.h>
 
 #include <libfilepicker/model/FilesystemModel.h>
 #include <libfilepicker/model/Navigation.h>
@@ -9,7 +10,7 @@
 namespace FilePicker
 {
 
-class Browser : public Widget::Table
+struct Browser : public Widget::Table
 {
 protected:
     RefPtr<Navigation> _navigation;
@@ -21,8 +22,9 @@ public:
     {
         if (selected() == -1)
         {
-            return {};
+            return NONE;
         }
+
         return process_resolve(_listing->info(selected()).name);
     }
 

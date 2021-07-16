@@ -9,7 +9,7 @@
 namespace IO
 {
 
-class File final :
+struct File final :
     public Reader,
     public Writer,
     public Seek,
@@ -17,18 +17,18 @@ class File final :
 {
 private:
     RefPtr<Handle> _handle;
-    Optional<IO::Path> _path;
+    Optional<IO::Path> _path = NONE;
 
 public:
     const Optional<IO::Path> &path() { return _path; }
 
     File() {}
 
-    File(const char *path, OpenFlag flags = 0);
+    File(const char *path, HjOpenFlag flags = 0);
 
-    File(String path, OpenFlag flags = 0);
+    File(String path, HjOpenFlag flags = 0);
 
-    File(IO::Path &path, OpenFlag flags = 0);
+    File(IO::Path &path, HjOpenFlag flags = 0);
 
     File(RefPtr<Handle> handle);
 
@@ -44,11 +44,13 @@ public:
 
     ResultOr<size_t> length() override;
 
+    ResultOr<HjFileType> type();
+
     virtual RefPtr<Handle> handle() override { return _handle; }
 
     bool exist();
 
-    Result result()
+    HjResult result()
     {
         if (!_handle)
         {

@@ -1,16 +1,15 @@
 #pragma once
 
-#include <libwidget/Table.h>
-
 #include <libfilepicker/model/ArchiveListing.h>
 #include <libfilepicker/model/Navigation.h>
+#include <libwidget/Views.h>
 
 #include <libfile/Archive.h>
 
 namespace FilePicker
 {
 
-class ArchiveBrowser : public Widget::Table
+struct ArchiveBrowser : public Widget::Table
 {
 private:
     RefPtr<Navigation> _navigation;
@@ -37,7 +36,7 @@ public:
         on(Widget::Event::ACTION, [this](auto) {
             if (selected() >= 0)
             {
-                if (_listing->info(selected()).type == FILE_TYPE_DIRECTORY)
+                if (_listing->info(selected()).type == HJ_FILE_TYPE_DIRECTORY)
                 {
                     _navigation->navigate(_listing->info(selected()).name);
                 }

@@ -1,6 +1,9 @@
 #pragma once
 
-#include <libsystem/Common.h>
+#include <libutils/Prelude.h>
+
+namespace Arch::x86_32
+{
 
 struct PACKED InterruptStackFrame
 {
@@ -22,3 +25,5 @@ struct PACKED UserInterruptStackFrame
 void interrupts_dump_stackframe(InterruptStackFrame *stackframe);
 
 void interrupts_initialize();
+
+} // namespace Arch::x86_32

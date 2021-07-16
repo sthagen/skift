@@ -4,31 +4,32 @@
 #include <libsystem/system/System.h>
 
 #include <libwidget/Application.h>
-#include <libwidget/Table.h>
-#include <libwidget/TitleBar.h>
+#include <libwidget/Components.h>
+#include <libwidget/Views.h>
 
 #include "device-manager/DeviceModel.h"
 
-class DeviceManagerWindow : public Widget::Window
+struct DeviceManagerWindow : public Widget::Window
 {
 private:
-    RefPtr<Widget::Table> _table;
+    RefPtr<DeviceModel> _model;
 
 public:
     DeviceManagerWindow() : Widget::Window(WINDOW_RESIZABLE)
     {
         size(Math::Vec2i(700, 500));
+        _model = make<DeviceModel>();
+        _model->update();
+    }
 
-        root()->layout(VFLOW(0));
+    RefPtr<Widget::Element> build() override
+    {
+        using namespace Widget;
 
-        root()->add<Widget::TitleBar>(Graphic::Icon::get("expansion-card-variant"), "Device Manager");
-
-        auto model = make<DeviceModel>();
-
-        model->update();
-
-        _table = root()->add<Widget::Table>(model);
-        _table->flags(Widget::Element::FILL);
+        return vflow({
+            titlebar(Graphic::Icon::get("expansion-card-variant"), "Device Manager"),
+            fill(table(_model)),
+        });
     }
 };
 
@@ -38,5 +39,5 @@ int main(int, char **)
 
     window->show();
 
-    return Widget::Application::the()->run();
+    return Widget::Application::the().run();
 }

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <libutils/Random.h>
+#include <libmath/Random.h>
 
 #include "neko/model/Behavior.h"
 
 namespace neko
 {
 
-class Yawning :
+struct Yawning :
     public Behavior
 {
 private:

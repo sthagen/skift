@@ -1,14 +1,16 @@
 #pragma once
 
-#include <libwidget/Label.h>
+#include <libwidget/Components.h>
 
-namespace panel
+namespace Panel
 {
 
-class UserAccount : public Widget::Label
+struct UserAccountComponent :
+    public Widget::Component
 {
-public:
-    UserAccount();
+    RefPtr<Widget::Element> build() override;
 };
 
-} // namespace panel
+WIDGET_BUILDER(UserAccountComponent, user_account);
+
+} // namespace Panel

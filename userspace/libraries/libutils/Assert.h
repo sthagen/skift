@@ -5,11 +5,11 @@
 #include <libio/Format.h>
 #include <libutils/SourceLocation.h>
 
-namespace Assert
+namespace Utils::Assert
 {
 
-template <class A>
-inline void not_null(const A a, Utils::SourceLocation location = Utils::SourceLocation::current())
+template <typename A>
+inline void not_null(const A a, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -20,7 +20,7 @@ inline void not_null(const A a, Utils::SourceLocation location = Utils::SourceLo
     }
 }
 
-inline void is_true(bool a, Utils::SourceLocation location = Utils::SourceLocation::current())
+inline void truth(bool a, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -31,7 +31,7 @@ inline void is_true(bool a, Utils::SourceLocation location = Utils::SourceLocati
     }
 }
 
-inline void is_false(bool a, Utils::SourceLocation location = Utils::SourceLocation::current())
+inline void falsity(bool a, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -42,8 +42,8 @@ inline void is_false(bool a, Utils::SourceLocation location = Utils::SourceLocat
     }
 }
 
-template <class A, class B>
-inline void equal(const A a, const B b, Utils::SourceLocation location = Utils::SourceLocation::current())
+template <typename A, typename B>
+inline void equal(const A a, const B b, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -54,8 +54,8 @@ inline void equal(const A a, const B b, Utils::SourceLocation location = Utils::
     }
 }
 
-template <class A, class B>
-inline void not_equal(const A a, const B b, Utils::SourceLocation location = Utils::SourceLocation::current())
+template <typename A, typename B>
+inline void not_equal(const A a, const B b, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -66,8 +66,8 @@ inline void not_equal(const A a, const B b, Utils::SourceLocation location = Uti
     }
 }
 
-template <class A, class B>
-inline void greater_equal(const A a, const B b, Utils::SourceLocation location = Utils::SourceLocation::current())
+template <typename A, typename B>
+inline void greater_equal(const A a, const B b, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -78,8 +78,8 @@ inline void greater_equal(const A a, const B b, Utils::SourceLocation location =
     }
 }
 
-template <class A, class B>
-inline void greater_than(const A a, const B b, Utils::SourceLocation location = Utils::SourceLocation::current())
+template <typename A, typename B>
+inline void greater_than(const A a, const B b, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -90,8 +90,8 @@ inline void greater_than(const A a, const B b, Utils::SourceLocation location = 
     }
 }
 
-template <class A, class B>
-inline void lower_equal(const A a, const B b, Utils::SourceLocation location = Utils::SourceLocation::current())
+template <typename A, typename B>
+inline void lower_equal(const A a, const B b, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -102,8 +102,8 @@ inline void lower_equal(const A a, const B b, Utils::SourceLocation location = U
     }
 }
 
-template <class A, class B>
-inline void lower_than(const A a, const B b, Utils::SourceLocation location = Utils::SourceLocation::current())
+template <typename A, typename B>
+inline void lower_than(const A a, const B b, SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
@@ -114,12 +114,12 @@ inline void lower_than(const A a, const B b, Utils::SourceLocation location = Ut
     }
 }
 
-inline void not_reached(Utils::SourceLocation location = Utils::SourceLocation::current())
+inline void unreachable(SourceLocation location = SourceLocation::current())
 {
     if constexpr (!(__CONFIG_IS_RELEASE__))
     {
-        assert_failed("not_reached() reached!", location.file(), location.function(), location.line());
+        assert_failed("the unreachable() has been reached, and that's not a good thing!", location.file(), location.function(), location.line());
     }
 }
 
-} // namespace Assert
+} // namespace Utils::Assert

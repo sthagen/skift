@@ -1,13 +1,12 @@
 
+#include <abi/Result.h>
 #include <libfile/TARArchive.h>
-#include <libsystem/Logger.h>
-#include <libsystem/Result.h>
 
 #include "archs/Arch.h"
-
-#include "kernel/memory/Memory.h"
-#include "kernel/modules/Modules.h"
-#include "kernel/scheduling/Scheduler.h"
+#include "system/Streams.h"
+#include "system/memory/Memory.h"
+#include "system/modules/Modules.h"
+#include "system/scheduling/Scheduler.h"
 
 void ramdisk_load(Module *module)
 {
@@ -18,20 +17,20 @@ void ramdisk_load(Module *module)
 
         if (block.name[strlen(block.name) - 1] == '/')
         {
-            Result result = scheduler_running()->domain().mkdir(file_path);
+            HjResult result = scheduler_running()->domain().mkdir(file_path);
 
             if (result != SUCCESS)
             {
-                logger_warn("Failed to create directory %s: %s", block.name, result_to_string(result));
+                Kernel::logln("Failed to create directory {}: {}", block.name, result_to_string(result));
             }
         }
         else if ((block.typeflag & 8) == 0 || (block.typeflag & 8) == 5)
         {
-            auto result_or_handle = scheduler_running()->domain().open(file_path, OPEN_WRITE | OPEN_CREATE);
+            auto result_or_handle = scheduler_running()->domain().open(file_path, HJ_OPEN_WRITE | HJ_OPEN_CREATE);
 
             if (!result_or_handle.success())
             {
-                logger_warn("Failed to open file %s! %s", block.name, result_to_string(result_or_handle.result()));
+                Kernel::logln("Failed to open file {}! {}", block.name, result_to_string(result_or_handle.result()));
                 continue;
             }
 
@@ -41,12 +40,12 @@ void ramdisk_load(Module *module)
 
             if (!result_or_written.success())
             {
-                logger_error("Failed to write file: %s", result_to_string(result_or_written.result()));
+                Kernel::logln("Failed to write file: {}", result_to_string(result_or_written.result()));
             }
         }
     }
 
-    memory_free(arch_kernel_address_space(), module->range);
+    memory_free(Arch::kernel_address_space(), module->range);
 
-    logger_info("Loading ramdisk succeeded.");
+    Kernel::logln("Loading ramdisk succeeded.");
 }

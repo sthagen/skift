@@ -13,14 +13,14 @@ struct TARBlock
 
 bool tar_read(void *tarfile, TARBlock *block, size_t index);
 
-class TARArchive final : public Archive
+struct TARArchive final : public Archive
 {
 private:
-    Result read_archive();
+    HjResult read_archive();
 
 public:
     TARArchive(IO::Path path, bool read = true);
 
-    Result extract(unsigned int entry_index, IO::Writer &writer) override;
-    Result insert(const char *entry_name, IO::Reader &reader) override;
+    HjResult extract(unsigned int entry_index, IO::Writer &writer) override;
+    HjResult insert(const char *entry_name, IO::Reader &reader) override;
 };

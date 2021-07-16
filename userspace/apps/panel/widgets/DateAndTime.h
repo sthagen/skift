@@ -1,19 +1,17 @@
 #pragma once
 
 #include <libasync/Timer.h>
+#include <libwidget/Components.h>
 
-#include <libwidget/Button.h>
-
-namespace panel
+namespace Panel
 {
 
-class DateAndTime : public Widget::Button
+struct DateAndTimeComponent :
+    public Widget::Component
 {
-private:
-    OwnPtr<Async::Timer> _timer;
-
-public:
-    DateAndTime();
+    RefPtr<Widget::Element> build() override;
 };
 
-} // namespace panel
+WIDGET_BUILDER(DateAndTimeComponent, date_and_time);
+
+} // namespace Panel

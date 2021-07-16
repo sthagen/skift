@@ -6,8 +6,5 @@ $(ECHFS):
 	cd thirdparty/echfs/ && $(MAKE) all
 
 $(LIMINE):
-	cd thirdparty/limine/ && $(MAKE) bootloader && $(MAKE) limine-install
-
-$(LIMINE_LOADER):
-	cd thirdparty/limine/ && $(MAKE) bootloader && $(MAKE) all
+	cd thirdparty/limine/ && $(MAKE) all
 

@@ -8,14 +8,14 @@
 namespace FilePicker
 {
 
-class DirectoryBrowser : public Browser
+struct DirectoryBrowser : public Browser
 {
 public:
     DirectoryBrowser(RefPtr<Navigation> navigation)
         : Browser(navigation)
     {
         _listing = make<FilesystemModel>(navigation, [](IO::Directory::Entry &entry) {
-            return entry.stat.type == FILE_TYPE_DIRECTORY;
+            return entry.stat.type == HJ_FILE_TYPE_DIRECTORY;
         });
         model(_listing);
 

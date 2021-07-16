@@ -49,7 +49,7 @@ void Window::bound(Math::Recti new_bound)
     }
     else if (!have_same_position)
     {
-        Application::the()->move_window(this, _bound.position());
+        Application::the().move_window(this, _bound.position());
     }
 
     if (!have_same_size)
@@ -68,24 +68,11 @@ Window::Window(WindowFlag flags)
     _flags = flags;
 
     frontbuffer = Graphic::Bitmap::create_shared(250, 250).unwrap();
-    frontbuffer_painter = own<Graphic::Painter>(frontbuffer);
-
     backbuffer = Graphic::Bitmap::create_shared(250, 250).unwrap();
-    backbuffer_painter = own<Graphic::Painter>(backbuffer);
 
-    _root = build();
-    if (_root == nullptr)
-    {
-        _root = make<Element>();
-    }
-    _root->mount(*this);
+    _update_invoker = own<Async::Invoker>([this] { update(); });
 
-    _keyboard_focus = _root.naked();
-
-    _repaint_invoker = own<Async::Invoker>([this]() { repaint_dirty(); });
-    _relayout_invoker = own<Async::Invoker>([this]() { relayout(); });
-
-    Application::the()->add_window(this);
+    Application::the().add_window(this);
     position({96, 72});
 }
 
@@ -96,7 +83,48 @@ Window::~Window()
         hide();
     }
 
-    Application::the()->remove_window(this);
+    Application::the().remove_window(this);
+}
+
+void Window::relayout()
+{
+    root()->container(bound());
+    root()->relayout();
+
+    _dirty_layout = false;
+}
+
+void Window::should_relayout()
+{
+    if (_dirty_layout || !_visible)
+    {
+        return;
+    }
+
+    _dirty_layout = true;
+
+    _update_invoker->invoke_later();
+}
+
+void Window::should_repaint(Math::Recti rectangle)
+{
+    if (!_visible || rectangle.is_empty())
+    {
+        return;
+    }
+
+    _update_invoker->invoke_later();
+
+    for (size_t i = 0; i < _dirty_paint.count(); i++)
+    {
+        if (_dirty_paint[i].colide_with(rectangle))
+        {
+            _dirty_paint[i] = _dirty_paint[i].merged_with(rectangle);
+            return;
+        }
+    }
+
+    _dirty_paint.push_back(rectangle);
 }
 
 void Window::repaint(Graphic::Painter &painter, Math::Recti rectangle)
@@ -126,19 +154,27 @@ void Window::repaint(Graphic::Painter &painter, Math::Recti rectangle)
     painter.pop();
 }
 
-void Window::repaint_dirty()
+void Window::flip(Math::Recti region)
 {
-    // FIXME: find a better way to schedule update after layout.
+    frontbuffer->copy_from(*backbuffer, region);
 
+    std::swap(frontbuffer, backbuffer);
+
+    Application::the().flip_window(this, region);
+}
+
+void Window::update()
+{
     if (_dirty_layout)
     {
         relayout();
     }
 
     Math::Recti repaited_regions = Math::Recti::empty();
-    Graphic::Painter &painter = *backbuffer_painter;
 
-    _dirty_rects.foreach ([&](Math::Recti &rect) {
+    Graphic::Painter painter{*backbuffer};
+
+    _dirty_paint.foreach([&](Math::Recti &rect) {
         repaint(painter, rect);
 
         if (repaited_regions.is_empty())
@@ -153,58 +189,9 @@ void Window::repaint_dirty()
         return Iteration::CONTINUE;
     });
 
-    _dirty_rects.clear();
+    _dirty_paint.clear();
 
-    frontbuffer->copy_from(*backbuffer, repaited_regions);
-
-    swap(frontbuffer, backbuffer);
-    swap(frontbuffer_painter, backbuffer_painter);
-
-    Application::the()->flip_window(this, repaited_regions);
-}
-
-void Window::relayout()
-{
-    root()->container(bound());
-    root()->relayout();
-
-    _dirty_layout = false;
-}
-
-void Window::should_repaint(Math::Recti rectangle)
-{
-    if (!_visible)
-    {
-        return;
-    }
-
-    if (_dirty_rects.empty())
-    {
-        _repaint_invoker->invoke_later();
-    }
-
-    for (size_t i = 0; i < _dirty_rects.count(); i++)
-    {
-        if (_dirty_rects[i].colide_with(rectangle))
-        {
-            _dirty_rects[i] = _dirty_rects[i].merged_with(rectangle);
-            return;
-        }
-    }
-
-    _dirty_rects.push_back(rectangle);
-}
-
-void Window::should_relayout()
-{
-    if (_dirty_layout || !_visible)
-    {
-        return;
-    }
-
-    _dirty_layout = true;
-
-    _relayout_invoker->invoke_later();
+    flip(repaited_regions);
 }
 
 void Window::change_framebuffer_if_needed()
@@ -214,10 +201,7 @@ void Window::change_framebuffer_if_needed()
         bound().area() < frontbuffer->bound().area() * 0.75)
     {
         frontbuffer = Graphic::Bitmap::create_shared(bound().width(), bound().height()).unwrap();
-        frontbuffer_painter = own<Graphic::Painter>(frontbuffer);
-
         backbuffer = Graphic::Bitmap::create_shared(bound().width(), bound().height()).unwrap();
-        backbuffer_painter = own<Graphic::Painter>(backbuffer);
     }
 }
 
@@ -233,14 +217,15 @@ void Window::show()
     change_framebuffer_if_needed();
 
     relayout();
-    repaint(*backbuffer_painter, bound());
+
+    Graphic::Painter painter{*backbuffer};
+    repaint(painter, bound());
 
     frontbuffer->copy_from(*backbuffer, bound());
 
-    swap(frontbuffer, backbuffer);
-    swap(frontbuffer_painter, backbuffer_painter);
+    std::swap(frontbuffer, backbuffer);
 
-    Application::the()->show_window(this);
+    Application::the().show_window(this);
 }
 
 void Window::hide()
@@ -250,11 +235,28 @@ void Window::hide()
         return;
     }
 
-    _relayout_invoker->cancel();
-    _repaint_invoker->cancel();
+    _update_invoker->cancel();
 
     _visible = false;
-    Application::the()->hide_window(this);
+    Application::the().hide_window(this);
+}
+
+void Window::try_hide()
+{
+    if (!_visible)
+    {
+        return;
+    }
+
+    Event event = {};
+    event.type = Event::WINDOW_CLOSING;
+
+    dispatch_event(&event);
+
+    if (!event.accepted)
+    {
+        hide();
+    }
 }
 
 Math::Border Window::resize_bound_containe(Math::Vec2i position)
@@ -338,7 +340,7 @@ Element *Window::child_at(Math::Vec2i position)
 void Window::on(EventType event, EventHandler handler)
 {
     Assert::lower_than(event, EventType::__COUNT);
-    _handlers[event] = move(handler);
+    _handlers[event] = std::move(handler);
 }
 
 void Window::dispatch_event(Event *event)
@@ -376,10 +378,6 @@ void Window::handle_event(Event *event)
 
     case Event::LOST_FOCUS:
         handle_lost_focus(event);
-        break;
-
-    case Event::WINDOW_CLOSING:
-        handle_window_closing(event);
         break;
 
     case Event::MOUSE_MOVE:
@@ -455,11 +453,6 @@ void Window::handle_lost_focus(Event *event)
             _mouse_over = nullptr;
         }
     }
-}
-
-void Window::handle_window_closing(Event *)
-{
-    hide();
 }
 
 void Window::handle_mouse_move(Event *event)
@@ -668,7 +661,7 @@ void Window::cursor(CursorState state)
 
     if (cursor_state != state)
     {
-        Application::the()->window_change_cursor(this, state);
+        Application::the().window_change_cursor(this, state);
         cursor_state = state;
     }
 }

@@ -2,7 +2,7 @@
 
 #include <libgraphic/Font.h>
 #include <libmath/Rect.h>
-#include <libsystem/utils/List.h>
+#include <libutils/Array.h>
 #include <libutils/Assert.h>
 #include <libwidget/Cursor.h>
 #include <libwidget/Event.h>
@@ -10,7 +10,9 @@
 
 namespace Graphic
 {
-class Painter;
+
+struct Painter;
+
 } // namespace Graphic
 
 namespace Widget
@@ -18,74 +20,14 @@ namespace Widget
 
 struct Window;
 
-struct Layout
-{
-    enum Type
-    {
-        STACK,
-        GRID,
-        VGRID,
-        HGRID,
-        VFLOW,
-        HFLOW,
-    };
+#define WIDGET_BUILDER(__type, __name)                         \
+    template <typename... TArgs>                               \
+    ::RefPtr<::Widget::Element> __name(TArgs &&...args)        \
+    {                                                          \
+        return ::make<__type>(::std::forward<TArgs>(args)...); \
+    }
 
-    Type type;
-
-    int hcell;
-    int vcell;
-    Math::Vec2i spacing;
-};
-
-#define STACK()                  \
-    (::Widget::Layout{           \
-        ::Widget::Layout::STACK, \
-        0,                       \
-        0,                       \
-        Math::Vec2i::zero(),     \
-    })
-
-#define GRID(_hcell, _vcell, _hspacing, _vspacing) \
-    (::Widget::Layout{                             \
-        ::Widget::Layout::GRID,                    \
-        (_hcell),                                  \
-        (_vcell),                                  \
-        Math::Vec2i((_hspacing), (_vspacing)),     \
-    })
-
-#define VGRID(_vspacing)             \
-    (::Widget::Layout{               \
-        ::Widget::Layout::VGRID,     \
-        0,                           \
-        0,                           \
-        Math::Vec2i(0, (_vspacing)), \
-    })
-
-#define HGRID(_hspacing)             \
-    (::Widget::Layout{               \
-        ::Widget::Layout::HGRID,     \
-        0,                           \
-        0,                           \
-        Math::Vec2i((_hspacing), 0), \
-    })
-
-#define VFLOW(_vspacing)             \
-    (::Widget::Layout{               \
-        ::Widget::Layout::VFLOW,     \
-        0,                           \
-        0,                           \
-        Math::Vec2i(0, (_vspacing)), \
-    })
-
-#define HFLOW(_hspacing)             \
-    (::Widget::Layout{               \
-        ::Widget::Layout::HFLOW,     \
-        0,                           \
-        0,                           \
-        Math::Vec2i((_hspacing), 0), \
-    })
-
-class Element : public RefCounted<Element>
+struct Element : public RefCounted<Element>
 {
 private:
     bool _enabled = true;
@@ -98,12 +40,9 @@ private:
     int _min_height = 0;
     int _min_width = 0;
 
-    Insetsi _outsets{};
-    Insetsi _insets{};
     Math::Vec2i _content_scroll{};
 
-    Optional<Graphic::Color> _colors[__THEME_COLOR_COUNT] = {};
-    Layout _layout = {};
+    Array<Optional<Graphic::Color>, __THEME_COLOR_COUNT> _colors = {NONE};
     RefPtr<Graphic::Font> _font;
 
     CursorState _cursor = CURSOR_DEFAULT;
@@ -113,7 +52,7 @@ private:
     Element *_parent = {};
     Window *_window = {};
 
-    Vector<RefPtr<Element>> _childs = {};
+    Vector<RefPtr<Element>> _children = {};
 
 public:
     static constexpr auto FILL = (1 << 0);
@@ -140,8 +79,6 @@ public:
     Graphic::Color color(ThemeColorRole role);
 
     void color(ThemeColorRole role, Graphic::Color color);
-
-    void layout(Layout layout) { _layout = layout; }
 
     void flags(int attributes) { _flags = attributes; }
 
@@ -193,7 +130,7 @@ public:
 
     virtual void mounted() {}
 
-    virtual void do_layout();
+    virtual void layout();
 
     virtual Math::Vec2i size();
 
@@ -211,22 +148,6 @@ public:
         }
     }
 
-    Insetsi outsets() const { return _outsets; }
-
-    void outsets(Insetsi outsets)
-    {
-        _outsets = outsets;
-        should_relayout();
-    }
-
-    Insetsi insets() const { return _insets; }
-
-    void insets(Insetsi insets)
-    {
-        _insets = insets;
-        should_relayout();
-    }
-
     Math::Recti container() const { return _container; }
 
     void container(Math::Recti container) { _container = container; }
@@ -236,24 +157,17 @@ public:
         if (_parent && !(_flags & NOT_AFFECTED_BY_SCROLL))
         {
             return {
-                _outsets.left() + container().x() - _parent->scroll().x(),
-                _outsets.top() + container().y() - _parent->scroll().y(),
+                container().x() - _parent->scroll().x(),
+                container().y() - _parent->scroll().y(),
             };
         }
         else
         {
-            return {
-                _outsets.left() + container().x(),
-                _outsets.top() + container().y(),
-            };
+            return container().position();
         }
     }
 
-    Math::Recti bound() const { return container().shrinked(_outsets).size(); }
-
-    Math::Recti content() const { return bound().shrinked(_insets); }
-
-    Math::Recti overflow() const { return bound().expended(_outsets); }
+    Math::Recti bound() const { return container().size(); }
 
     Math::Vec2i scroll() { return _content_scroll; }
 
@@ -277,19 +191,21 @@ public:
 
     void enable_if(bool condition);
 
-    /* --- Childs ----------------------------------------------------------- */
+    /* --- Children --------------------------------------------------------- */
 
     Element *at(Math::Vec2i position);
+
+    const Vector<RefPtr<Element>> &children() { return _children; }
 
     template <typename T, typename... Args>
     RefPtr<T> add(Args &&...args)
     {
-        return add(make<T>(forward<Args>(args)...));
+        return add(make<T>(std::forward<Args>(args)...));
     }
 
-    void add(Vector<RefPtr<Element>> childs)
+    void add(Vector<RefPtr<Element>> children)
     {
-        for (auto &child : childs)
+        for (auto &child : children)
         {
             add(child);
         }
@@ -313,14 +229,6 @@ public:
 
     void focus();
 
-    /* --- Paint ------------------------------------------------------------ */
-
-    void repaint(Graphic::Painter &painter, Math::Recti rectangle);
-
-    void should_repaint();
-
-    void should_repaint(Math::Recti rectangle);
-
     /* --- Layout ----------------------------------------------------------- */
 
     void relayout();
@@ -328,6 +236,14 @@ public:
     void should_relayout();
 
     Math::Vec2i compute_size();
+
+    /* --- Paint ------------------------------------------------------------ */
+
+    void repaint(Graphic::Painter &painter, Math::Recti rectangle);
+
+    void should_repaint();
+
+    void should_repaint(Math::Recti rectangle);
 
     /* --- Events ----------------------------------------------------------- */
 

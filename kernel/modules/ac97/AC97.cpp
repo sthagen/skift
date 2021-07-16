@@ -1,7 +1,7 @@
-#include <libsystem/Logger.h>
+#include "system/Streams.h"
 
-#include "kernel/scheduling/Scheduler.h"
-#include "kernel/tasking/Task.h"
+#include "system/scheduling/Scheduler.h"
+#include "system/tasking/Task.h"
 
 #include "ac97/AC97.h"
 
@@ -41,7 +41,7 @@ AC97::AC97(DeviceAddress address) : PCIDevice(address, DeviceClass::SOUND)
     uint16_t t = in32(nambar + AC97_MASTER_VOLUME) & 0x1f;
     if (t == 0x1f)
     {
-        logger_trace("This device only supports 5 bits of audio volume.");
+        Kernel::logln("This device only supports 5 bits of audio volume.");
         _quirk_5bit_volume = true;
         out32(nambar + AC97_MASTER_VOLUME, 0x0f0f);
     }
@@ -61,7 +61,7 @@ AC97::AC97(DeviceAddress address) : PCIDevice(address, DeviceClass::SOUND)
 
     out8(nabmbar + AC97_PO_CR, in8(nabmbar + AC97_PO_CR) | AC97_X_CR_RPBM);
 
-    logger_trace("AC97 initialised successfully");
+    Kernel::logln("AC97 initialised successfully");
 }
 
 void AC97::initialise_buffers()
@@ -116,11 +116,11 @@ void AC97::handle_interrupt()
     }
     else if (_status & AC97_X_SR_LVBCI)
     {
-        logger_trace("IRQ is lvbci");
+        Kernel::logln("IRQ is lvbci");
     }
     else if (_status & AC97_X_SR_FIFOE)
     {
-        logger_trace("IRQ is fifoe");
+        Kernel::logln("IRQ is fifoe");
     }
 }
 
@@ -136,7 +136,7 @@ ResultOr<size_t> AC97::write(size64_t offset, const void *buffer, size_t size)
     return _buffer.write((char *)buffer, size);
 }
 
-Result AC97::call(IOCall request, void *args)
+HjResult AC97::call(IOCall request, void *args)
 {
     UNUSED(request);
     UNUSED(args);

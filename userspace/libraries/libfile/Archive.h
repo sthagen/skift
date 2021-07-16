@@ -1,10 +1,10 @@
 #pragma once
 
+#include <abi/Result.h>
+#include <libio/Path.h>
 #include <libio/Reader.h>
 #include <libio/Writer.h>
-#include <libsystem/Result.h>
-#include <libio/Path.h>
-class Archive : public RefCounted<Archive>
+struct Archive : public RefCounted<Archive>
 {
 public:
     struct Entry
@@ -33,8 +33,8 @@ public:
         return _entries;
     }
 
-    virtual Result extract(unsigned int entry_index, IO::Writer &writer) = 0;
-    virtual Result insert(const char *entry_name, IO::Reader &reader) = 0;
+    virtual HjResult extract(unsigned int entry_index, IO::Writer &writer) = 0;
+    virtual HjResult insert(const char *entry_name, IO::Reader &reader) = 0;
 
     inline const IO::Path &get_path()
     {

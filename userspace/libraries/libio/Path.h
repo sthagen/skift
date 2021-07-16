@@ -1,10 +1,11 @@
 #pragma once
 
 #include <abi/Filesystem.h>
-
-#include <libutils/Scanner.h>
+#include <libio/MemoryReader.h>
+#include <libio/MemoryWriter.h>
+#include <libio/Scanner.h>
+#include <libio/Write.h>
 #include <libutils/String.h>
-#include <libutils/StringBuilder.h>
 #include <libutils/Vector.h>
 
 namespace IO
@@ -36,7 +37,8 @@ public:
 
     static Path parse(const char *path, size_t size, int flags)
     {
-        StringScanner scan{path, size};
+        IO::MemoryReader memory{path, size};
+        IO::Scanner scan{memory};
 
         bool absolute = false;
 
@@ -46,16 +48,15 @@ public:
         }
 
         auto parse_element = [](auto &scan) {
-            StringBuilder builder{};
+            IO::MemoryWriter memory;
 
             while (!scan.skip(PATH_SEPARATOR) &&
-                   scan.do_continue())
+                   !scan.ended())
             {
-                builder.append(scan.current());
-                scan.foreward();
+                IO::write(memory, scan.next());
             }
 
-            return builder.finalize();
+            return memory.string();
         };
 
         auto parse_shorthand = [](auto &scan) {
@@ -71,14 +72,14 @@ public:
 
             scan.skip('/');
 
-            return move(elements);
+            return elements;
         };
 
         Vector<String> elements{};
 
-        while (scan.do_continue())
+        while (!scan.ended())
         {
-            if ((flags & PARENT_SHORTHAND) && scan.current_is_word(".."))
+            if ((flags & PARENT_SHORTHAND) && scan.peek_is_word(".."))
             {
                 elements.push_back_many(parse_shorthand(scan));
             }
@@ -86,14 +87,14 @@ public:
             {
                 auto el = parse_element(scan);
 
-                if (el.length() > 0)
+                if (el->size() > 0)
                 {
-                    elements.push_back(move(el));
+                    elements.push_back(el);
                 }
             }
         }
 
-        return {absolute, move(elements)};
+        return {absolute, std::move(elements)};
     }
 
     static Path join(String left, String right)
@@ -143,7 +144,7 @@ public:
         combined_elements.push_back_many(left._elements);
         combined_elements.push_back_many(right._elements);
 
-        return {left.absolute(), move(combined_elements)};
+        return {left.absolute(), std::move(combined_elements)};
     }
 
     Path()
@@ -160,8 +161,8 @@ public:
 
     Path(Path &&other)
     {
-        swap(_absolute, other._absolute);
-        swap(_elements, other._elements);
+        std::swap(_absolute, other._absolute);
+        std::swap(_elements, other._elements);
     }
 
     Path &operator=(const Path &other)
@@ -179,8 +180,8 @@ public:
     {
         if (this != &other)
         {
-            swap(_absolute, other._absolute);
-            swap(_elements, other._elements);
+            std::swap(_absolute, other._absolute);
+            std::swap(_elements, other._elements);
         }
 
         return *this;
@@ -215,7 +216,7 @@ public:
     {
         Vector<String> stack{};
 
-        _elements.foreach ([&](auto &element) {
+        _elements.foreach([&](auto &element) {
             if (element == ".." && stack.count() > 0)
             {
                 stack.pop_back();
@@ -235,7 +236,7 @@ public:
             return Iteration::CONTINUE;
         });
 
-        return {_absolute, move(stack)};
+        return {_absolute, std::move(stack)};
     }
 
     String basename() const
@@ -259,53 +260,52 @@ public:
 
     String basename_without_extension() const
     {
-        StringBuilder builder{basename().length()};
-
-        StringScanner scan{basename().cstring(), basename().length()};
+        IO::MemoryWriter builder{basename().length()};
+        IO::MemoryReader reader{basename().slice()};
+        IO::Scanner scan{reader};
 
         // It's not a file extention it's an hidden file.
-        if (scan.current_is("."))
+        if (scan.peek() == '.')
         {
-            builder.append(scan.current());
-            scan.foreward();
+            IO::write(builder, scan.next());
         }
 
-        while (!scan.current_is(".") && scan.do_continue())
+        while (scan.peek() != '.' &&
+               !scan.ended())
         {
-            builder.append(scan.current());
-            scan.foreward();
+            IO::write(builder, scan.next());
         }
 
-        return builder.finalize();
+        return builder.string();
     }
 
     String dirname() const
     {
-        StringBuilder builder{};
+        IO::MemoryWriter builder{};
 
         if (_absolute)
         {
-            builder.append(PATH_SEPARATOR);
+            IO::write(builder, PATH_SEPARATOR);
         }
         else if (_elements.count() <= 1)
         {
-            builder.append(".");
+            IO::write(builder, '.');
         }
 
         if (_elements.count() >= 2)
         {
             for (size_t i = 0; i < _elements.count() - 1; i++)
             {
-                builder.append(_elements[i]);
+                IO::write(builder, _elements[i]);
 
                 if (i != _elements.count() - 2)
                 {
-                    builder.append(PATH_SEPARATOR);
+                    IO::write(builder, PATH_SEPARATOR);
                 }
             }
         }
 
-        return builder.finalize();
+        return builder.string();
     }
 
     Path dirpath() const
@@ -320,36 +320,32 @@ public:
             }
         }
 
-        return {_absolute, move(stack)};
+        return {_absolute, std::move(stack)};
     }
 
     String extension() const
     {
         auto filename = basename();
 
-        StringBuilder builder{filename.length()};
-
-        StringScanner scan{filename.cstring(), filename.length()};
+        IO::MemoryWriter builder{basename().length()};
+        IO::MemoryReader reader{basename().slice()};
+        IO::Scanner scan{reader};
 
         // It's not a file extention it's an hidden file.
-        if (scan.current_is("."))
+        scan.skip('.');
+
+        while (scan.peek() != '.' &&
+               !scan.ended())
         {
-            scan.foreward();
+            scan.next();
         }
 
-        while (!scan.current_is(".") &&
-               scan.do_continue())
+        while (!scan.ended())
         {
-            scan.foreward();
+            IO::write(builder, scan.next());
         }
 
-        while (scan.do_continue())
-        {
-            builder.append(scan.current());
-            scan.foreward();
-        }
-
-        return builder.finalize();
+        return builder.string();
     }
 
     Path parent(size_t index) const
@@ -364,29 +360,30 @@ public:
             }
         }
 
-        return {_absolute, move(stack)};
+        return {_absolute, std::move(stack)};
     }
 
     String string() const
     {
-        StringBuilder builder{};
+        IO::MemoryWriter builder{basename().length()};
 
         if (_absolute)
         {
-            builder.append(PATH_SEPARATOR);
+            IO::write(builder, PATH_SEPARATOR);
         }
 
         for (size_t i = 0; i < _elements.count(); i++)
         {
-            builder.append(_elements[i]);
+            IO::write(builder, _elements[i]);
 
             if (i != _elements.count() - 1)
             {
-                builder.append(PATH_SEPARATOR);
+                IO::write(builder, PATH_SEPARATOR);
             }
         }
 
-        return builder.finalize();
+        return builder.string();
     }
 };
-}
+
+} // namespace IO

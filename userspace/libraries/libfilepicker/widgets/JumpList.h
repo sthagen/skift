@@ -1,9 +1,7 @@
 #pragma once
 
-#include <libwidget/Button.h>
-#include <libwidget/Label.h>
-
-#include <libwidget/VScroll.h>
+#include <libwidget/Elements.h>
+#include <libwidget/Layouts.h>
 
 #include <libfilepicker/model/Bookmarks.h>
 #include <libfilepicker/model/Navigation.h>
@@ -11,55 +9,40 @@
 namespace FilePicker
 {
 
-class JumpList : public Widget::PanelElement
+struct JumpList : public Widget::Component
 {
 private:
     RefPtr<Navigation> _navigation;
     RefPtr<Bookmarks> _bookmarks;
 
-    OwnPtr<Async::Observer<Bookmarks>> _bookmark_observer;
-
-    RefPtr<Widget::VScroll> _listing;
-
 public:
     JumpList(RefPtr<Navigation> navigation, RefPtr<Bookmarks> bookmarks)
-        : PanelElement(),
-          _navigation(navigation),
+        : _navigation(navigation),
           _bookmarks(bookmarks)
     {
-        layout(VFLOW(6));
-        insets(Insetsi{4});
-
-        _bookmark_observer = bookmarks->observe([this](auto &) {
-            render();
-        });
-
-        add<Widget::Label>("Bookmarks");
-
-        _listing = add<Widget::VScroll>();
-        _listing->flags(Element::FILL);
-
-        render();
     }
 
-    void render()
+    RefPtr<Element> build()
     {
-        _listing->host()->clear();
-        _listing->host()->layout(VFLOW(4));
+        Vector<RefPtr<Element>> children;
 
         for (size_t i = 0; i < _bookmarks->all().count(); i++)
         {
             auto bookmark = _bookmarks->all()[i];
 
-            auto button = _listing->host()->add<Widget::Button>(
-                Widget::Button::TEXT,
-                bookmark.icon(),
-                bookmark.name());
-
-            button->on(Widget::Event::ACTION, [this, bookmark](auto) {
+            children.push_back(Widget::basic_button(bookmark.icon(), bookmark.name(), [this, bookmark] {
                 _navigation->navigate(bookmark.path());
-            });
+            }));
         }
+
+        return Widget::observer(
+            *_bookmarks,
+            [&] {
+                return Widget::vflow({
+                    Widget::label("Bookmarks"),
+                    Widget::scroll(Widget::vflow(children)),
+                });
+            });
     }
 };
 

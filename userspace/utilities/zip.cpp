@@ -2,11 +2,11 @@
 #include <libfile/ZipArchive.h>
 #include <libio/File.h>
 #include <libio/Streams.h>
-#include <libutils/ArgParse.h>
+#include <libshell/ArgParse.h>
 
 int main(int argc, char const *argv[])
 {
-    ArgParse args;
+    Shell::ArgParse args;
 
     args.show_help_if_no_operand_given();
     args.should_abort_on_failure();
@@ -15,9 +15,9 @@ int main(int argc, char const *argv[])
     args.usage("OPTION... ARCHIVE FILES...");
 
     auto parse_result = args.eval(argc, argv);
-    if (parse_result != ArgParseResult::SHOULD_CONTINUE)
+    if (parse_result != Shell::ArgParseResult::SHOULD_CONTINUE)
     {
-        return parse_result == ArgParseResult::SHOULD_FINISH ? PROCESS_SUCCESS : PROCESS_FAILURE;
+        return parse_result == Shell::ArgParseResult::SHOULD_FINISH ? PROCESS_SUCCESS : PROCESS_FAILURE;
     }
 
     if (args.argc() < 2)
@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
     {
         IO::outln("{}: Entry: {} is being inserted...", argv[0], args.argv()[i]);
 
-        IO::File src_file(args.argv()[i], OPEN_READ);
+        IO::File src_file(args.argv()[i], HJ_OPEN_READ);
         if (!src_file.exist())
         {
             IO::errln("{}: File '{}' does not exist", argv[0], args.argv()[i]);
@@ -49,7 +49,7 @@ int main(int argc, char const *argv[])
 
         auto result = archive->insert(args.argv()[i].cstring(), src_file);
 
-        if (result != Result::SUCCESS)
+        if (result != HjResult::SUCCESS)
         {
             IO::errln("{}: Failed to insert entry '{}' with error '{}'", argv[0], args.argv()[i], get_result_description(result));
             return PROCESS_FAILURE;

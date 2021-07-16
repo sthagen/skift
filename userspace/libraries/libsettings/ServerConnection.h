@@ -6,10 +6,10 @@
 namespace Settings
 {
 
-class ServerConnection : public IPC::Peer<Protocol>
+struct ServerConnection : public IPC::Peer<Protocol>
 {
 public:
-    Callback<void(const Path &path, const Json::Value &value)> on_notify;
+    Func<void(const Path &path, const Json::Value &value)> on_notify;
 
     static OwnPtr<ServerConnection> open()
     {
@@ -17,7 +17,7 @@ public:
         return own<ServerConnection>(connection.unwrap());
     }
 
-    ServerConnection(IO::Connection connection) : Peer{move(connection)}
+    ServerConnection(IO::Connection connection) : Peer{std::move(connection)}
     {
     }
 

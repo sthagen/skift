@@ -5,7 +5,6 @@
 #include <libio/Socket.h>
 #include <libio/Streams.h>
 #include <libsystem/process/Process.h>
-#include <libsystem/utils/Hexdump.h>
 #include <libwidget/Application.h>
 #include <libwidget/Screen.h>
 
@@ -14,20 +13,22 @@ namespace Widget
 
 /* --- Context -------------------------------------------------------------- */
 
-static RefPtr<Application> _instance = nullptr;
+static Application *_instance = nullptr;
 
-RefPtr<Application> Application::the()
+Application &Application::the()
 {
     if (_instance == nullptr)
     {
-        _instance = make<Application>();
+        _instance = new Application();
     }
 
-    return _instance;
+    return *_instance;
 }
 
 Application::Application()
 {
+    _instance = this;
+
     _setting_theme = own<Settings::Setting>(
         "appearance:widgets.theme",
         [this](const Json::Value &value) {
@@ -68,7 +69,6 @@ Application::Application()
         if (message_size != sizeof(CompositorMessage))
         {
             IO::logln("Got a message with an invalid size from compositor {} != {}!", sizeof(CompositorMessage), message_size);
-            hexdump(&message, message_size);
             this->exit(PROCESS_FAILURE);
         }
 
@@ -84,6 +84,8 @@ Application::Application()
         Screen::bound(greetings.greetings.screen_bound);
     }
 }
+
+Application::~Application() {}
 
 /* --- IPC ------------------------------------------------------------------ */
 
@@ -123,7 +125,6 @@ void Application::do_message(const CompositorMessage &message)
     else
     {
         IO::logln("Got an invalid message from compositor ({})!", message.type);
-        hexdump(&message, sizeof(CompositorMessage));
         Application::exit(PROCESS_FAILURE);
     }
 }
@@ -137,12 +138,12 @@ ResultOr<CompositorMessage> Application::wait_for_message(CompositorMessageType 
 
     while (message.type != expected_message)
     {
-        pendings.push_back(move(message));
+        pendings.push_back(std::move(message));
         auto result = _connection.read(&message, sizeof(CompositorMessage));
 
         if (!result.success())
         {
-            pendings.foreach ([&](auto &message) {
+            pendings.foreach([&](auto &message) {
                 do_message(message);
                 return Iteration::CONTINUE;
             });
@@ -151,7 +152,7 @@ ResultOr<CompositorMessage> Application::wait_for_message(CompositorMessageType 
         }
     }
 
-    pendings.foreach ([&](auto &message) {
+    pendings.foreach([&](auto &message) {
         do_message(message);
         return Iteration::CONTINUE;
     });
@@ -348,19 +349,36 @@ Window *Application::get_window(int id)
 
 int Application::run()
 {
-    Assert::is_false(_exiting);
+    Assert::falsity(_exiting);
+
+    auto window = build();
+
+    if (window != nullptr)
+    {
+        if (window->flags() & WINDOW_FULLSCREEN)
+        {
+            window->bound(Screen::bound());
+        }
+        else
+        {
+            window->resize_to_content();
+        }
+
+        window->show();
+    }
+
     return loop().run();
 }
 
 int Application::run_nested()
 {
-    Assert::is_false(_exiting);
+    Assert::falsity(_exiting);
     return loop().run_nested();
 }
 
 int Application::pump()
 {
-    Assert::is_false(_exiting);
+    Assert::falsity(_exiting);
     loop().pump(true);
     return 0;
 }

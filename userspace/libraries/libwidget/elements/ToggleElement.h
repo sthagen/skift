@@ -1,13 +1,12 @@
 #pragma once
 
-#include <libwidget/elements/StatefullElement.h>
+#include <libwidget/elements/StatefulElement.h>
 
 namespace Widget
 {
 
-class ToggleElement : public StatefullElement<bool>
+struct ToggleElement : public StatefulElement<bool>
 {
-public:
     static constexpr auto WIDTH = 36;
     static constexpr auto HEIGHT = 18;
 

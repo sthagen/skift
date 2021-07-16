@@ -1,112 +1,107 @@
-#include <libsystem/utils/BufferBuilder.h>
-
-#include <libutils/Scanner.h>
-#include <libutils/ScannerUtils.h>
+#include <libio/MemoryReader.h>
+#include <libio/MemoryWriter.h>
+#include <libio/Scanner.h>
+#include <libio/Write.h>
+#include <libutils/String.h>
 
 #include "shell/Nodes.h"
 
 #define SHELL_WHITESPACE " \r\n\t"
 
-static void whitespace(Scanner &scan)
+static void whitespace(IO::Scanner &scan)
 {
-    scan.eat(SHELL_WHITESPACE);
+    scan.eat_any(SHELL_WHITESPACE);
 }
 
-static char *string(Scanner &scan)
+static String quote_string(IO::Scanner &scan)
 {
-    BufferBuilder *builder = buffer_builder_create(16);
+    IO::MemoryWriter memory{16};
 
     scan.skip('"');
 
-    while (scan.current() != '"' &&
-           scan.do_continue())
+    while (scan.peek() != '"' && !scan.ended())
     {
-        if (scan.current() == '\\')
-        {
-            buffer_builder_append_str(builder, scan_json_escape_sequence(scan));
-        }
-        else
-        {
-            buffer_builder_append_chr(builder, scan.current());
-            scan.foreward();
-        }
+        IO::write(memory, scan.next());
     }
 
     scan.skip('"');
 
-    return buffer_builder_finalize(builder);
+    return memory.string();
 }
 
-static char *argument(Scanner &scan)
+static String word_string(IO::Scanner &scan)
 {
-    if (scan.current() == '"')
+    IO::MemoryWriter memory{16};
+
+    while (!scan.peek_is_any(SHELL_WHITESPACE) &&
+           !scan.ended())
     {
-        return string(scan);
-    }
+        scan.skip('\'');
 
-    BufferBuilder *builder = buffer_builder_create(16);
-
-    while (!scan.current_is(SHELL_WHITESPACE) &&
-           scan.do_continue())
-    {
-        if (scan.current() == '\\')
+        if (!scan.ended())
         {
-            scan.foreward();
-        }
-
-        if (scan.do_continue())
-        {
-            buffer_builder_append_chr(builder, scan.current());
-            scan.foreward();
+            IO::write(memory, scan.next());
         }
     }
 
-    return buffer_builder_finalize(builder);
+    return memory.string();
 }
 
-static ShellNode *command(Scanner &scan)
+static String argument(IO::Scanner &scan)
 {
-    char *command_name = argument(scan);
-
-    whitespace(scan);
-
-    List *arguments = list_create();
-
-    whitespace(scan);
-
-    while (scan.do_continue() &&
-           scan.current() != '|' &&
-           scan.current() != '>')
+    if (scan.peek() == '"')
     {
-        list_pushback(arguments, argument(scan));
+        return quote_string(scan);
+    }
+    else
+    {
+        return word_string(scan);
+    }
+}
+
+static ShellNode *command(IO::Scanner &scan)
+{
+    char *command_name = strdup(argument(scan).cstring());
+
+    whitespace(scan);
+
+    auto arguments = new List<char *>();
+
+    whitespace(scan);
+
+    while (!scan.ended() &&
+           scan.peek() != '|' &&
+           scan.peek() != '>')
+    {
+        arguments->push_back(strdup(argument(scan).cstring()));
         whitespace(scan);
     }
 
     return shell_command_create(command_name, arguments);
 }
 
-static ShellNode *pipeline(Scanner &scan)
+static ShellNode *pipeline(IO::Scanner &scan)
 {
-    List *commands = list_create();
+    auto commands = new List<ShellNode *>();
 
     do
     {
         whitespace(scan);
-        list_pushback(commands, command(scan));
+        commands->push_back(command(scan));
         whitespace(scan);
     } while (scan.skip('|'));
 
     if (commands->count() == 1)
     {
-        ShellNode *node = (ShellNode *)list_peek(commands);
-        list_destroy(commands);
+        ShellNode *node = (ShellNode *)commands->peek();
+        delete commands;
         return node;
     }
 
     return shell_pipeline_create(commands);
 }
 
-static ShellNode *redirect(Scanner &scan)
+static ShellNode *redirect(IO::Scanner &scan)
 {
     ShellNode *node = pipeline(scan);
 
@@ -119,17 +114,17 @@ static ShellNode *redirect(Scanner &scan)
 
     whitespace(scan);
 
-    char *destination = argument(scan);
+    char *destination = strdup(argument(scan).cstring());
 
     return shell_redirect_create(node, destination);
 }
 
-ShellNode *shell_parse(char *command_text)
+ShellNode *shell_parse(const char *command_text)
 {
-    StringScanner scan(command_text, strlen(command_text));
+    IO::MemoryReader memory{command_text};
+    IO::Scanner scan{memory};
 
     // Skip the utf8 bom header if present.
-    scan_skip_utf8bom(scan);
     whitespace(scan);
     return redirect(scan);
 }

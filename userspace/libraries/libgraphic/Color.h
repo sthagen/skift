@@ -2,7 +2,7 @@
 
 #include <libgraphic/ColorsNames.h>
 #include <libmath/Lerp.h>
-#include <libsystem/Common.h>
+#include <libutils/Prelude.h>
 #include <libutils/String.h>
 
 namespace Graphic
@@ -232,7 +232,7 @@ public:
     }
 };
 
-class Colors
+struct Colors
 {
 private:
     Colors(/* args */) {}

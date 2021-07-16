@@ -1,40 +1,39 @@
-#include <libsystem/Logger.h>
 #include <libsystem/io/Stream.h>
 
-#include "kernel/Configs.h"
+#include "system/Configs.h"
+#include "system/Streams.h"
 
 #include "ps2/LegacyKeyboard.h"
 
 KeyMap *keyboard_load_keymap(const char *keymap_path)
 {
     CLEANUP(stream_cleanup)
-    Stream *keymap_file = stream_open(keymap_path, OPEN_READ);
+    Stream *keymap_file = stream_open(keymap_path, HJ_OPEN_READ);
 
     if (handle_has_error(keymap_file))
     {
-        logger_error("Failed to load keymap from %s: %s", keymap_path, handle_error_string(keymap_file));
-
+        Kernel::logln("Failed to load keymap from {}: {}", keymap_path, handle_error_string(keymap_file));
         return nullptr;
     }
 
-    FileState stat;
+    HjStat stat;
     stream_stat(keymap_file, &stat);
 
-    if (stat.type != FILE_TYPE_REGULAR)
+    if (stat.type != HJ_FILE_TYPE_REGULAR)
     {
-        logger_info("Failed to load keymap from %s: This is not a regular file", keymap_path);
+        Kernel::logln("Failed to load keymap from {}: This is not a regular file", keymap_path);
 
         return nullptr;
     }
 
-    logger_info("Allocating keymap of size %dkio", stat.size / 1024);
+    Kernel::logln("Allocating keymap of size {}kio", stat.size / 1024);
     KeyMap *keymap = (KeyMap *)malloc(stat.size);
 
     size_t read = stream_read(keymap_file, keymap, stat.size);
 
     if (read != stat.size)
     {
-        logger_error("Failed to load keymap from %s: %s", keymap_path, handle_error_string(keymap_file));
+        Kernel::logln("Failed to load keymap from {}: {}", keymap_path, handle_error_string(keymap_file));
 
         free(keymap);
 
@@ -55,11 +54,11 @@ Key LegacyKeyboard::scancode_to_key(int scancode)
     return KEYBOARD_KEY_INVALID;
 }
 
-Codepoint LegacyKeyboard::key_to_codepoint(Key key)
+Text::Rune LegacyKeyboard::key_to_rune(Key key)
 {
     if (!_keymap)
     {
-        logger_warn("No keymap loaded!");
+        Kernel::logln("No keymap loaded!");
         return 0;
     }
 
@@ -73,15 +72,15 @@ Codepoint LegacyKeyboard::key_to_codepoint(Key key)
     if (_keystate[KEYBOARD_KEY_LSHIFT] == KEY_MOTION_DOWN ||
         _keystate[KEYBOARD_KEY_RSHIFT] == KEY_MOTION_DOWN)
     {
-        return mapping->shift_codepoint;
+        return mapping->shift_rune;
     }
     else if (_keystate[KEYBOARD_KEY_RALT] == KEY_MOTION_DOWN)
     {
-        return mapping->alt_codepoint;
+        return mapping->alt_rune;
     }
     else
     {
-        return mapping->regular_codepoint;
+        return mapping->regular_rune;
     }
 }
 
@@ -124,18 +123,18 @@ void LegacyKeyboard::handle_key(Key key, KeyMotion motion)
 {
     if (!key_is_valid(key))
     {
-        logger_warn("Invalid scancode %d", key);
+        Kernel::logln("Invalid scancode {}", key);
         return;
     }
 
-    Codepoint codepoint = key_to_codepoint(key);
+    Text::Rune rune = key_to_rune(key);
 
     if (_keystate[key] == KEY_MOTION_UP && motion == KEY_MOTION_DOWN)
     {
         KeyboardPacket packet = {
             key,
             modifiers(),
-            codepoint,
+            rune,
             KEY_MOTION_DOWN,
         };
 
@@ -147,7 +146,7 @@ void LegacyKeyboard::handle_key(Key key, KeyMotion motion)
         KeyboardPacket packet = {
             key,
             modifiers(),
-            codepoint,
+            rune,
             KEY_MOTION_UP,
         };
 
@@ -159,7 +158,7 @@ void LegacyKeyboard::handle_key(Key key, KeyMotion motion)
         KeyboardPacket packet = {
             key,
             modifiers(),
-            codepoint,
+            rune,
             KEY_MOTION_TYPED,
         };
 
@@ -219,7 +218,7 @@ ResultOr<size_t> LegacyKeyboard::read(size64_t offset, void *buffer, size_t size
     return _events.read((char *)buffer, (size / sizeof(KeyboardPacket)) * sizeof(KeyboardPacket));
 }
 
-Result LegacyKeyboard::call(IOCall request, void *args)
+HjResult LegacyKeyboard::call(IOCall request, void *args)
 {
     if (request == IOCALL_KEYBOARD_GET_KEYMAP)
     {

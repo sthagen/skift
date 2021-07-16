@@ -5,7 +5,6 @@
 #include <libio/Pipe.h>
 #include <libio/Streams.h>
 #include <libsystem/io/Filesystem.h>
-#include <libsystem/io/Stream.h>
 #include <libsystem/process/Launchpad.h>
 #include <libsystem/process/Process.h>
 #include <libutils/Assert.h>
@@ -43,10 +42,10 @@ Optional<String> find_command_path(String command)
         }
     }
 
-    return {};
+    return NONE;
 }
 
-Result shell_exec(
+HjResult shell_exec(
     ShellCommand *command,
     RefPtr<IO::Handle> instream,
     RefPtr<IO::Handle> outstream,
@@ -63,7 +62,7 @@ Result shell_exec(
     Launchpad *launchpad = launchpad_create(command->command, executable.unwrap().cstring());
     launchpad_flags(launchpad, TASK_WAITABLE);
 
-    list_foreach(char, arg, command->arguments)
+    for (auto *arg : *command->arguments)
     {
         launchpad_argument(launchpad, arg);
     }
@@ -91,7 +90,7 @@ int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> 
             argv[0] = command->command;
             int argc = 1;
 
-            list_foreach(char, arg, command->arguments)
+            for (auto *arg : *command->arguments)
             {
                 argv[argc] = arg;
                 argc++;
@@ -104,7 +103,7 @@ int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> 
         }
 
         int pid;
-        Result result = shell_exec(command, instream, outstream, &pid);
+        HjResult result = shell_exec(command, instream, outstream, &pid);
         auto path = IO::Path::parse(command->command, IO::Path::PARENT_SHORTHAND);
 
         if (result == SUCCESS)
@@ -113,7 +112,7 @@ int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> 
             process_wait(pid, &command_result);
             return command_result;
         }
-        else if (filesystem_exist(path.string().cstring(), FILE_TYPE_DIRECTORY))
+        else if (filesystem_exist(path.string().cstring(), HJ_FILE_TYPE_DIRECTORY))
         {
             process_set_directory(path.string().cstring());
 
@@ -133,40 +132,45 @@ int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> 
 
         Vector<IO::Pipe> pipes;
 
-        for (int i = 0; i < pipeline->commands->count() - 1; i++)
+        for (size_t i = 0; i < pipeline->commands->count() - 1; i++)
         {
             pipes.push_back(IO::Pipe::create().unwrap());
         }
 
         Vector<int> processes;
 
-        for (int i = 0; i < pipeline->commands->count(); i++)
+        size_t index = 0;
+        for (auto *command : *pipeline->commands)
         {
-            ShellCommand *command = nullptr;
-            list_peekat(pipeline->commands, i, (void **)&command);
-            Assert::is_true(command);
+            Assert::truth(command);
 
             RefPtr<IO::Handle> command_stdin = instream;
             RefPtr<IO::Handle> command_stdout = outstream;
 
-            if (i > 0)
+            if (index > 0)
             {
-                command_stdin = pipes[i - 1].reader;
+                command_stdin = pipes[index - 1].reader;
             }
 
-            if (i < pipeline->commands->count() - 1)
+            if (index < pipeline->commands->count() - 1)
             {
-                command_stdout = pipes[i].writer;
+                command_stdout = pipes[index].writer;
             }
 
-            shell_exec(command, command_stdin, command_stdout, &processes.emplace_back(-1));
+            shell_exec(
+                static_cast<ShellCommand *>(command),
+                command_stdin,
+                command_stdout,
+                &processes.emplace_back(-1));
+
+            index++;
         }
 
         pipes.clear();
 
         int exit_value;
 
-        for (int i = 0; i < pipeline->commands->count(); i++)
+        for (size_t i = 0; i < pipeline->commands->count(); i++)
         {
             process_wait(processes[i], &exit_value);
         }
@@ -179,7 +183,7 @@ int shell_eval(ShellNode *node, RefPtr<IO::Handle> instream, RefPtr<IO::Handle> 
     {
         ShellRedirect *redirect = (ShellRedirect *)node;
 
-        IO::File file{redirect->destination, OPEN_WRITE | OPEN_CREATE};
+        IO::File file{redirect->destination, HJ_OPEN_WRITE | HJ_OPEN_CREATE};
 
         if (file.exist())
         {

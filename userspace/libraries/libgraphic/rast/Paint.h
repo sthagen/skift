@@ -3,7 +3,6 @@
 #include <libgraphic/Bitmap.h>
 #include <libgraphic/Color.h>
 #include <libmath/Mat3x2.h>
-#include <libsystem/Logger.h>
 #include <libutils/Array.h>
 #include <libutils/Variant.h>
 
@@ -36,13 +35,13 @@ struct Texture
     RefPtr<Bitmap> bitmap;
 };
 
-using Paint = Utils::Variant<Fill, Gradient, Texture>;
+using Paint = Variant<Fill, Gradient, Texture>;
 
 static inline ALWAYS_INLINE Color sample(Paint &paint, Math::Vec2f p)
 {
     Color result = Colors::CYAN;
 
-    paint.visit(Utils::Visitor{
+    paint.visit(Visitor{
         [&](Fill &fill) {
             result = fill.color;
         },

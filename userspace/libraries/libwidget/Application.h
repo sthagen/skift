@@ -11,9 +11,8 @@
 namespace Widget
 {
 
-class Application :
-    public Async::Source,
-    public RefCounted<Application>
+struct Application :
+    public Async::Source
 {
 private:
     Vector<Window *> _windows;
@@ -34,9 +33,13 @@ private:
     void goodbye();
 
 public:
-    static RefPtr<Application> the();
+    static Application &the();
 
     Application();
+
+    virtual ~Application();
+
+    virtual OwnPtr<Window> build() { return nullptr; }
 
     void show_window(Window *window);
 
@@ -56,7 +59,7 @@ public:
 
     Window *get_window(int id);
 
-    Result initialize(int argc, char **argv);
+    HjResult initialize(int argc, char **argv);
 
     int run();
 

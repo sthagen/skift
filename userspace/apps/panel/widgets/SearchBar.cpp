@@ -1,27 +1,36 @@
-#include <libwidget/Elements.h>
-#include <libwidget/TextField.h>
+#include <libwidget/Layouts.h>
+#include <libwidget/Views.h>
 
 #include "panel/widgets/SearchBar.h"
 
-namespace panel
+using namespace Widget;
+
+namespace Panel
 {
 
-SearchBar::SearchBar(RefPtr<Widget::TextModel> model) : PanelElement(6)
+SearchBarComponent::SearchBarComponent(String text, Func<void(String)> on_change)
+    : _model{TextModel::create(text)},
+      _on_change{on_change}
 {
-    layout(HFLOW(4));
-    insets({6});
-    outsets({8});
-    color(Widget::THEME_MIDDLEGROUND, Graphic::Colors::WHITE);
-    layout(HFLOW(4));
-    min_height(36);
-
-    auto icon = add(Widget::icon("search"));
-    icon->color(Widget::THEME_FOREGROUND, Graphic::Colors::BLACK);
-
-    auto field = add<Widget::TextField>(model);
-    field->flags(Element::FILL);
-    field->color(Widget::THEME_FOREGROUND, Graphic::Colors::BLACK);
-    field->focus();
 }
 
-} // namespace panel
+RefPtr<Element> SearchBarComponent::build()
+{
+    // clang-format off
+
+    return spacing(4,
+        panel(6,
+            spacing(8,
+                hflow(4,
+                {
+                    icon(Graphic::Icon::get("search")),
+                    fill(textfield(_model)),
+                })
+            )
+        )
+    );
+
+    // clang-format on
+}
+
+} // namespace Panel

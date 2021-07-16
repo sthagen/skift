@@ -8,12 +8,12 @@
 namespace IO
 {
 
-class Handle :
+struct Handle :
     public RefCounted<Handle>
 {
 private:
     int _handle = HANDLE_INVALID_ID;
-    Result _result = ERR_BAD_HANDLE;
+    HjResult _result = ERR_BAD_HANDLE;
 
     NONCOPYABLE(Handle);
 
@@ -24,7 +24,7 @@ public:
     {
     }
 
-    Handle(const String path, OpenFlag flags)
+    Handle(const String path, HjOpenFlag flags)
     {
         auto resolved_path = process_resolve(path);
         _result = hj_handle_open(&_handle, resolved_path.cstring(), resolved_path.length(), flags);
@@ -32,14 +32,14 @@ public:
 
     Handle(Handle &&other)
     {
-        _handle = exchange_and_return_initial_value(other._handle, HANDLE_INVALID_ID);
-        _result = exchange_and_return_initial_value(other._result, ERR_BAD_HANDLE);
+        _handle = std::exchange(other._handle, HANDLE_INVALID_ID);
+        _result = std::exchange(other._result, ERR_BAD_HANDLE);
     }
 
     Handle &operator=(Handle &&other)
     {
-        swap(_handle, other._handle);
-        swap(_result, other._result);
+        std::swap(_handle, other._handle);
+        std::swap(_result, other._result);
 
         return *this;
     }
@@ -67,7 +67,7 @@ public:
         return data_written;
     }
 
-    Result call(IOCall request, void *args)
+    HjResult call(IOCall request, void *args)
     {
         _result = hj_handle_call(_handle, request, args);
         return _result;
@@ -88,9 +88,9 @@ public:
         return result_offset;
     }
 
-    ResultOr<FileState> stat()
+    ResultOr<HjStat> stat()
     {
-        FileState stat{};
+        HjStat stat{};
         _result = TRY(hj_handle_stat(_handle, &stat));
         return stat;
     }
@@ -107,7 +107,7 @@ public:
         return _handle != HANDLE_INVALID_ID;
     }
 
-    Result result()
+    HjResult result()
     {
         return _result;
     }

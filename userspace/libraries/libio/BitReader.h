@@ -6,18 +6,18 @@
 
 namespace IO
 {
-class BitReader
+struct BitReader
 {
 private:
     IO::Reader &_reader;
-    Utils::InlineRingBuffer<uint8_t, 16> _buffer;
+    InlineRingBuffer<uint8_t, 16> _buffer;
     size_t _head = 0;
     bool _end_of_file;
 
 public:
     inline BitReader(IO::Reader &reader) : _reader(reader) {}
 
-    inline Result hint(size_t num_bits)
+    inline HjResult hint(size_t num_bits)
     {
         size_t num_bytes = ALIGN_UP(_head + num_bits, 8) / 8;
 
@@ -45,7 +45,7 @@ public:
         _buffer.flush();
     }
 
-    template <class T>
+    template <typename T>
     inline T grab()
     {
         hint(sizeof(T) * 8);
@@ -60,14 +60,14 @@ public:
         return value;
     }
 
-    template <class T>
+    template <typename T>
     inline T grab_aligned()
     {
         flush();
         return grab<T>();
     }
 
-    template <class T>
+    template <typename T>
     inline T peek()
     {
         hint(sizeof(T) * 8);
@@ -82,7 +82,7 @@ public:
         return value;
     }
 
-    inline Result skip_bits(size_t num_bits)
+    inline HjResult skip_bits(size_t num_bits)
     {
         if (num_bits == 0)
         {

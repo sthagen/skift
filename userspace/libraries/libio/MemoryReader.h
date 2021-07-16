@@ -7,7 +7,7 @@
 namespace IO
 {
 
-class MemoryReader final :
+struct MemoryReader final :
     public Reader,
     public Seek
 {
@@ -16,6 +16,8 @@ private:
     size_t _position = 0;
 
 public:
+    Slice memory() { return _memory; }
+
     MemoryReader(const char *cstring)
         : _memory{cstring}
     {

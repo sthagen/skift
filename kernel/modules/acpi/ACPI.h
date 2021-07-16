@@ -4,6 +4,8 @@
 
 #include <libutils/Iteration.h>
 
+#include "system/handover/Handover.h"
+
 namespace Acpi
 {
 
@@ -38,11 +40,11 @@ struct PACKED SDTH
 struct PACKED RSDT
 {
     SDTH header;
-    uint32_t childs[];
+    uint32_t children[];
 
     SDTH *child(size_t index)
     {
-        return reinterpret_cast<SDTH *>(childs[index]);
+        return reinterpret_cast<SDTH *>(children[index]);
     }
 
     size_t child_count()
@@ -68,7 +70,7 @@ struct PACKED RSDT
 
 /* --- MADT ----------------------------------------------------------------- */
 
-enum class MADTRecordType : uint8_t
+enum struct MADTRecordType : uint8_t
 {
     LAPIC = 0,
     IOAPIC = 1,
@@ -132,5 +134,7 @@ struct PACKED MADT
         return result;
     }
 };
+
+void initialize(Handover *handover);
 
 } // namespace Acpi

@@ -9,7 +9,7 @@
 namespace IO
 {
 
-class InStream :
+struct InStream :
     public Reader,
     public RawHandle
 {
@@ -25,7 +25,7 @@ public:
     RefPtr<Handle> handle() override { return _handle; }
 };
 
-class OutStream :
+struct OutStream :
     public Writer,
     public RawHandle
 {
@@ -41,7 +41,7 @@ public:
     RefPtr<Handle> handle() override { return _handle; }
 };
 
-class ErrStream :
+struct ErrStream :
     public Writer,
     public RawHandle
 
@@ -58,7 +58,7 @@ public:
     RefPtr<Handle> handle() override { return _handle; }
 };
 
-class LogStream :
+struct LogStream :
     public Writer,
     public RawHandle
 {
@@ -87,11 +87,11 @@ static inline ResultOr<String> inln()
     Scanner scan{in()};
     MemoryWriter writer{};
 
-    while (!(scan.ended() || scan.current() == '\n'))
+    while (!(scan.ended() || scan.peek() == '\n'))
     {
-        writer.write(scan.current());
-        IO::write(out(), scan.current());
-        scan.forward();
+        writer.write(scan.peek());
+        IO::write(out(), scan.peek());
+        scan.next();
     }
 
     IO::write(out(), '\n');
@@ -105,7 +105,7 @@ static ResultOr<size_t> print(Writer &writer, const char *fmt, Args... args)
 {
     MemoryReader memory{fmt};
     Scanner scan{memory};
-    return format(writer, scan, forward<Args>(args)...);
+    return format(writer, scan, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
@@ -113,24 +113,24 @@ static ResultOr<size_t> println(Writer &writer, const char *fmt, Args... args)
 {
     MemoryReader memory{fmt};
     Scanner scan{memory};
-    size_t written = TRY(format(writer, scan, forward<Args>(args)...));
+    size_t written = TRY(format(writer, scan, std::forward<Args>(args)...));
     return written + TRY(IO::write(writer, '\n'));
 }
 
 template <typename... Args>
-static ResultOr<size_t> out(const char *fmt, Args... args) { return print(out(), fmt, forward<Args>(args)...); }
+static ResultOr<size_t> out(const char *fmt, Args... args) { return print(out(), fmt, std::forward<Args>(args)...); }
 
 template <typename... Args>
-static ResultOr<size_t> outln(const char *fmt, Args... args) { return println(out(), fmt, forward<Args>(args)...); }
+static ResultOr<size_t> outln(const char *fmt, Args... args) { return println(out(), fmt, std::forward<Args>(args)...); }
 
 template <typename... Args>
-static ResultOr<size_t> err(const char *fmt, Args... args) { return print(err(), fmt, forward<Args>(args)...); }
+static ResultOr<size_t> err(const char *fmt, Args... args) { return print(err(), fmt, std::forward<Args>(args)...); }
 
 template <typename... Args>
-static ResultOr<size_t> errln(const char *fmt, Args... args) { return println(err(), fmt, forward<Args>(args)...); }
+static ResultOr<size_t> errln(const char *fmt, Args... args) { return println(err(), fmt, std::forward<Args>(args)...); }
 
 template <typename... Args>
-static ResultOr<size_t> log(const char *fmt, Args... args) { return print(log(), fmt, forward<Args>(args)...); }
+static ResultOr<size_t> log(const char *fmt, Args... args) { return print(log(), fmt, std::forward<Args>(args)...); }
 
 template <typename... Args>
 static ResultOr<size_t> logln(const char *fmt, Args... args)
@@ -140,7 +140,7 @@ static ResultOr<size_t> logln(const char *fmt, Args... args)
     size_t written = 0;
 
     written = TRY(print(buf, "\e[{}m{}({}) \e[37m", (process_this() % 6) + 91, process_name(), process_this()));
-    written += TRY(print(buf, fmt, forward<Args>(args)...));
+    written += TRY(print(buf, fmt, std::forward<Args>(args)...));
     written += TRY(IO::write(buf, "\e[m\n"));
 
     return written;
@@ -152,7 +152,7 @@ static ResultOr<size_t> panicln(const char *fmt, Args... args)
     IO::BufLine buf{log()};
 
     print(buf, "\e[97;101m{}({}) ", process_name(), process_this());
-    print(buf, fmt, forward<Args>(args)...);
+    print(buf, fmt, std::forward<Args>(args)...);
     IO::write(buf, "\e[m\n");
     process_abort();
 }

@@ -9,7 +9,7 @@ namespace Math
 {
 
 template <typename Scalar>
-class Vec2
+struct Vec2
 {
 private:
     Scalar _x;
@@ -154,13 +154,12 @@ public:
 
         return sign * acosf(r);
     }
-};
 
-template <typename T>
-ResultOr<size_t> format(IO::Writer &writer, const IO::Formating &, const Math::Vec2<T> &vec)
-{
-    return IO::format(writer, "({}, {})", vec.x(), vec.y());
-}
+    String string() const
+    {
+        return IO::format("({}, {})", x(), y());
+    }
+};
 
 using Vec2i = Vec2<int>;
 using Vec2f = Vec2<float>;

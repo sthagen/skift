@@ -40,7 +40,7 @@ do
     // ...
 } while (cond);
 
-class FooBar
+struct FooBar
 {
     FooBar();
 };
@@ -134,7 +134,7 @@ case mitzvah:
 
 * Include libraries first, then include local headers (separate them with a new line).
 * Use `.h` as extension.
-* Most of the headers of skift include the file `libsystem/Common.h` wich include most of the standard libraries (`stdio`, `stdlib`, `stddef`, `stdint` and some Macros).
+* Most of the headers of skift include the file `libutils/Prelude.h` wich include most of the standard libraries (`stdio`, `stdlib`, `stddef`, `stdint` and some Macros).
 * If you want to declare a new header use `#pragma once` instead of using cross-defines.
 
 *Example:*
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 
 * `return -1` when there is an error
 * `return 0` when there is not
-* When using `Result` for error handling, use the function `result_to_string` for printing errors out
+* When using `HjResult` for error handling, use the function `result_to_string` for printing errors out
 
 **DON'T**
 

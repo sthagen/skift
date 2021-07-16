@@ -4,7 +4,7 @@
 <p align="center">
   <a href="https://skiftos.org/">Website</a> -
   <a href="manual/readme.md">Manual</a> -
-  <a href="https://discord.gg/gamGsfg">Discord</a> -
+  <a href="http://discord.skiftos.org">Discord</a> -
   <a href="https://github.com/skiftOS/skift/releases">Releases</a>
 </p>
 
@@ -17,14 +17,13 @@
 [![GitHub issues](https://img.shields.io/github/issues-raw/skiftOS/skift)](https://github.com/skiftOS/skift/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/skiftOS/skift)](https://github.com/skiftOS/skift/pulls)
 
- - **skiftOS** is a simple, handmade operating system for the x86 platform, aiming for clean and pretty APIs while keeping the spirit of UNIX.
+ - **skiftOS** is an operating system built from scratch in modern C++. 
+ - **skiftOS** is featuring a reactive UI library and has a strong emphasis on user experience. 
+ - **skiftOS** exposes its features to developers through clean APIs.
  - **skiftOS** includes many applications like an [Image Viewer](./userspace/apps/image-viewer), a [Text Editor](./userspace/apps/text-editor), a [Terminal Emulator](./userspace/apps/terminal), [etc](./userspace/apps)...
  - **skiftOS** features an UNIX-like terminal experience with many familiar UNIX utilities.
  - **skiftOS** is also pretty easy to build from source, just follow the [build guide](manual/meta/building.md).
  - **skiftOS** is capable of running on real hardware.
- - **skiftOS** features a graphical user interface (GUI), with a compositor.
- - **skiftOS** is constantly updated, for the latest release `.img` of skiftOS, click [here](https://github.com/skiftOS/skift/releases/latest).
- - **skiftOS** can [run DOOM :rage3:](https://github.com/skiftOS/port-doom)
 
 # Screenshots
 
@@ -59,6 +58,10 @@ skiftOS running in QEMU 5.1
 
 # License
 
+<a href="https://opensource.org/licenses/MIT">
+  <img align="right" height="96" alt="MIT License" src="manual/mit-license.png" />
+</a>
+
 The skift operating system and its core components are licensed under the **MIT License**.
 
-See [license.md](license.md)
+The full text of the license can be accessed via [this link](https://opensource.org/licenses/MIT) and is also included in the [license.md](license.md) file of this software package.

@@ -1,60 +1,58 @@
-#include <abi/Syscalls.h>
-
-#include <libio/Format.h>
-#include <libsystem/system/System.h>
-#include <libutils/StringBuilder.h>
-#include <libwidget/Container.h>
 #include <libwidget/Elements.h>
+#include <libwidget/Layouts.h>
 
 #include "task-manager/widgets/RAMGraph.h"
 
-namespace task_manager
+using namespace Widget;
+using namespace Graphic;
+
+namespace TaskManager
 {
 
-RAMGraph::RAMGraph(RefPtr<TaskModel> model)
-    : Graph(256, Graphic::Colors::ROYALBLUE),
-      _model(model)
+RAMGraphComponent::RAMGraphComponent(RefPtr<TaskModel> tasks) : _tasks{tasks}
 {
-    layout(VFLOW(0));
-    insets(Insetsi(8));
-    flags(Element::FILL);
+    _usage = make<Widget::GraphModel>();
 
-    auto icon_and_text = add<Widget::Container>();
-    icon_and_text->layout(HFLOW(4));
-    icon_and_text->add(Widget::icon("chip"));
-    icon_and_text->add<Widget::Label>("Memory");
-
-    auto cpu_filler = add<Widget::Container>();
-    cpu_filler->flags(Element::FILL);
-
-    _label_usage = add<Widget::Label>("Usage: nil Mio", Anchor::RIGHT);
-    _label_available = add<Widget::Label>("Available: nil Mio", Anchor::RIGHT);
-    _label_greedy = add<Widget::Label>("Most greedy: nil", Anchor::RIGHT);
-
-    _graph_timer = own<Async::Timer>(500, [&]() {
+    _update = own<Async::Timer>(500, [this] {
         SystemStatus status{};
         hj_system_status(&status);
-
-        record(status.used_ram / (float)status.total_ram);
+        _usage->record(status.used_ram / (float)status.total_ram);
     });
 
-    _graph_timer->start();
-
-    _text_timer = own<Async::Timer>(1000, [&]() {
-        SystemStatus status{};
-        hj_system_status(&status);
-
-        unsigned usage = status.used_ram / 1024 / 1024;
-        _label_usage->text(IO::format("Usage: {} Mio", usage));
-
-        unsigned available = status.total_ram / 1024 / 1024;
-        _label_available->text(IO::format("Available: {} Mio", available));
-
-        auto greedy = _model->ram_greedy();
-        _label_greedy->text(IO::format("Most greedy: {}", greedy));
-    });
-
-    _text_timer->start();
+    _update->start();
 }
 
-} // namespace task_manager
+RefPtr<Element> RAMGraphComponent::build()
+{
+    // clang-format off
+
+    return stack({
+        fill({
+            graph(_usage, Colors::ROYALBLUE),
+            refresher(1000, [this] {
+                SystemStatus status{};
+                hj_system_status(&status);
+
+                auto usage = status.used_ram / 1024 / 1024;
+                auto available = status.total_ram / 1024 / 1024;
+
+                return spacing(6,
+                    vflow(4, {
+                        hflow(4, {
+                            icon(Graphic::Icon::get("chip")),
+                            label("Memory")
+                        }),
+                        spacer(),
+                        label(IO::format("Usage: {} Mio", usage),Math::Anchor::RIGHT),
+                        label(IO::format("Available: {} Mio", available),Math::Anchor::RIGHT),
+                        label(IO::format("Most greedy: {}", _tasks->ram_greedy()),Math::Anchor::RIGHT),
+                    })
+                );
+            })
+        }),
+    });
+
+    // clang-format on
+}
+
+}; // namespace TaskManager

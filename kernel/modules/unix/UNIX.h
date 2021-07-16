@@ -1,5 +1,5 @@
 #pragma once
 
-#include "kernel/devices/DeviceAddress.h"
+#include "system/devices/DeviceAddress.h"
 
-Iteration unix_scan(IterationCallback<UNIXAddress> callback);
+Iteration unix_scan(IterFunc<UNIXAddress> callback);

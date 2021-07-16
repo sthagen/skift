@@ -1,7 +1,6 @@
 #pragma once
 
-#include <libwidget/Container.h>
-#include <libwidget/TitleBar.h>
+#include <libwidget/Components.h>
 #include <libwidget/Window.h>
 
 #include <libfilepicker/model/Navigation.h>
@@ -9,7 +8,7 @@
 #include <libfilepicker/widgets/JumpList.h>
 #include <libfilepicker/widgets/ToolBar.h>
 
-class MainWindow :
+struct MainWindow :
     public Widget::Window
 {
 private:
@@ -19,18 +18,13 @@ public:
     {
         size(Math::Vec2i(700, 500));
 
-        root()->layout(VFLOW(0));
-
-        root()->add<Widget::TitleBar>(
-            Graphic::Icon::get("folder"),
-            "File Manager");
+        root()->add(Widget::titlebar(Graphic::Icon::get("folder"), "File Manager"));
 
         root()->add<FilePicker::ToolBar>(navigation, bookmarks);
 
-        auto bookmarks_and_browser = root()->add<Widget::Container>();
+        auto bookmarks_and_browser = root()->add<Widget::Element>();
 
         bookmarks_and_browser->flags(Widget::Element::FILL);
-        bookmarks_and_browser->layout(HFLOW(1));
 
         auto jump_list = bookmarks_and_browser->add<FilePicker::JumpList>(navigation, bookmarks);
 

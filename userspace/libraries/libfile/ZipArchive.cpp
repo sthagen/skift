@@ -10,7 +10,6 @@
 #include <libio/Skip.h>
 #include <libio/Streams.h>
 #include <libio/Write.h>
-#include <libsystem/Logger.h>
 #include <libutils/Endian.h>
 
 // Central header
@@ -119,7 +118,7 @@ ZipArchive::ZipArchive(IO::Path path, bool read) : Archive(path)
     }
 }
 
-Result read_local_headers(IO::SeekableReader auto &reader, Vector<Archive::Entry> &entries)
+HjResult read_local_headers(IO::SeekableReader auto &reader, Vector<Archive::Entry> &entries)
 {
     // Read all local file headers and data descriptors
     while (TRY(reader.tell()) < (TRY(reader.length()) - sizeof(LocalHeader)))
@@ -167,10 +166,10 @@ Result read_local_headers(IO::SeekableReader auto &reader, Vector<Archive::Entry
         }
     }
 
-    return Result::SUCCESS;
+    return HjResult::SUCCESS;
 }
 
-Result read_central_directory(IO::SeekableReader auto &reader)
+HjResult read_central_directory(IO::SeekableReader auto &reader)
 {
     // Central directory starts here
     while (TRY(reader.tell()) < (TRY(reader.length()) - sizeof(CentralDirectoryFileHeader)))
@@ -199,42 +198,42 @@ Result read_central_directory(IO::SeekableReader auto &reader)
     if (central_dir_end_sig() != ZIP_END_OF_CENTRAL_DIR_HEADER_SIG)
     {
         IO::logln("Missing 'central directory end record' signature!");
-        return Result::ERR_INVALID_DATA;
+        return ERR_INVALID_DATA;
     }
 
-    return Result::SUCCESS;
+    return HjResult::SUCCESS;
 }
 
-Result ZipArchive::read_archive()
+HjResult ZipArchive::read_archive()
 {
     _valid = false;
 
-    IO::File archive_file(_path, OPEN_READ);
+    IO::File archive_file(_path, HJ_OPEN_READ);
 
     // Archive does not exist
     if (!archive_file.exist())
     {
         IO::logln("Archive does not exist: {}", _path.string());
-        return Result::ERR_NO_SUCH_FILE_OR_DIRECTORY;
+        return ERR_NO_SUCH_FILE_OR_DIRECTORY;
     }
 
-    IO::logln("Opening file: '%s'", _path.string());
+    IO::logln("Opening file: '{}'", _path.string());
 
     // A valid zip must atleast contain a "CentralDirectoryEndRecord"
     if (TRY(archive_file.length()) < sizeof(CentralDirectoryEndRecord))
     {
         IO::logln("Archive is too small to be a valid .zip: {} {}", _path.string(), archive_file.length().unwrap());
-        return Result::ERR_INVALID_DATA;
+        return ERR_INVALID_DATA;
     }
 
     TRY(read_local_headers(archive_file, _entries));
     TRY(read_central_directory(archive_file));
 
     _valid = true;
-    return Result::SUCCESS;
+    return HjResult::SUCCESS;
 }
 
-Result write_entry(const Archive::Entry &entry, IO::Writer &writer, IO::Reader &compressed, size_t compressed_size)
+HjResult write_entry(const Archive::Entry &entry, IO::Writer &writer, IO::Reader &compressed, size_t compressed_size)
 {
     LocalHeader header;
     header.flags = EF_NONE;
@@ -246,12 +245,12 @@ Result write_entry(const Archive::Entry &entry, IO::Writer &writer, IO::Reader &
     header.signature = ZIP_LOCAL_DIR_HEADER_SIG;
 
     // Write data
-    TRY(IO::write(writer, header));
+    TRY(IO::write_struct(writer, header));
     TRY(IO::write(writer, entry.name));
     return IO::copy(compressed, writer);
 }
 
-Result write_central_directory(IO::SeekableWriter auto &writer, Vector<Archive::Entry> &entries)
+HjResult write_central_directory(IO::SeekableWriter auto &writer, Vector<Archive::Entry> &entries)
 {
     auto start = TRY(writer.tell());
     for (const auto &entry : entries)
@@ -267,7 +266,7 @@ Result write_central_directory(IO::SeekableWriter auto &writer, Vector<Archive::
         header.len_extrafield = 0;
         header.len_comment = 0;
         header.signature = ZIP_CENTRAL_DIR_HEADER_SIG;
-        TRY(IO::write(writer, header));
+        TRY(IO::write_struct(writer, header));
         TRY(IO::write(writer, entry.name));
     }
     auto end = TRY(writer.tell());
@@ -279,10 +278,10 @@ Result write_central_directory(IO::SeekableWriter auto &writer, Vector<Archive::
     end_record.disk_entries = entries.count();
     end_record.total_entries = entries.count();
     end_record.len_comment = 0;
-    return IO::write(writer, end_record).result();
+    return IO::write_struct(writer, end_record).result();
 }
 
-Result ZipArchive::extract(unsigned int entry_index, IO::Writer &writer)
+HjResult ZipArchive::extract(unsigned int entry_index, IO::Writer &writer)
 {
     // Read the compressed data from the entry
     const auto &entry = _entries[entry_index];
@@ -290,11 +289,11 @@ Result ZipArchive::extract(unsigned int entry_index, IO::Writer &writer)
     if (entry.compression != CM_DEFLATED)
     {
         IO::logln("ZipArchive: Unsupported compression: {}", entry.compression);
-        return Result::ERR_NOT_IMPLEMENTED;
+        return ERR_NOT_IMPLEMENTED;
     }
 
     // Get a reader to the uncompressed data
-    IO::File file_reader(_path, OPEN_READ);
+    IO::File file_reader(_path, HJ_OPEN_READ);
     file_reader.seek(IO::SeekFrom::start(entry.archive_offset));
     IO::ScopedReader scoped_reader(file_reader, entry.compressed_size);
 
@@ -302,7 +301,7 @@ Result ZipArchive::extract(unsigned int entry_index, IO::Writer &writer)
     return inf.perform(scoped_reader, writer).result();
 }
 
-Result ZipArchive::insert(const char *entry_name, IO::Reader &reader)
+HjResult ZipArchive::insert(const char *entry_name, IO::Reader &reader)
 {
     // TODO: create a new entry and write it to the output file
     IO::MemoryWriter memory_writer;
@@ -310,7 +309,7 @@ Result ZipArchive::insert(const char *entry_name, IO::Reader &reader)
     // Write local headers
     for (const auto &entry : _entries)
     {
-        IO::File file_reader(_path, OPEN_READ);
+        IO::File file_reader(_path, HJ_OPEN_READ);
         file_reader.seek(IO::SeekFrom::start(entry.archive_offset));
 
         IO::ScopedReader scoped_reader(file_reader, entry.compressed_size);
@@ -343,6 +342,6 @@ Result ZipArchive::insert(const char *entry_name, IO::Reader &reader)
     // Write central directory
     TRY(write_central_directory(memory_writer, _entries));
 
-    IO::File file_writer(_path, OPEN_WRITE | OPEN_CREATE);
+    IO::File file_writer(_path, HJ_OPEN_WRITE | HJ_OPEN_CREATE);
     return IO::write_all(file_writer, Slice(memory_writer.slice()));
 }

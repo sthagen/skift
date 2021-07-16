@@ -5,7 +5,7 @@ namespace Widget
 {
 
 IconElement::IconElement(RefPtr<Graphic::Icon> icon, Graphic::IconSize size)
-    : _icon(icon), _icon_size{size}
+    : _icon{icon}, _icon_size{size}
 {
 }
 
@@ -16,7 +16,7 @@ void IconElement::paint(Graphic::Painter &painter, const Math::Recti &)
         return;
     }
 
-    Math::Recti destination = _icon->bound(_icon_size).centered_within(content());
+    Math::Recti destination = _icon->bound(_icon_size).centered_within(bound());
 
     painter.blit(
         *_icon,

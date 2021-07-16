@@ -1,66 +1,46 @@
-#include <libsystem/process/Process.h>
-#include <libutils/FuzzyMatcher.h>
-#include <libwidget/Button.h>
-#include <libwidget/Label.h>
+#include <libtext/FuzzyMatcher.h>
+#include <libwidget/Layouts.h>
 #include <libwidget/Window.h>
 
 #include "panel/model/MenuEntry.h"
 #include "panel/widgets/ApplicationListing.h"
 
-namespace panel
+using namespace Widget;
+
+namespace Panel
 {
 
-ApplicationListing::ApplicationListing() : VScroll()
+ApplicationListingComponent::ApplicationListingComponent(String filter) : _filter{filter}
 {
-    layout(VFLOW(4));
     flags(Element::FILL);
-
-    render();
 }
 
-void ApplicationListing::filter(const String &filter)
+RefPtr<Element> ApplicationListingComponent::build()
 {
-    if (_filter == filter)
-    {
-        return;
-    }
+    Text::FuzzyMatcher matcher;
 
-    _filter = filter;
+    Vector<RefPtr<Element>> children;
 
-    render();
-}
-
-void ApplicationListing::render()
-{
-    FuzzyMatcher matcher;
-
-    host()->clear();
-    host()->layout(VFLOW(4));
-
-    bool find_any = false;
-
-    MenuEntry::load().foreach ([&](auto &entry) {
+    MenuEntry::load().foreach([&](auto &entry) {
         if (!matcher.match(_filter, entry.name))
         {
             return Iteration::CONTINUE;
         }
 
-        find_any = true;
-
-        auto item = host()->add<Widget::Button>(Widget::Button::TEXT, entry.image, entry.name);
-
-        item->on(Widget::Event::ACTION, [this, entry](auto) {
+        children.push_back(basic_button(entry.image, entry.name, [this, entry] {
             process_run(entry.command.cstring(), nullptr, 0);
             window()->hide();
-        });
+        }));
 
         return Iteration::CONTINUE;
     });
 
-    if (!find_any)
+    if (children.count() == 0)
     {
-        host()->add<Widget::Label>("No application found!", Anchor::CENTER);
+        children.push_back(label("No application found!", Math::Anchor::CENTER));
     }
+
+    return Widget::scroll(vflow(4, children));
 }
 
-} // namespace panel
+} // namespace Panel

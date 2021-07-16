@@ -1,6 +1,9 @@
 #pragma once
 
-#include <libsystem/Common.h>
+#include <libutils/Prelude.h>
+
+namespace Utils
+{
 
 template <typename TValue>
 constexpr TValue swap_little_endian(TValue value)
@@ -37,7 +40,7 @@ constexpr TValue swap_big_endian(TValue value)
 }
 
 template <typename TValue>
-class PACKED BigEndian
+struct PACKED BigEndian
 {
 private:
     TValue _value{0};
@@ -54,7 +57,7 @@ public:
 };
 
 template <typename TValue>
-class PACKED LittleEndian
+struct PACKED LittleEndian
 {
 private:
     TValue _value{0};
@@ -89,3 +92,5 @@ using le_int8_t = LittleEndian<int8_t>;
 using le_int16_t = LittleEndian<int16_t>;
 using le_int32_t = LittleEndian<int32_t>;
 using le_int64_t = LittleEndian<int64_t>;
+
+} // namespace Utils

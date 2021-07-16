@@ -2,8 +2,11 @@
 
 #include <assert.h>
 
+namespace Utils
+{
+
 template <typename T>
-class RefCounted
+struct RefCounted
 {
 private:
     int _refcount = 1;
@@ -78,3 +81,5 @@ T *deref_if_not_null(T *ptr)
 
     return ptr;
 }
+
+} // namespace Utils

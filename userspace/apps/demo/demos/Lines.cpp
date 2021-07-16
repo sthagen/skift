@@ -1,6 +1,9 @@
-#include <libutils/Random.h>
+#include <libmath/Random.h>
 
-#include "demo/demos/Demos.h"
+#include "demo/Demo.h"
+
+namespace Demo
+{
 
 struct Line
 {
@@ -9,9 +12,9 @@ struct Line
     Graphic::Color color;
 };
 
-static Random _random = {};
+static Math::Random _random = {};
 
-void lines_draw(Graphic::Painter &painter, Math::Recti screen, float time)
+void lines(Graphic::Painter &painter, Math::Recti screen, float time)
 {
     UNUSED(time);
 
@@ -32,3 +35,5 @@ void lines_draw(Graphic::Painter &painter, Math::Recti screen, float time)
         painter.draw_line(line.start, line.finish, line.color);
     }
 }
+
+} // namespace Demo

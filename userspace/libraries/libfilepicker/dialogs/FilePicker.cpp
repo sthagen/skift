@@ -1,6 +1,5 @@
-#include "libgraphic/Icon.h"
+#include <libwidget/Components.h>
 #include <libwidget/Elements.h>
-#include <libwidget/TitleBar.h>
 
 #include <libfilepicker/dialogs/FilePicker.h>
 #include <libfilepicker/widgets/DirectoryBrowser.h>
@@ -19,36 +18,19 @@ Dialog::Dialog(DialogFlags flags) : _flags(flags)
 
 String Dialog::get_title()
 {
-    StringBuilder builder;
-    if (_flags & DialogFlags::DIALOG_FLAGS_OPEN)
-    {
-        builder.append("Open ");
-    }
-    else if (_flags & DialogFlags::DIALOG_FLAGS_SAVE)
-    {
-        builder.append("Save ");
-    }
-
-    if (_flags & DialogFlags::DIALOG_FLAGS_FOLDER)
-    {
-        builder.append("folder");
-    }
-    else
-    {
-        builder.append("document");
-    }
-
-    return builder.finalize();
+    return IO::format(
+        "{} {}",
+        _flags & DialogFlags::DIALOG_FLAGS_OPEN ? "Open" : "Save",
+        _flags & DialogFlags::DIALOG_FLAGS_FOLDER ? "folder" : "document");
 }
 
 void Dialog::render(Widget::Window *window)
 {
     window->size(Math::Vec2i(600, 400));
-    window->root()->layout(VFLOW(0));
 
-    window->root()->add<Widget::TitleBar>(Graphic::Icon::get("widgets"), get_title());
+    window->root()->add(Widget::titlebar(Graphic::Icon::get("widgets"), get_title()));
 
-    window->root()->add<ToolBar>(_navigation, nullptr, ToolBar::NO_OPEN_TERMINAL);
+    window->root()->add<ToolBar>(_navigation, nullptr, ToolBar::NO_HJ_OPEN_TERMINAL);
 
     if (_flags & DialogFlags::DIALOG_FLAGS_FOLDER)
     {
@@ -66,16 +48,12 @@ void Dialog::render(Widget::Window *window)
 
     auto action_container = window->root()->add(Widget::panel());
 
-    action_container->layout(HFLOW(4));
-
     if (_flags & DialogFlags::DIALOG_FLAGS_SAVE)
     {
         _text_field = action_container->add<Widget::TextField>(Widget::TextModel::empty());
         _text_field->flags(Widget::Element::FILL);
         _text_field->focus();
     }
-
-    action_container->insets(Insetsi(4, 4));
 
     action_container->add(Widget::spacer());
 

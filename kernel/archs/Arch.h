@@ -1,59 +1,66 @@
 #pragma once
 
 #include <abi/Memory.h>
-#include <libsystem/Result.h>
+#include <abi/Result.h>
 #include <skift/Time.h>
 
-#include "kernel/memory/MemoryRange.h"
+#include "system/memory/MemoryRange.h"
 
 struct Task;
 
-void arch_disable_interrupts();
+namespace Arch
+{
 
-void arch_enable_interrupts();
+void disable_interrupts();
 
-void arch_halt();
+void enable_interrupts();
 
-void arch_yield();
+void halt();
 
-void arch_save_context(Task *task);
+void yield();
 
-void arch_load_context(Task *task);
+void save_context(Task *task);
 
-void arch_task_go(Task *task);
+void load_context(Task *task);
 
-size_t arch_debug_write(const void *buffer, size_t size);
+void task_go(Task *task);
 
-TimeStamp arch_get_time();
+size_t debug_write(const void *buffer, size_t size);
 
-NO_RETURN void arch_reboot();
+TimeStamp get_time();
 
-NO_RETURN void arch_shutdown();
+NO_RETURN void reboot();
 
-void arch_panic_dump();
+NO_RETURN void shutdown();
 
-void arch_dump_stack_frame(void *stackframe);
+void dump_stack_frame(void *stackframe);
 
-void arch_backtrace();
+void backtrace();
 
-void *arch_kernel_address_space();
+void virtual_initialize();
 
-void arch_virtual_initialize();
+void virtual_memory_enable();
 
-void arch_virtual_memory_enable();
+struct AddressSpace
+{
+};
 
-bool arch_virtual_present(void *address_space, uintptr_t virtual_address);
+AddressSpace *kernel_address_space();
 
-uintptr_t arch_virtual_to_physical(void *address_space, uintptr_t virtual_address);
+AddressSpace *address_space_create();
 
-Result arch_virtual_map(void *address_space, MemoryRange physical_range, uintptr_t virtual_address, MemoryFlags flags);
+void address_space_destroy(AddressSpace *address_space);
 
-MemoryRange arch_virtual_alloc(void *address_space, MemoryRange physical_range, MemoryFlags flags);
+void address_space_switch(AddressSpace *address_space);
 
-void arch_virtual_free(void *address_space, MemoryRange virtual_range);
+bool virtual_present(AddressSpace *address_space, uintptr_t virtual_address);
 
-void *arch_address_space_create();
+uintptr_t virtual_to_physical(AddressSpace *address_space, uintptr_t virtual_address);
 
-void arch_address_space_destroy(void *address_space);
+HjResult virtual_map(AddressSpace *address_space, MemoryRange physical_range, uintptr_t virtual_address, MemoryFlags flags);
 
-void arch_address_space_switch(void *address_space);
+MemoryRange virtual_alloc(AddressSpace *address_space, MemoryRange physical_range, MemoryFlags flags);
+
+void virtual_free(AddressSpace *address_space, MemoryRange virtual_range);
+
+} // namespace Arch

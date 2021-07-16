@@ -10,8 +10,9 @@ namespace IO
 
 struct NumberScanner
 {
-    int _base;
+    int _base = 10;
 
+public:
     static NumberScanner binary() { return {2}; }
 
     static NumberScanner octal() { return {8}; }
@@ -20,33 +21,49 @@ struct NumberScanner
 
     static NumberScanner hexadecimal() { return {16}; }
 
-    Optional<uint8_t> scan_digit(Scanner &scan)
+    bool is_digit(Scanner &scan)
     {
-        char c = scan.current();
+        char c = scan.peek();
 
         for (int i = 0; i < _base; i++)
         {
             if ((Strings::LOWERCASE_XDIGITS[i] == c) ||
                 (Strings::UPPERCASE_XDIGITS[i] == c))
             {
-                scan.forward();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    Optional<uint8_t> scan_digit(Scanner &scan)
+    {
+        char c = scan.peek();
+
+        for (int i = 0; i < _base; i++)
+        {
+            if ((Strings::LOWERCASE_XDIGITS[i] == c) ||
+                (Strings::UPPERCASE_XDIGITS[i] == c))
+            {
+                scan.next();
                 return i;
             }
         }
 
-        return {};
+        return NONE;
     }
 
     Optional<uint64_t> scan_uint(Scanner &scan)
     {
-        if (!scan.current_is(Strings::ALL_XDIGITS))
+        if (!is_digit(scan))
         {
-            return {};
+            return NONE;
         }
 
         uint64_t value = 0;
 
-        while (!scan.ended() && scan.current_is(Strings::ALL_XDIGITS))
+        while (!scan.ended() && is_digit(scan))
         {
             value = value * _base;
             value += scan_digit(scan).unwrap();
@@ -57,10 +74,10 @@ struct NumberScanner
 
     Optional<int64_t> scan_int(Scanner &scan)
     {
-        if (!scan.current_is(Strings::ALL_XDIGITS) &&
-            !scan.current_is("-"))
+        if (!is_digit(scan) &&
+            scan.peek() != '-')
         {
-            return {};
+            return NONE;
         }
 
         bool is_negative = scan.skip('-');
@@ -69,7 +86,7 @@ struct NumberScanner
 
         if (!unsigned_value.present())
         {
-            return {};
+            return NONE;
         }
 
         if (is_negative)
@@ -92,7 +109,7 @@ struct NumberScanner
         {
             double multiplier = (1.0 / _base);
 
-            while (scan.current_is(Strings::ALL_XDIGITS))
+            while (is_digit(scan))
             {
                 fpart += multiplier * scan_digit(scan).unwrap();
                 multiplier *= (1.0 / _base);
@@ -101,9 +118,9 @@ struct NumberScanner
 
         int64_t exp = 0;
 
-        if (scan.current_is("eE"))
+        if (scan.peek_is_any("eE"))
         {
-            scan.forward();
+            scan.next();
             exp = scan_int(scan).unwrap_or(0);
         }
 

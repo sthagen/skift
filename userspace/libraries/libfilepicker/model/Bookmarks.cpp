@@ -47,7 +47,7 @@ RefPtr<Bookmarks> Bookmarks::load()
 {
     auto bookmarks = make<Bookmarks>();
 
-    IO::File bookmarks_file{"/Configs/file-manager/booksmark.json", OPEN_READ};
+    IO::File bookmarks_file{"/Configs/file-manager/bookmarks.json", HJ_OPEN_READ};
 
     if (!bookmarks_file.exist())
     {
@@ -78,19 +78,14 @@ void Bookmarks::save()
         array.push_back(_bookmarks[i].serialize());
     }
 
-    Prettifier pretty;
-    Json::prettify(pretty, move(array));
-
-    auto data = pretty.finalize();
-
-    IO::File file{"/Configs/file-manager/booksmark.json", OPEN_WRITE | OPEN_CREATE};
+    IO::File file{"/Configs/file-manager/bookmarks.json", HJ_OPEN_WRITE | HJ_OPEN_CREATE};
 
     if (!file.exist())
     {
         return;
     }
 
-    file.write(data.cstring(), data.length());
+    IO::write(file, Json::stringify(array));
 }
 
 } // namespace FilePicker

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <libsystem/Common.h>
+#include <libutils/Prelude.h>
 
 namespace Utils
 {
 
-class SourceLocation
+struct SourceLocation
 {
 private:
     const char *_file;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libutils/unicode/Codepoint.h>
+#include <libtext/Rune.h>
 
 #define KEY_LIST(__ENTRY)                              \
     __ENTRY(KEYBOARD_KEY_INVALID, 0x0)                 \
@@ -116,13 +116,13 @@
 
 #define KEY_ENUM_ENTRY(__key_name, __key_number) __key_name,
 
-enum Key
+enum Key : uint32_t
 {
     KEY_LIST(KEY_ENUM_ENTRY)
         __KEY_COUNT,
 };
 
-enum KeyMotion
+enum KeyMotion : uint32_t
 {
     KEY_MOTION_UP,
     KEY_MOTION_DOWN,
@@ -134,13 +134,13 @@ enum KeyMotion
 #define KEY_MODIFIER_SHIFT (1 << 2)
 #define KEY_MODIFIER_CTRL (1 << 3)
 #define KEY_MODIFIER_SUPER (1 << 3)
-typedef unsigned int KeyModifier;
+typedef uint32_t KeyModifier;
 
 struct KeyboardPacket
 {
     Key key;
     KeyModifier modifiers;
-    Codepoint codepoint;
+    Text::Rune rune;
     KeyMotion motion;
 };
 
@@ -148,10 +148,10 @@ struct KeyMapping
 {
     Key key;
 
-    Codepoint regular_codepoint;
-    Codepoint shift_codepoint;
-    Codepoint alt_codepoint;
-    Codepoint shift_alt_codepoint;
+    Text::Rune regular_rune;
+    Text::Rune shift_rune;
+    Text::Rune alt_rune;
+    Text::Rune shift_alt_rune;
 };
 
 #define KEYMAP_LANGUAGE_SIZE 16
@@ -163,7 +163,7 @@ struct KeyMap
     char language[KEYMAP_LANGUAGE_SIZE];
     char region[KEYMAP_REGION_SIZE];
 
-    size_t length;
+    uint32_t length;
     KeyMapping mappings[];
 };
 

@@ -74,253 +74,19 @@ Element::~Element()
     }
 }
 
-void Element::do_layout()
+void Element::layout()
 {
-    switch (_layout.type)
+    for (auto &child : _children)
     {
-
-    case Layout::STACK:
-    {
-        for (auto &child : _childs)
-        {
-            if (child->flags() & FILL)
-            {
-                auto bound = content();
-
-                if (child->max_width() || child->max_height())
-                {
-                    if (child->max_width() > 0 && bound.width() > child->max_width())
-                    {
-                        bound = bound.with_width(child->max_width());
-                    }
-
-                    if (child->max_height() > 0 && bound.height() > child->max_height())
-                    {
-                        bound = bound.with_height(child->max_height());
-                    }
-
-                    child->container(bound.centered_within(content()));
-                }
-                else
-                {
-                    child->container(content());
-                }
-            }
-            else
-            {
-                auto size = child->compute_size();
-
-                child->container(Math::Recti{size}.centered_within(content()));
-            }
-        }
-    }
-    break;
-
-    case Layout::GRID:
-    {
-        int index = 0;
-
-        for (auto &child : _childs)
-        {
-            int x = index % _layout.hcell;
-            int y = index / _layout.hcell;
-
-            Math::Recti row = content().row(_layout.vcell, y, _layout.spacing.y());
-            Math::Recti column = row.column(_layout.hcell, x, _layout.spacing.x());
-
-            child->container(column);
-            index++;
-        }
-    }
-    break;
-
-    case Layout::HGRID:
-    {
-        int index = 0;
-
-        for (auto &child : _childs)
-        {
-            auto bound = content().column(_childs.count(), index, _layout.spacing.x());
-            child->container(bound);
-            index++;
-        }
-    }
-    break;
-
-    case Layout::VGRID:
-    {
-        int index = 0;
-
-        for (auto &child : _childs)
-        {
-            auto bound = content().row(_childs.count(), index, _layout.spacing.y());
-            child->container(bound);
-            index++;
-        }
-    }
-    break;
-
-    case Layout::HFLOW:
-    {
-        int fixed_child_count = 0;
-        int fixed_child_total_width = 0;
-
-        int fill_child_count = 0;
-
-        for (auto &child : _childs)
-        {
-            if (child->flags() & Element::FILL)
-            {
-                fill_child_count++;
-            }
-            else
-            {
-                fixed_child_count++;
-
-                if (child->flags() & Element::SQUARE)
-                {
-                    fixed_child_total_width += content().height();
-                }
-                else
-                {
-                    fixed_child_total_width += child->compute_size().x();
-                }
-            }
-        }
-
-        int usable_space =
-            content().width() -
-            _layout.spacing.x() * (_childs.count() - 1);
-
-        int fill_child_total_width = MAX(0, usable_space - fixed_child_total_width);
-
-        int fill_child_width = (fill_child_total_width) / MAX(1, fill_child_count);
-
-        int current = content().x();
-
-        for (auto &child : _childs)
-        {
-            if (child->flags() & Element::FILL)
-            {
-                child->container(Math::Recti(
-                    current,
-                    content().y(),
-                    fill_child_width,
-                    content().height()));
-
-                current += fill_child_width + _layout.spacing.x();
-            }
-            else
-            {
-                if (child->flags() & Element::SQUARE)
-                {
-                    child->container(Math::Recti(
-                        current,
-                        content().y(),
-                        content().height(),
-                        content().height()));
-
-                    current += content().height() + _layout.spacing.x();
-                }
-                else
-                {
-                    child->container(Math::Recti(
-                        current,
-                        content().y(),
-                        child->compute_size().x(),
-                        content().height()));
-
-                    current += child->compute_size().x() + _layout.spacing.x();
-                }
-            }
-        }
-    }
-    break;
-
-    case Layout::VFLOW:
-    {
-        int fixed_child_count = 0;
-        int fixed_child_total_height = 0;
-        int fill_child_count = 0;
-
-        for (auto &child : _childs)
-        {
-            if (child->flags() & Element::FILL)
-            {
-                fill_child_count++;
-            }
-            else
-            {
-                fixed_child_count++;
-                fixed_child_total_height += child->compute_size().y();
-            }
-        }
-
-        int usable_space = content().height() - _layout.spacing.y() * (_childs.count() - 1);
-
-        int fill_child_total_height = MAX(0, usable_space - fixed_child_total_height);
-
-        int fill_child_height = (fill_child_total_height) / MAX(1, fill_child_count);
-
-        int current = content().y();
-
-        for (auto &child : _childs)
-        {
-            if (child->flags() & Element::FILL)
-            {
-                child->container({
-                    content().x(),
-                    current,
-                    content().width(),
-                    fill_child_height,
-                });
-
-                current += fill_child_height + _layout.spacing.y();
-            }
-            else
-            {
-                if (child->flags() & Element::SQUARE)
-                {
-                    child->container({
-                        content().x(),
-                        current,
-                        content().width(),
-                        content().width(),
-                    });
-
-                    current += content().width() + _layout.spacing.y();
-                }
-                else
-                {
-                    child->container({
-                        content().x(),
-                        current,
-                        content().width(),
-                        child->compute_size().y(),
-                    });
-
-                    current += child->compute_size().y() + _layout.spacing.y();
-                }
-            }
-        }
-    }
-    break;
-
-    default:
-        break;
+        child->container(bound());
     }
 }
 
 void Element::relayout()
 {
-    do_layout();
+    layout();
 
-    if (_childs.empty())
-    {
-        return;
-    }
-
-    for (auto &child : _childs)
+    for (auto &child : children())
     {
         child->relayout();
     }
@@ -336,7 +102,7 @@ void Element::should_relayout()
 
 Math::Vec2i Element::size()
 {
-    if (_childs.count() == 0)
+    if (_children.count() == 0)
     {
         return Math::Vec2i(0);
     }
@@ -344,66 +110,12 @@ Math::Vec2i Element::size()
     int width = 0;
     int height = 0;
 
-    if (_layout.type == Layout::STACK)
+    for (auto &child : _children)
     {
-        for (auto &child : _childs)
-        {
-            Math::Vec2i child_size = child->compute_size();
+        Math::Vec2i child_size = child->compute_size();
 
-            width = MAX(width, child_size.x());
-            height = MAX(height, child_size.y());
-        }
-    }
-    else if (_layout.type == Layout::GRID)
-    {
-        for (auto &child : _childs)
-        {
-            Math::Vec2i child_size = child->compute_size();
-
-            width = MAX(width, child_size.x());
-            height = MAX(height, child_size.y());
-        }
-
-        width = width * _layout.hcell;
-        height = height * _layout.vcell;
-
-        width += _layout.spacing.x() * _layout.hcell;
-        height += _layout.spacing.y() * _layout.vcell;
-    }
-    else
-    {
-        for (auto &child : _childs)
-        {
-            Math::Vec2i child_size = child->compute_size();
-
-            switch (_layout.type)
-            {
-            case Layout::HFLOW:
-            case Layout::HGRID:
-                width += child_size.x();
-                height = MAX(height, child_size.y());
-                break;
-
-            case Layout::VFLOW:
-            case Layout::VGRID:
-                width = MAX(width, child_size.x());
-                height += child_size.y();
-                break;
-
-            default:
-                ASSERT_NOT_REACHED();
-            }
-        }
-
-        if (_layout.type == Layout::HFLOW || _layout.type == Layout::HGRID)
-        {
-            width += _layout.spacing.x() * (_childs.count() - 1);
-        }
-
-        if (_layout.type == Layout::VFLOW || _layout.type == Layout::VGRID)
-        {
-            height += _layout.spacing.y() * (_childs.count() - 1);
-        }
+        width = MAX(width, child_size.x());
+        height = MAX(height, child_size.y());
     }
 
     return {width, height};
@@ -467,7 +179,7 @@ void Element::enable_if(bool condition)
     }
 }
 
-/* --- Childs --------------------------------------------------------------- */
+/* --- Children ------------------------------------------------------------- */
 
 Element *Element::at(Math::Vec2i position)
 {
@@ -478,7 +190,7 @@ Element *Element::at(Math::Vec2i position)
         return result;
     }
 
-    _childs.foreach_reversed([&](RefPtr<Element> child) {
+    _children.foreach_reversed([&](RefPtr<Element> child) {
         if (!(child->flags() & NO_MOUSE_HIT) && child->container().contains(position))
         {
             result = child->at(position - child->origin());
@@ -503,7 +215,7 @@ RefPtr<Element> Element::add(RefPtr<Element> child)
 
     Assert::equal(child->_parent, nullptr);
 
-    _childs.push_back(child);
+    _children.push_back(child);
 
     if (_window != nullptr)
     {
@@ -522,7 +234,7 @@ void Element::del(RefPtr<Element> child)
 
     child->unmount();
 
-    _childs.remove_value(child);
+    _children.remove_value(child);
     should_relayout();
 }
 
@@ -536,7 +248,7 @@ void Element::mount(Window &window)
 {
     _window = &window;
 
-    for (auto &child : _childs)
+    for (auto &child : _children)
     {
         child->mount(*this);
     }
@@ -551,7 +263,7 @@ void Element::unmount()
         _parent = nullptr;
         _window = nullptr;
 
-        for (auto &child : _childs)
+        for (auto &child : _children)
         {
             child->unmount();
         }
@@ -560,7 +272,7 @@ void Element::unmount()
 
 void Element::clear()
 {
-    _childs.clear();
+    _children.clear();
 
     should_relayout();
     should_repaint();
@@ -594,16 +306,11 @@ void Element::repaint(Graphic::Painter &painter, Math::Recti rectangle)
     painter.transform(origin());
     painter.clip(bound());
 
-    if (Application::the()->show_wireframe())
-    {
-        painter.fill_insets(bound(), _insets, Graphic::Colors::MAGENTA.with_alpha(0.25));
-    }
-
     painter.push();
     paint(painter, rectangle);
     painter.pop();
 
-    for (auto &child : _childs)
+    for (auto &child : _children)
     {
         auto local_rectangle = rectangle.offset(-child->origin());
 
@@ -613,7 +320,7 @@ void Element::repaint(Graphic::Painter &painter, Math::Recti rectangle)
         }
     }
 
-    if (Application::the()->show_wireframe())
+    if (Application::the().show_wireframe())
     {
         painter.draw_rectangle(bound(), Graphic::Colors::CYAN.with_alpha(0.25));
     }
@@ -628,7 +335,7 @@ void Element::should_repaint()
 
 void Element::should_repaint(Math::Recti rectangle)
 {
-    if (!overflow().colide_with(rectangle))
+    if (!bound().colide_with(rectangle))
     {
         return;
     }
@@ -651,7 +358,7 @@ void Element::should_repaint(Math::Recti rectangle)
 void Element::on(EventType event_type, EventHandler handler)
 {
     assert(event_type < EventType::__COUNT);
-    _handlers[event_type] = move(handler);
+    _handlers[event_type] = std::move(handler);
 }
 
 void Element::dispatch_event(Event *event)
@@ -680,9 +387,6 @@ Math::Vec2i Element::compute_size()
     int width = size.x();
     int height = size.y();
 
-    width += _insets.left() + _insets.right();
-    height += _insets.top() + _insets.bottom();
-
     if (_max_width)
     {
         width = MIN(width, _max_width);
@@ -702,9 +406,6 @@ Math::Vec2i Element::compute_size()
     {
         height = MAX(height, _min_height);
     }
-
-    width += _outsets.left() + _outsets.right();
-    height += _outsets.top() + _outsets.bottom();
 
     return Math::Vec2i(width, height);
 }

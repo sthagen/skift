@@ -2,8 +2,8 @@
 #include <abi/IOCall.h>
 #include <abi/Paths.h>
 
+#include <abi/Result.h>
 #include <libgraphic/Framebuffer.h>
-#include <libsystem/Result.h>
 #include <libsystem/core/Plugs.h>
 
 namespace Graphic
@@ -12,20 +12,10 @@ namespace Graphic
 ResultOr<OwnPtr<Framebuffer>> Framebuffer::open()
 {
     Handle handle;
-    __plug_handle_open(&handle, FRAMEBUFFER_DEVICE_PATH, OPEN_READ | OPEN_WRITE);
-
-    if (handle_has_error(&handle))
-    {
-        return handle_get_error(&handle);
-    }
+    TRY(__plug_handle_open(&handle, FRAMEBUFFER_DEVICE_PATH, HJ_OPEN_READ | HJ_OPEN_WRITE));
 
     IOCallDisplayModeArgs mode_info = {};
-    __plug_handle_call(&handle, IOCALL_DISPLAY_GET_MODE, &mode_info);
-
-    if (handle_has_error(&handle))
-    {
-        return handle_get_error(&handle);
-    }
+    TRY(__plug_handle_call(&handle, IOCALL_DISPLAY_GET_MODE, &mode_info));
 
     auto bitmap_or_error = Bitmap::create_shared(mode_info.width, mode_info.height);
 
@@ -39,8 +29,7 @@ ResultOr<OwnPtr<Framebuffer>> Framebuffer::open()
 
 Framebuffer::Framebuffer(Handle handle, RefPtr<Bitmap> bitmap)
     : _handle(handle),
-      _bitmap(bitmap),
-      _painter(bitmap)
+      _bitmap(bitmap)
 {
 }
 
@@ -49,21 +38,15 @@ Framebuffer::~Framebuffer()
     __plug_handle_close(&_handle);
 }
 
-Result Framebuffer::set_resolution(Math::Vec2i size)
+HjResult Framebuffer::set_resolution(Math::Vec2i size)
 {
     auto bitmap = TRY(Bitmap::create_shared(size.x(), size.y()));
 
     IOCallDisplayModeArgs mode_info = (IOCallDisplayModeArgs){size.x(), size.y()};
 
-    __plug_handle_call(&_handle, IOCALL_DISPLAY_SET_MODE, &mode_info);
-
-    if (handle_has_error(&_handle))
-    {
-        return handle_get_error(&_handle);
-    }
+    TRY(__plug_handle_call(&_handle, IOCALL_DISPLAY_SET_MODE, &mode_info));
 
     _bitmap = bitmap;
-    _painter = Painter(_bitmap);
 
     return SUCCESS;
 }
@@ -79,7 +62,7 @@ void Framebuffer::mark_dirty(Math::Recti new_bound)
 
     bool merged = false;
 
-    _dirty_bounds.foreach ([&](Math::Recti &region) {
+    _dirty_bounds.foreach([&](Math::Recti &region) {
         int region_area = region.area();
         int merge_area = region.merged_with(new_bound).area();
 
@@ -113,7 +96,7 @@ void Framebuffer::blit()
         return;
     }
 
-    _dirty_bounds.foreach ([&](auto &bound) {
+    _dirty_bounds.foreach([&](auto &bound) {
         IOCallDisplayBlitArgs args;
 
         args.buffer = reinterpret_cast<uint32_t *>(_bitmap->pixels());
@@ -126,11 +109,6 @@ void Framebuffer::blit()
         args.blit_height = bound.height();
 
         __plug_handle_call(&_handle, IOCALL_DISPLAY_BLIT, &args);
-
-        if (handle_has_error(&_handle))
-        {
-            handle_printf_error(&_handle, "Failed to iocall device " FRAMEBUFFER_DEVICE_PATH);
-        }
 
         return Iteration::CONTINUE;
     });

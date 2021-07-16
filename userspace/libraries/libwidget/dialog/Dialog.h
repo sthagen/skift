@@ -2,7 +2,7 @@
 
 #include <libgraphic/Icon.h>
 #include <libwidget/Application.h>
-#include <libwidget/Button.h>
+#include <libwidget/Elements.h>
 
 namespace Widget
 {
@@ -15,7 +15,7 @@ enum DialogButton
     CANCEL = (1 << 3)
 };
 
-enum class DialogResult
+enum struct DialogResult
 {
     NONE,
     YES,
@@ -25,7 +25,7 @@ enum class DialogResult
     CLOSE,
 };
 
-class Dialog
+struct Dialog
 {
 private:
     DialogResult _result = DialogResult::NONE;
@@ -51,7 +51,7 @@ public:
 
     DialogResult show()
     {
-        Assert::is_true(_window == nullptr);
+        Assert::truth(_window == nullptr);
 
         _window = new Window(WINDOW_NONE);
 
@@ -66,7 +66,7 @@ public:
 
         _window->show();
 
-        Application::the()->run_nested();
+        Application::the().run_nested();
 
         delete _window;
         _window = nullptr;
@@ -76,7 +76,7 @@ public:
 
     void close(DialogResult result)
     {
-        Application::the()->exit_nested(0);
+        Application::the().exit_nested(0);
         _result = result;
     }
 
@@ -88,42 +88,38 @@ public:
     {
         if (_buttons & DialogButton::YES)
         {
-            auto button = parent->add<Button>(Button::OUTLINE, "Yes");
-            button->on(Event::ACTION, [&](auto) {
+            parent->add(Widget::outline_button("Yes", [&] {
                 on_button(DialogButton::YES);
                 close(DialogResult::YES);
                 _window->hide();
-            });
+            }));
         }
 
         if (_buttons & DialogButton::NO)
         {
-            auto button = parent->add<Button>(Button::OUTLINE, "No");
-            button->on(Event::ACTION, [&](auto) {
+            parent->add(Widget::outline_button("No", [&] {
                 on_button(DialogButton::NO);
                 close(DialogResult::NO);
                 _window->hide();
-            });
+            }));
         }
 
         if (_buttons & DialogButton::OK)
         {
-            auto button = parent->add<Button>(Button::OUTLINE, "Ok");
-            button->on(Event::ACTION, [&](auto) {
+            parent->add(Widget::outline_button("Ok", [&] {
                 on_button(DialogButton::OK);
                 close(DialogResult::OK);
                 _window->hide();
-            });
+            }));
         }
 
         if (_buttons & DialogButton::CANCEL)
         {
-            auto button = parent->add<Button>(Button::OUTLINE, "Cancel");
-            button->on(Event::ACTION, [&](auto) {
+            parent->add(Widget::outline_button("Cancel", [&] {
                 on_button(DialogButton::CANCEL);
                 close(DialogResult::CANCEL);
                 _window->hide();
-            });
+            }));
         }
     }
 };

@@ -3,6 +3,7 @@
 #include <libasync/Invoker.h>
 #include <libgraphic/Bitmap.h>
 #include <libgraphic/Painter.h>
+#include <libio/Streams.h>
 #include <libutils/HashMap.h>
 #include <libutils/Vector.h>
 #include <libwidget/Cursor.h>
@@ -16,7 +17,7 @@
 namespace Widget
 {
 
-class Window
+struct Window
 {
 private:
     int _handle = -1;
@@ -42,13 +43,10 @@ private:
     CursorState cursor_state = CURSOR_DEFAULT;
 
     RefPtr<Graphic::Bitmap> frontbuffer;
-    OwnPtr<Graphic::Painter> frontbuffer_painter;
-
     RefPtr<Graphic::Bitmap> backbuffer;
-    OwnPtr<Graphic::Painter> backbuffer_painter;
 
-    Vector<Math::Recti> _dirty_rects{};
     bool _dirty_layout;
+    Vector<Math::Recti> _dirty_paint{};
 
     EventHandler _handlers[EventType::__COUNT];
 
@@ -58,8 +56,10 @@ private:
     Element *_mouse_focus = nullptr;
     Element *_mouse_over = nullptr;
 
-    OwnPtr<Async::Invoker> _repaint_invoker;
-    OwnPtr<Async::Invoker> _relayout_invoker;
+    OwnPtr<Async::Invoker> _update_invoker;
+
+    NONCOPYABLE(Window);
+    NONMOVABLE(Window);
 
 public:
     int handle() { return this->_handle; }
@@ -95,13 +95,15 @@ public:
 
     Graphic::Color color(ThemeColorRole role);
 
-    Window(WindowFlag flags);
+    Window(WindowFlag flags = WINDOW_NONE);
 
     virtual ~Window();
 
     void show();
 
     void hide();
+
+    void try_hide();
 
     void cursor(CursorState state);
 
@@ -133,11 +135,19 @@ public:
 
     void end_resize();
 
-    /* --- Childs ----------------------------------------------------------- */
+    /* --- Children --------------------------------------------------------- */
 
-    virtual RefPtr<Element> build() { return nullptr; }
+    RefPtr<Element> root()
+    {
+        if (!_root)
+        {
+            _root = build();
+            _root->mount(*this);
+            _keyboard_focus = _root.naked();
+        }
 
-    RefPtr<Element> root() { return _root; }
+        return _root;
+    }
 
     void focus_widget(Element *widget);
 
@@ -149,17 +159,34 @@ public:
 
     bool has_keyboard_focus(Element *widget);
 
-    /* --- Layout ----------------------------------------------------------- */
+    /* --- Rebuild ---------------------------------------------------------- */
+
+    virtual RefPtr<Element> build()
+    {
+        return make<Element>();
+    }
+
+    void should_rebuild()
+    {
+        if (_root)
+        {
+            _root->unmount();
+            _root = nullptr;
+            should_relayout();
+        }
+    }
+
+    /* --- Update ----------------------------------------------------------- */
 
     void relayout();
 
-    void should_relayout();
-
-    /* --- Render ----------------------------------------------------------- */
-
     virtual void repaint(Graphic::Painter &painter, Math::Recti rectangle);
 
-    void repaint_dirty();
+    void flip(Math::Recti region);
+
+    void update();
+
+    void should_relayout();
 
     void should_repaint(Math::Recti rectangle);
 
@@ -174,8 +201,6 @@ public:
     void handle_got_focus(Event *event);
 
     void handle_lost_focus(Event *event);
-
-    void handle_window_closing(Event *event);
 
     void handle_mouse_move(Event *event);
 
@@ -194,23 +219,23 @@ public:
     void handle_keyboard_key_release(Event *event);
 };
 
-static inline Window *window(WindowFlag flags, Math::Vec2i size, RefPtr<Element> root)
+static inline OwnPtr<Window> window(WindowFlag flags, Math::Vec2i size, RefPtr<Element> root)
 {
-    auto window = new Window(flags);
+    auto window = own<Window>(flags);
     window->size(size);
     window->root()->add(root);
     return window;
 }
 
-static inline Window *window(WindowFlag flags, RefPtr<Element> root)
+static inline OwnPtr<Window> window(WindowFlag flags, RefPtr<Element> root)
 {
-    auto window = new Window(flags);
+    auto window = own<Window>(flags);
     window->root()->add(root);
     window->resize_to_content();
     return window;
 }
 
-static inline Window *window(RefPtr<Element> root)
+static inline OwnPtr<Window> window(RefPtr<Element> root)
 {
     return window(WINDOW_NONE, root);
 }

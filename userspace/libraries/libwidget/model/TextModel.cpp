@@ -1,7 +1,7 @@
+#include "libio/MemoryReader.h"
 #include <libio/BufReader.h>
 #include <libio/File.h>
 #include <libio/Scanner.h>
-#include <libutils/StringBuilder.h>
 #include <libwidget/model/TextModel.h>
 
 namespace Widget
@@ -18,22 +18,22 @@ RefPtr<TextModel> TextModel::open(String path)
 {
     auto model = make<TextModel>();
 
-    IO::File file{path, OPEN_READ};
+    IO::File file{path, HJ_OPEN_READ};
     IO::BufReader buf_reader{file, 512};
     IO::Scanner scan{buf_reader};
 
     // Skip the utf8 bom header if present.
     scan.skip_word("\xEF\xBB\xBF");
 
-    while (scan.do_continue())
+    while (!scan.ended())
     {
         auto line = own<TextModelLine>();
 
-        while (scan.do_continue() &&
-               scan.current_codepoint() != '\n')
+        while (!scan.ended() &&
+               scan.peek_rune() != '\n')
         {
-            line->append(scan.current_codepoint());
-            scan.forward_codepoint();
+            line->append(scan.peek_rune());
+            scan.next_rune();
         }
 
         scan.skip('\n'); // skip the \n
@@ -46,7 +46,44 @@ RefPtr<TextModel> TextModel::open(String path)
         model->append_line(own<TextModelLine>());
     }
 
-    model->span_add(TextModelSpan(0, 0, 10, THEME_ANSI_RED, THEME_ANSI_BLUE));
+    if (model->line_count() == 0)
+    {
+        model->append_line(own<TextModelLine>());
+    }
+
+    return model;
+}
+
+RefPtr<TextModel> TextModel::create(String text)
+{
+    auto model = make<TextModel>();
+
+    IO::MemoryReader memory{text};
+    IO::Scanner scan{memory};
+
+    // Skip the utf8 bom header if present.
+    scan.skip_word("\xEF\xBB\xBF");
+
+    while (!scan.ended())
+    {
+        auto line = own<TextModelLine>();
+
+        while (!scan.ended() &&
+               scan.peek_rune() != '\n')
+        {
+            line->append(scan.peek_rune());
+            scan.next_rune();
+        }
+
+        scan.skip('\n'); // skip the \n
+
+        model->append_line(line);
+    }
+
+    if (model->line_count() == 0)
+    {
+        model->append_line(own<TextModelLine>());
+    }
 
     if (model->line_count() == 0)
     {
@@ -58,33 +95,35 @@ RefPtr<TextModel> TextModel::open(String path)
 
 String TextModel::string()
 {
-    StringBuilder builder;
+    IO::MemoryWriter memory;
 
     for (size_t i = 0; i < _lines.count(); i++)
     {
         for (size_t j = 0; j < _lines[i]->length(); j++)
         {
-            builder.append_codepoint(_lines[i]->operator[](j));
+            char buffer[5];
+            Text::rune_to_utf8(_lines[i]->operator[](j), (uint8_t *)buffer);
+            IO::write(memory, buffer);
         }
 
         if (i + 1 < _lines.count())
         {
-            builder.append('\n');
+            IO::write(memory, '\n');
         }
     }
 
-    return builder.finalize();
+    return memory.string();
 }
 
 ResultOr<size_t> TextModel::save(String path)
 {
-    IO::File file{path, OPEN_WRITE | OPEN_CREATE};
+    IO::File file{path, HJ_OPEN_WRITE | HJ_OPEN_CREATE};
     return IO::write(file, string());
 }
 
-void TextModel::append_at(TextCursor &cursor, Codepoint codepoint)
+void TextModel::append_at(TextCursor &cursor, Text::Rune rune)
 {
-    line(cursor.line()).append_at(cursor.column(), codepoint);
+    line(cursor.line()).append_at(cursor.column(), rune);
     cursor.move_right_within(*this);
     did_update();
 }
